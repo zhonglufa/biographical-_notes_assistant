@@ -13,6 +13,9 @@ on:
     paths:
       - 'prd/**'
       - 'design/**'
+  # 手动触发：在 Actions 页点 "Run workflow" 即可强制跑一次，
+  # 用于验证云端校验器、或绕过推送/分支过滤问题。
+  workflow_dispatch:
 
 jobs:
   traceability:
