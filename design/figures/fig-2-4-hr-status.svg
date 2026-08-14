@@ -1,0 +1,236 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 780" font-family="'Segoe UI','Microsoft YaHei','PingFang SC',sans-serif">
+  <defs>
+    <!-- 同步消息：实心箭头 -->
+    <marker id="syncArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <!-- 异步消息：开放箭头 -->
+    <marker id="asyncArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#475569" stroke-width="1.5"/>
+    </marker>
+    <!-- 返回消息：虚线开放箭头 -->
+    <marker id="retArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+    </marker>
+    <!-- 外部操作：虚线开放箭头 -->
+    <marker id="extArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10" fill="none" stroke="#64748b" stroke-width="1.5"/>
+    </marker>
+    <!-- 循环回流箭头 -->
+    <marker id="loopArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#22c55e"/>
+    </marker>
+    <!-- 阴影滤镜 -->
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+
+  <!-- ===================== 背景 ===================== -->
+  <rect width="1000" height="780" fill="#ffffff"/>
+
+  <!-- ===================== 标题 ===================== -->
+  <text x="20" y="28" font-size="16" font-weight="700" fill="#1e293b">图 2-4 HR 状态感知时序图</text>
+  <line x1="20" y1="36" x2="300" y2="36" stroke="#1a73e8" stroke-width="2"/>
+
+  <!-- ===================== 参与者框（顶部） ===================== -->
+  <!-- 1. HR 招聘人员（Actor） -->
+  <rect x="35" y="50" width="130" height="46" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="100" y="68" text-anchor="middle" font-size="10" fill="#64748b">«actor»</text>
+  <text x="100" y="86" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">HR 招聘人员</text>
+
+  <!-- 2. 招聘平台（外部系统，灰色边框） -->
+  <rect x="235" y="50" width="130" height="46" rx="6" fill="#ffffff" stroke="#9ca3af" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="300" y="68" text-anchor="middle" font-size="10" fill="#64748b">«external»</text>
+  <text x="300" y="86" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">招聘平台</text>
+
+  <!-- 3. 平台对接引擎（Python） -->
+  <rect x="435" y="50" width="130" height="46" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="500" y="68" text-anchor="middle" font-size="10" fill="#64748b">«Python»</text>
+  <text x="500" y="86" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">平台对接引擎</text>
+
+  <!-- 4. 投递管理（Java 后端） -->
+  <rect x="635" y="50" width="130" height="46" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="700" y="68" text-anchor="middle" font-size="10" fill="#64748b">«Java»</text>
+  <text x="700" y="86" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">投递管理</text>
+
+  <!-- 5. 求职者（Actor） -->
+  <rect x="835" y="50" width="130" height="46" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="900" y="68" text-anchor="middle" font-size="10" fill="#64748b">«actor»</text>
+  <text x="900" y="86" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">求职者</text>
+
+  <!-- ===================== 生命线（虚线） ===================== -->
+  <line x1="100" y1="96" x2="100" y2="568" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="300" y1="96" x2="300" y2="568" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="500" y1="96" x2="500" y2="568" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="700" y1="96" x2="700" y2="568" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <line x1="900" y1="96" x2="900" y2="568" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
+
+  <!-- ===================== 激活条（矩形条） ===================== -->
+  <!-- HR 激活（步骤 1） -->
+  <rect x="94" y="122" width="12" height="18" rx="2" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <!-- 平台对接引擎激活（步骤 2~4） -->
+  <rect x="494" y="166" width="12" height="96" rx="2" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <!-- 招聘平台激活（步骤 2~3） -->
+  <rect x="294" y="166" width="12" height="54" rx="2" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <!-- 投递管理激活（步骤 4~8） -->
+  <rect x="694" y="248" width="12" height="188" rx="2" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <!-- 投递管理嵌套激活 — 数据库自调用（步骤 5~6） -->
+  <rect x="710" y="288" width="10" height="48" rx="2" fill="#e0f2fe" stroke="#60a5fa" stroke-width="1"/>
+  <!-- 平台对接引擎激活 — opt 内（步骤 9） -->
+  <rect x="494" y="510" width="12" height="18" rx="2" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+
+  <!-- ===================== 循环回流箭头（绘制于消息底层） ===================== -->
+  <path d="M 494 528 L 50 528 L 50 152 L 491 152" fill="none" stroke="#22c55e" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#loopArr)"/>
+  <text x="42" y="340" font-size="9" fill="#15803d" text-anchor="middle" transform="rotate(-90, 42, 340)">循环回流</text>
+
+  <!-- ===================== 步骤编号圆圈 ===================== -->
+  <circle cx="16" cy="130" r="11" fill="#1a73e8"/>
+  <text x="16" y="134" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">1</text>
+  <circle cx="16" cy="172" r="11" fill="#1a73e8"/>
+  <text x="16" y="176" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">2</text>
+  <circle cx="16" cy="212" r="11" fill="#1a73e8"/>
+  <text x="16" y="216" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">3</text>
+  <circle cx="16" cy="252" r="11" fill="#1a73e8"/>
+  <text x="16" y="256" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">4</text>
+  <circle cx="16" cy="298" r="11" fill="#1a73e8"/>
+  <text x="16" y="302" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">5</text>
+  <circle cx="16" cy="324" r="11" fill="#1a73e8"/>
+  <text x="16" y="328" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">6</text>
+  <circle cx="16" cy="368" r="11" fill="#1a73e8"/>
+  <text x="16" y="372" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">7</text>
+  <circle cx="16" cy="430" r="11" fill="#1a73e8"/>
+  <text x="16" y="434" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">8</text>
+  <circle cx="16" cy="518" r="11" fill="#1a73e8"/>
+  <text x="16" y="522" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">9</text>
+
+  <!-- ===================== 消息箭头 & 标签 ===================== -->
+
+  <!-- ---- 步骤 1：HR → 招聘平台（外部操作，虚线 + 开放箭头） ---- -->
+  <line x1="100" y1="130" x2="300" y2="130" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#extArr)"/>
+  <rect x="155" y="115" width="90" height="15" rx="2" fill="#ffffff" opacity="0.95"/>
+  <text x="200" y="127" text-anchor="middle" font-size="11" fill="#475569">登录并查看简历</text>
+
+  <!-- ---- 步骤 2：平台对接引擎 → 招聘平台（同步，实心箭头） ---- -->
+  <line x1="500" y1="172" x2="300" y2="172" stroke="#475569" stroke-width="1.5" marker-end="url(#syncArr)"/>
+  <rect x="287" y="157" width="226" height="15" rx="2" fill="#ffffff" opacity="0.95"/>
+  <text x="400" y="169" text-anchor="middle" font-size="10" fill="#475569">轮询投递状态 getApplicationStatus()</text>
+  <!-- loop 标记 -->
+  <rect x="310" y="178" width="60" height="14" rx="3" fill="#f0fdf4" stroke="#22c55e" stroke-width="0.8"/>
+  <text x="340" y="188" text-anchor="middle" font-size="9" fill="#15803d">«loop» 轮询</text>
+
+  <!-- ---- 步骤 3：招聘平台 → 平台对接引擎（返回，虚线 + 开放箭头） ---- -->
+  <line x1="300" y1="212" x2="500" y2="212" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#retArr)"/>
+  <rect x="292" y="197" width="216" height="15" rx="2" fill="#ffffff" opacity="0.95"/>
+  <text x="400" y="209" text-anchor="middle" font-size="10" fill="#64748b">返回状态（已查看/已联系/无法确认）</text>
+
+  <!-- ---- 步骤 4：平台对接引擎 → 投递管理（异步，开放箭头） ---- -->
+  <line x1="500" y1="252" x2="700" y2="252" stroke="#475569" stroke-width="1.5" marker-end="url(#asyncArr)"/>
+  <rect x="550" y="237" width="100" height="15" rx="2" fill="#ffffff" opacity="0.95"/>
+  <text x="600" y="249" text-anchor="middle" font-size="11" fill="#475569">上报状态变更事件</text>
+
+  <!-- ---- 步骤 5：投递管理 → 数据库（自调用同步，实心箭头） ---- -->
+  <path d="M 706 290 L 750 290 L 750 306 L 720 306" fill="none" stroke="#475569" stroke-width="1.5" marker-end="url(#syncArr)"/>
+  <rect x="758" y="291" width="148" height="14" rx="2" fill="#ffffff" opacity="0.95"/>
+  <text x="832" y="302" text-anchor="middle" font-size="10" fill="#475569">更新投递记录状态（数据库）</text>
+
+  <!-- ---- 步骤 6：数据库 → 投递管理（自调用返回，虚线 + 开放箭头） ---- -->
+  <path d="M 720 316 L 750 316 L 750 332 L 706 332" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#retArr)"/>
+  <rect x="758" y="318" width="70" height="14" rx="2" fill="#ffffff" opacity="0.95"/>
+  <text x="793" y="329" text-anchor="middle" font-size="10" fill="#64748b">更新成功</text>
+
+  <!-- ---- 步骤 7：投递管理 → 求职者（异步，开放箭头） ---- -->
+  <line x1="700" y1="368" x2="900" y2="368" stroke="#475569" stroke-width="1.5" marker-end="url(#asyncArr)"/>
+  <rect x="715" y="353" width="170" height="15" rx="2" fill="#ffffff" opacity="0.95"/>
+  <text x="800" y="365" text-anchor="middle" font-size="11" fill="#475569">推送状态通知（WebSocket）</text>
+
+  <!-- ===================== alt 组合片段 ===================== -->
+  <rect x="80" y="395" width="840" height="68" rx="3" fill="#f5f3ff" fill-opacity="0.25" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <rect x="80" y="395" width="36" height="18" rx="2" fill="#6366f1"/>
+  <text x="98" y="408" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">alt</text>
+  <text x="124" y="408" font-size="10" fill="#4f46e5" font-style="italic">[状态 = 已联系]</text>
+
+  <!-- ---- 步骤 8：投递管理 → 求职者（异步，alt 内） ---- -->
+  <line x1="700" y1="430" x2="900" y2="430" stroke="#475569" stroke-width="1.5" marker-end="url(#asyncArr)"/>
+  <rect x="745" y="415" width="110" height="15" rx="2" fill="#ffffff" opacity="0.95"/>
+  <text x="800" y="427" text-anchor="middle" font-size="11" fill="#475569">发送面试邀请通知</text>
+
+  <!-- ===================== opt 组合片段 ===================== -->
+  <rect x="80" y="478" width="840" height="72" rx="3" fill="#f5f3ff" fill-opacity="0.25" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <rect x="80" y="478" width="36" height="18" rx="2" fill="#6366f1"/>
+  <text x="98" y="491" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">opt</text>
+  <text x="124" y="491" font-size="10" fill="#4f46e5" font-style="italic">[6 小时无状态变化]</text>
+
+  <!-- ---- 步骤 9：平台对接引擎 → 招聘平台（同步，opt 内，循环回到步骤 2） ---- -->
+  <line x1="500" y1="518" x2="300" y2="518" stroke="#475569" stroke-width="1.5" marker-end="url(#syncArr)"/>
+  <rect x="320" y="503" width="160" height="15" rx="2" fill="#ffffff" opacity="0.95"/>
+  <text x="400" y="515" text-anchor="middle" font-size="11" fill="#475569">重新轮询（循环至步骤 2）</text>
+
+  <!-- ===================== 参与者框（底部） ===================== -->
+  <rect x="35" y="568" width="130" height="28" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.2"/>
+  <text x="100" y="586" text-anchor="middle" font-size="11" fill="#64748b">HR 招聘人员</text>
+  <rect x="235" y="568" width="130" height="28" rx="6" fill="#ffffff" stroke="#9ca3af" stroke-width="1.2"/>
+  <text x="300" y="586" text-anchor="middle" font-size="11" fill="#64748b">招聘平台</text>
+  <rect x="435" y="568" width="130" height="28" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.2"/>
+  <text x="500" y="586" text-anchor="middle" font-size="11" fill="#64748b">平台对接引擎</text>
+  <rect x="635" y="568" width="130" height="28" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.2"/>
+  <text x="700" y="586" text-anchor="middle" font-size="11" fill="#64748b">投递管理</text>
+  <rect x="835" y="568" width="130" height="28" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.2"/>
+  <text x="900" y="586" text-anchor="middle" font-size="11" fill="#64748b">求职者</text>
+
+  <!-- ===================== 图例 ===================== -->
+  <rect x="20" y="612" width="960" height="155" rx="8" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+  <text x="40" y="634" font-size="12" font-weight="700" fill="#1e293b">图例</text>
+
+  <!-- 第一行：消息类型 -->
+  <line x1="40" y1="656" x2="80" y2="656" stroke="#475569" stroke-width="1.5" marker-end="url(#syncArr)"/>
+  <text x="88" y="660" font-size="11" fill="#475569">同步消息（实心箭头）</text>
+
+  <line x1="270" y1="656" x2="310" y2="656" stroke="#475569" stroke-width="1.5" marker-end="url(#asyncArr)"/>
+  <text x="318" y="660" font-size="11" fill="#475569">异步消息（开放箭头）</text>
+
+  <line x1="500" y1="656" x2="540" y2="656" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#retArr)"/>
+  <text x="548" y="660" font-size="11" fill="#475569">返回消息（虚线箭头）</text>
+
+  <line x1="730" y1="656" x2="770" y2="656" stroke="#64748b" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#extArr)"/>
+  <text x="778" y="660" font-size="11" fill="#475569">外部操作（虚线）</text>
+
+  <!-- 第二行：结构元素 -->
+  <rect x="45" y="680" width="12" height="20" rx="2" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <text x="65" y="694" font-size="11" fill="#475569">激活条</text>
+
+  <line x1="155" y1="678" x2="155" y2="702" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="165" y="694" font-size="11" fill="#475569">生命线（虚线）</text>
+
+  <circle cx="295" cy="690" r="11" fill="#1a73e8"/>
+  <text x="295" y="694" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">N</text>
+  <text x="313" y="694" font-size="11" fill="#475569">步骤编号</text>
+
+  <rect x="410" y="682" width="56" height="18" rx="3" fill="#f0fdf4" stroke="#22c55e" stroke-width="0.8"/>
+  <text x="438" y="694" text-anchor="middle" font-size="9" fill="#15803d">«loop»</text>
+  <text x="475" y="694" font-size="11" fill="#475569">循环标记</text>
+
+  <path d="M 590 690 L 568 690 L 568 678 L 585 678" fill="none" stroke="#22c55e" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#loopArr)"/>
+  <text x="610" y="694" font-size="11" fill="#475569">循环回流</text>
+
+  <!-- 第三行：片段类型 & 参与者样式 -->
+  <rect x="45" y="718" width="60" height="22" rx="2" fill="#f5f3ff" fill-opacity="0.25" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <rect x="45" y="718" width="28" height="14" rx="2" fill="#6366f1"/>
+  <text x="59" y="729" text-anchor="middle" font-size="9" font-weight="700" fill="#ffffff">alt</text>
+  <text x="113" y="733" font-size="11" fill="#475569">alt 组合片段</text>
+
+  <rect x="230" y="718" width="60" height="22" rx="2" fill="#f5f3ff" fill-opacity="0.25" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <rect x="230" y="718" width="28" height="14" rx="2" fill="#6366f1"/>
+  <text x="244" y="729" text-anchor="middle" font-size="9" font-weight="700" fill="#ffffff">opt</text>
+  <text x="298" y="733" font-size="11" fill="#475569">opt 组合片段</text>
+
+  <rect x="420" y="720" width="60" height="20" rx="4" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5"/>
+  <text x="450" y="734" text-anchor="middle" font-size="10" fill="#1a73e8">内部系统</text>
+  <text x="490" y="733" font-size="11" fill="#475569">蓝色边框</text>
+
+  <rect x="580" y="720" width="60" height="20" rx="4" fill="#ffffff" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="610" y="734" text-anchor="middle" font-size="10" fill="#64748b">外部系统</text>
+  <text x="650" y="733" font-size="11" fill="#475569">灰色边框</text>
+
+  <text x="750" y="733" font-size="10" fill="#94a3b8">«actor» / «Python» / «Java» 标注角色类型</text>
+</svg>

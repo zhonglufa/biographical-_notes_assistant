@@ -1,0 +1,197 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 780" width="100%" height="100%">
+  <defs>
+    <!-- 节点阴影 -->
+    <filter id="shadow" x="-5%" y="-5%" width="120%" height="120%">
+      <feDropShadow dx="2" dy="4" stdDeviation="5" flood-color="#000000" flood-opacity="0.10"/>
+    </filter>
+    <!-- 容器浅阴影 -->
+    <filter id="shadow-light" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="1" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.06"/>
+    </filter>
+    <!-- 标签背景 -->
+    <filter id="label-bg" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-color="#000000" flood-opacity="0.04"/>
+    </filter>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1100" height="780" fill="#ffffff"/>
+
+  <!-- ==================== 通信连线（先绘制，位于底层） ==================== -->
+
+  <!-- 1. 浏览器 → Java 后端：HTTPS 8080 -->
+  <path d="M 235 140 L 285 140 L 285 162.5 L 320 162.5" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="293" y="143" width="60" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="323" y="156" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">HTTPS 8080</text>
+
+  <!-- 2. 浏览器 → Python 引擎：HTTPS 8000 (WebSocket) -->
+  <path d="M 150 180 L 150 240 L 290 240 L 290 272.5 L 320 272.5" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="175" y="220" width="130" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="240" y="233" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">HTTPS 8000 (WebSocket)</text>
+
+  <!-- 3. Java 后端 → MySQL：JDBC 3306（仅 Java 直连） -->
+  <path d="M 760 135 L 830 135" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="772" y="115" width="72" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="808" y="128" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">JDBC 3306</text>
+
+  <!-- 4. Java 后端 → Redis：Redis Protocol 6379 -->
+  <path d="M 760 195 L 830 195" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="772" y="175" width="80" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="812" y="188" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">Redis 6379</text>
+
+  <!-- 5. Java 后端 → RabbitMQ：AMQP 5672 -->
+  <path d="M 760 155 L 790 155 L 790 320 L 830 320" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="778" y="233" width="68" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="812" y="246" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">AMQP 5672</text>
+
+  <!-- 6. Python 引擎 → RabbitMQ：AMQP 5672 -->
+  <path d="M 760 272.5 L 785 272.5 L 785 350 L 830 350" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="773" y="307" width="68" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="807" y="320" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">AMQP 5672</text>
+
+  <!-- 7. Python 引擎 → 浏览器沙箱：WebSocket/DevTools -->
+  <path d="M 540 320 L 540 335" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="548" y="322" width="110" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="603" y="335" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">WebSocket/DevTools</text>
+
+  <!-- 8. 浏览器沙箱 → 招聘平台 API：HTTPS 443 -->
+  <path d="M 760 382.5 L 770 382.5 L 770 495 L 230 495 L 230 555" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="468" y="475" width="68" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="502" y="488" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">HTTPS 443</text>
+
+  <!-- 9. Java 后端 → AI 大模型 API：HTTPS 443 -->
+  <path d="M 760 145 L 775 145 L 775 485 L 550 485 L 550 555" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="628" y="465" width="68" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="662" y="478" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">HTTPS 443</text>
+
+  <!-- 10. Java 后端 → SMTP 邮件服务：SMTP 465 -->
+  <path d="M 760 175 L 780 175 L 780 505 L 870 505 L 870 555" fill="none" stroke="#64748b" stroke-width="1.5"/>
+  <rect x="803" y="485" width="68" height="18" rx="3" fill="#ffffff" filter="url(#label-bg)"/>
+  <text x="837" y="498" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#475569">SMTP 465</text>
+
+  <!-- ==================== 节点 1：用户端（Client） ==================== -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="80" width="200" height="120" rx="12" fill="#f8f9fa" stroke="#6b7280" stroke-width="2"/>
+  </g>
+  <text x="65" y="103" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">«device»</text>
+  <text x="65" y="118" font-family="Microsoft YaHei, sans-serif" font-size="13" font-weight="bold" fill="#374151">用户端（Client）</text>
+
+  <!-- 浏览器容器 -->
+  <rect x="65" y="120" width="170" height="60" rx="6" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="150" y="145" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">浏览器</text>
+  <text x="150" y="163" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">Chrome / Firefox</text>
+
+  <!-- ==================== 节点 2：应用服务器（Host Server） ==================== -->
+  <g filter="url(#shadow)">
+    <rect x="300" y="60" width="480" height="400" rx="12" fill="#f8f9fa" stroke="#6b7280" stroke-width="2"/>
+  </g>
+  <text x="315" y="85" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">«device»</text>
+  <text x="315" y="100" font-family="Microsoft YaHei, sans-serif" font-size="13" font-weight="bold" fill="#374151">应用服务器（Host Server）</text>
+
+  <!-- Docker 容器 1：Java 后端服务 -->
+  <rect x="320" y="115" width="440" height="95" rx="6" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="540" y="143" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">Docker 容器 1：Java 后端服务</text>
+  <text x="540" y="163" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">Spring Boot | 端口 8080</text>
+  <rect x="470" y="172" width="140" height="22" rx="4" fill="#1a73e8" fill-opacity="0.08"/>
+  <text x="540" y="187" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#1a73e8">JVM / Spring Boot</text>
+
+  <!-- Docker 容器 2：Python 自动化引擎 -->
+  <rect x="320" y="225" width="440" height="95" rx="6" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="540" y="253" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">Docker 容器 2：Python 自动化引擎</text>
+  <text x="540" y="273" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">FastAPI | 端口 8000</text>
+  <rect x="470" y="282" width="140" height="22" rx="4" fill="#1a73e8" fill-opacity="0.08"/>
+  <text x="540" y="297" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#1a73e8">Python / FastAPI</text>
+
+  <!-- Docker 容器 3：浏览器沙箱 -->
+  <rect x="320" y="335" width="440" height="95" rx="6" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="540" y="363" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">Docker 容器 3：浏览器沙箱</text>
+  <text x="540" y="383" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">无头 Chrome（Headless）</text>
+  <rect x="460" y="392" width="160" height="22" rx="4" fill="#9ca3af" fill-opacity="0.12"/>
+  <text x="540" y="407" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">Puppeteer / Playwright</text>
+
+  <!-- ==================== 节点 3：数据服务节点（Data Node） ==================== -->
+  <g filter="url(#shadow)">
+    <rect x="830" y="60" width="220" height="170" rx="12" fill="#f8f9fa" stroke="#6b7280" stroke-width="2"/>
+  </g>
+  <text x="845" y="85" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">«device»</text>
+  <text x="845" y="100" font-family="Microsoft YaHei, sans-serif" font-size="13" font-weight="bold" fill="#374151">数据服务节点（Data Node）</text>
+
+  <!-- MySQL（仅 Java 业务侧直连） -->
+  <rect x="845" y="110" width="190" height="50" rx="6" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="940" y="132" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">MySQL 8.0</text>
+  <text x="940" y="148" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">端口 3306（仅 Java 直连）</text>
+
+  <!-- Redis -->
+  <rect x="845" y="170" width="190" height="50" rx="6" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="940" y="192" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">Redis 7</text>
+  <text x="940" y="208" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">端口 6379</text>
+
+  <!-- ==================== 节点 4：消息中间件节点（MQ Node） ==================== -->
+  <g filter="url(#shadow)">
+    <rect x="830" y="250" width="220" height="140" rx="12" fill="#f8f9fa" stroke="#6b7280" stroke-width="2"/>
+  </g>
+  <text x="845" y="275" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">«device»</text>
+  <text x="845" y="290" font-family="Microsoft YaHei, sans-serif" font-size="13" font-weight="bold" fill="#374151">消息中间件节点（MQ Node）</text>
+
+  <!-- RabbitMQ -->
+  <rect x="845" y="300" width="190" height="70" rx="6" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="940" y="325" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">RabbitMQ 3.x</text>
+  <text x="940" y="345" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">端口 5672（管理面板 15672）</text>
+
+  <!-- ==================== 节点 5：外部云服务（Cloud Services） ==================== -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="510" width="1000" height="200" rx="12" fill="#fafafa" stroke="#6b7280" stroke-width="2" stroke-dasharray="8,4"/>
+  </g>
+  <text x="65" y="535" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">«external»</text>
+  <text x="65" y="550" font-family="Microsoft YaHei, sans-serif" font-size="13" font-weight="bold" fill="#374151">外部云服务（Cloud Services）</text>
+
+  <!-- 招聘平台 API -->
+  <rect x="100" y="555" width="260" height="110" rx="6" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="5,3" filter="url(#shadow-light)"/>
+  <text x="230" y="585" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">招聘平台 API</text>
+  <text x="230" y="605" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">BOSS直聘 / 猎聘 / 智联</text>
+  <text x="230" y="625" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">HTTPS 443</text>
+  <rect x="115" y="635" width="230" height="18" rx="4" fill="#9ca3af" fill-opacity="0.08"/>
+  <text x="230" y="648" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="9" fill="#9ca3af">RESTful API</text>
+
+  <!-- AI 大模型 API -->
+  <rect x="420" y="555" width="260" height="110" rx="6" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="5,3" filter="url(#shadow-light)"/>
+  <text x="550" y="585" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">AI 大模型 API</text>
+  <text x="550" y="605" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">外部 AI 服务</text>
+  <text x="550" y="625" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">HTTPS 443</text>
+  <rect x="435" y="635" width="230" height="18" rx="4" fill="#9ca3af" fill-opacity="0.08"/>
+  <text x="550" y="648" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="9" fill="#9ca3af">RESTful / SSE</text>
+
+  <!-- SMTP 邮件服务 -->
+  <rect x="740" y="555" width="260" height="110" rx="6" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="5,3" filter="url(#shadow-light)"/>
+  <text x="870" y="585" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="12" font-weight="bold" fill="#1f2937">SMTP 邮件服务</text>
+  <text x="870" y="605" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">邮件发送</text>
+  <text x="870" y="625" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="10" fill="#6b7280">端口 465</text>
+  <rect x="755" y="635" width="230" height="18" rx="4" fill="#9ca3af" fill-opacity="0.08"/>
+  <text x="870" y="648" text-anchor="middle" font-family="Microsoft YaHei, sans-serif" font-size="9" fill="#9ca3af">SMTP over SSL</text>
+
+  <!-- ==================== 左上角标题 ==================== -->
+  <text x="20" y="30" font-family="Microsoft YaHei, sans-serif" font-size="16" font-weight="bold" fill="#1f2937">图 2-3 部署架构图</text>
+
+  <!-- ==================== 底部图例 ==================== -->
+  <line x1="50" y1="745" x2="1050" y2="745" stroke="#e5e7eb" stroke-width="1"/>
+
+  <!-- 图例项 1：物理节点 -->
+  <rect x="100" y="755" width="22" height="18" rx="4" fill="#f8f9fa" stroke="#6b7280" stroke-width="1.5"/>
+  <text x="130" y="769" font-family="Microsoft YaHei, sans-serif" font-size="11" fill="#374151">物理节点</text>
+
+  <!-- 图例项 2：应用容器 -->
+  <rect x="310" y="755" width="22" height="18" rx="4" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1.5"/>
+  <text x="340" y="769" font-family="Microsoft YaHei, sans-serif" font-size="11" fill="#374151">应用容器</text>
+
+  <!-- 图例项 3：数据存储 -->
+  <rect x="520" y="755" width="22" height="18" rx="4" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5"/>
+  <text x="550" y="769" font-family="Microsoft YaHei, sans-serif" font-size="11" fill="#374151">数据存储</text>
+
+  <!-- 图例项 4：消息中间件 -->
+  <rect x="730" y="755" width="22" height="18" rx="4" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5"/>
+  <text x="760" y="769" font-family="Microsoft YaHei, sans-serif" font-size="11" fill="#374151">消息中间件</text>
+
+  <!-- 图例项 5：外部服务 -->
+  <rect x="940" y="755" width="22" height="18" rx="4" fill="#fafafa" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <text x="970" y="769" font-family="Microsoft YaHei, sans-serif" font-size="11" fill="#374151">外部服务</text>
+</svg>

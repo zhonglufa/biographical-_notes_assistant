@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 750" font-family="'Segoe UI','Microsoft YaHei',Arial,sans-serif">
+  <title>图 2-2 投递闭环时序图</title>
+  <desc>简历批量投递闭环流程的 UML 时序图：求职者、投递管理、平台对接引擎、浏览器沙箱、消息队列与招聘平台之间的同步/异步/返回消息交互。</desc>
+
+  <defs>
+    <!-- 同步消息：实心三角箭头 -->
+    <marker id="arrow-sync" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="10" markerHeight="10" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L12,6 L0,12 Z" fill="#475569"/>
+    </marker>
+    <!-- 异步消息：开放箭头 -->
+    <marker id="arrow-async" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L12,6 L0,12" fill="none" stroke="#475569" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    </marker>
+    <!-- 返回消息：开放箭头（浅色） -->
+    <marker id="arrow-return" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse">
+      <path d="M0,0 L12,6 L0,12" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    </marker>
+  </defs>
+
+  <!-- 背景 -->
+  <rect x="0" y="0" width="1100" height="750" fill="#ffffff"/>
+
+  <!-- 标题 -->
+  <text x="30" y="38" font-size="18" font-weight="700" fill="#0f172a">图 2-2 投递闭环时序图</text>
+  <text x="30" y="56" font-size="11" fill="#64748b">Resume Batch Delivery Closed-Loop · Sequence Diagram</text>
+  <line x1="30" y1="64" x2="380" y2="64" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- ============ 参与者头部 ============ -->
+  <!-- 1. 求职者（Actor） -->
+  <g id="actor-seeker">
+    <circle cx="100" cy="80" r="7" fill="#ffffff" stroke="#1a73e8" stroke-width="1.6"/>
+    <path d="M100,87 L100,100 M90,93 L110,93 M100,100 L91,111 M100,100 L109,111" fill="none" stroke="#1a73e8" stroke-width="1.6" stroke-linecap="round"/>
+    <text x="100" y="126" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">求职者</text>
+    <text x="100" y="140" text-anchor="middle" font-size="9" fill="#94a3b8">«actor»</text>
+  </g>
+
+  <!-- 2. 投递管理 -->
+  <g id="head-deliver">
+    <rect x="215" y="70" width="130" height="40" rx="6" ry="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5"/>
+    <text x="280" y="89" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">投递管理</text>
+    <text x="280" y="103" text-anchor="middle" font-size="9" fill="#64748b">«Java 后端»</text>
+  </g>
+
+  <!-- 3. 平台对接引擎 -->
+  <g id="head-engine">
+    <rect x="395" y="70" width="130" height="40" rx="6" ry="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5"/>
+    <text x="460" y="89" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">平台对接引擎</text>
+    <text x="460" y="103" text-anchor="middle" font-size="9" fill="#64748b">«Python»</text>
+  </g>
+
+  <!-- 4. 浏览器沙箱 -->
+  <g id="head-sandbox">
+    <rect x="575" y="70" width="130" height="40" rx="6" ry="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5"/>
+    <text x="640" y="89" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">浏览器沙箱</text>
+    <text x="640" y="103" text-anchor="middle" font-size="9" fill="#64748b">«Browser»</text>
+  </g>
+
+  <!-- 5. 消息队列 -->
+  <g id="head-mq">
+    <rect x="755" y="70" width="130" height="40" rx="6" ry="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5"/>
+    <text x="820" y="89" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">消息队列</text>
+    <text x="820" y="103" text-anchor="middle" font-size="9" fill="#64748b">«RabbitMQ»</text>
+  </g>
+
+  <!-- 6. 招聘平台（外部系统） -->
+  <g id="head-platform">
+    <text x="1000" y="60" text-anchor="middle" font-size="9" font-style="italic" fill="#9ca3af">«external»</text>
+    <rect x="935" y="70" width="130" height="40" rx="6" ry="6" fill="#ffffff" stroke="#9ca3af" stroke-width="1.5" stroke-dasharray="4,3"/>
+    <text x="1000" y="89" text-anchor="middle" font-size="13" font-weight="600" fill="#1e293b">招聘平台</text>
+    <text x="1000" y="103" text-anchor="middle" font-size="9" fill="#64748b">BOSS直聘等</text>
+  </g>
+
+  <!-- ============ 生命线（虚线） ============ -->
+  <g id="lifelines" stroke="#cbd5e1" stroke-width="1.2" stroke-dasharray="6,4">
+    <line x1="100"  y1="130" x2="100"  y2="648"/>
+    <line x1="280"  y1="115" x2="280"  y2="648"/>
+    <line x1="460"  y1="115" x2="460"  y2="648"/>
+    <line x1="640"  y1="115" x2="640"  y2="648"/>
+    <line x1="820"  y1="115" x2="820"  y2="648"/>
+    <line x1="1000" y1="115" x2="1000" y2="648"/>
+  </g>
+
+  <!-- ============ 激活条 ============ -->
+  <g id="activations" fill="#dbeafe" stroke="#1a73e8" stroke-width="1">
+    <!-- 投递管理：step1-step2 -->
+    <rect x="275" y="175" width="10" height="60"/>
+    <!-- 投递管理：step9-step10 -->
+    <rect x="275" y="575" width="10" height="60"/>
+    <!-- 消息队列：step2-step3 -->
+    <rect x="815" y="225" width="10" height="60"/>
+    <!-- 消息队列：step8-step9 -->
+    <rect x="815" y="525" width="10" height="60"/>
+    <!-- 平台对接引擎：step3-step8 -->
+    <rect x="455" y="275" width="10" height="260"/>
+    <!-- 浏览器沙箱：step4-step7 -->
+    <rect x="635" y="325" width="10" height="160"/>
+    <!-- 招聘平台：step5-step6 -->
+    <rect x="995" y="375" width="10" height="60"/>
+  </g>
+
+  <!-- ============ 消息 ============ -->
+  <g id="messages" font-size="12" fill="#334155">
+
+    <!-- 1. 求职者 → 投递管理：上传简历并配置策略（同步） -->
+    <g>
+      <rect x="135" y="166" width="100" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="185" y="177" text-anchor="middle">上传简历并配置策略</text>
+      <line x1="100" y1="180" x2="275" y2="180" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-sync)"/>
+      <circle cx="100" cy="158" r="8" fill="#1a73e8"/>
+      <text x="100" y="162" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+    </g>
+
+    <!-- 2. 投递管理 → 消息队列：发布投递任务 apply.task.created（异步） -->
+    <g>
+      <rect x="445" y="216" width="200" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="545" y="227" text-anchor="middle">发布投递任务 apply.task.created</text>
+      <line x1="280" y1="230" x2="815" y2="230" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-async)"/>
+      <circle cx="280" cy="208" r="8" fill="#1a73e8"/>
+      <text x="280" y="212" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+    </g>
+
+    <!-- 3. 消息队列 → 平台对接引擎：消费投递任务（异步） -->
+    <g>
+      <rect x="600" y="266" width="90" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="645" y="277" text-anchor="middle">消费投递任务</text>
+      <line x1="820" y1="280" x2="465" y2="280" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-async)"/>
+      <circle cx="820" cy="258" r="8" fill="#1a73e8"/>
+      <text x="820" y="262" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+    </g>
+
+    <!-- 4. 平台对接引擎 → 浏览器沙箱：启动浏览器实例（同步） -->
+    <g>
+      <rect x="495" y="316" width="110" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="550" y="327" text-anchor="middle">启动浏览器实例</text>
+      <line x1="460" y1="330" x2="635" y2="330" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-sync)"/>
+      <circle cx="460" cy="308" r="8" fill="#1a73e8"/>
+      <text x="460" y="312" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">4</text>
+    </g>
+
+    <!-- 5. 浏览器沙箱 → 招聘平台：模拟登录并填写表单（同步，外部） -->
+    <g>
+      <rect x="730" y="366" width="120" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="790" y="377" text-anchor="middle">模拟登录并填写表单</text>
+      <line x1="640" y1="380" x2="995" y2="380" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-sync)"/>
+      <circle cx="640" cy="358" r="8" fill="#1a73e8"/>
+      <text x="640" y="362" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">5</text>
+    </g>
+
+    <!-- 6. 招聘平台 → 浏览器沙箱：返回投递结果（返回） -->
+    <g>
+      <rect x="755" y="416" width="100" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="805" y="427" text-anchor="middle">返回投递结果</text>
+      <line x1="1000" y1="430" x2="645" y2="430" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
+      <circle cx="1000" cy="408" r="8" fill="#1a73e8"/>
+      <text x="1000" y="412" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">6</text>
+    </g>
+
+    <!-- 7. 浏览器沙箱 → 平台对接引擎：返回执行结果（返回） -->
+    <g>
+      <rect x="495" y="466" width="100" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="545" y="477" text-anchor="middle">返回执行结果</text>
+      <line x1="640" y1="480" x2="465" y2="480" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
+      <circle cx="640" cy="458" r="8" fill="#1a73e8"/>
+      <text x="640" y="462" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">7</text>
+    </g>
+
+    <!-- 8. 平台对接引擎 → 消息队列：发布结果事件 apply.task.result（异步） -->
+    <g>
+      <rect x="535" y="516" width="200" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="635" y="527" text-anchor="middle">发布结果事件 apply.task.result</text>
+      <line x1="460" y1="530" x2="815" y2="530" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-async)"/>
+      <circle cx="460" cy="508" r="8" fill="#1a73e8"/>
+      <text x="460" y="512" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">8</text>
+    </g>
+
+    <!-- 9. 消息队列 → 投递管理：消费结果事件（异步） -->
+    <g>
+      <rect x="505" y="566" width="90" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="550" y="577" text-anchor="middle">消费结果事件</text>
+      <line x1="820" y1="580" x2="285" y2="580" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-async)"/>
+      <circle cx="820" cy="558" r="8" fill="#1a73e8"/>
+      <text x="820" y="562" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">9</text>
+    </g>
+
+    <!-- 10. 投递管理 → 求职者：推送投递状态（异步，WebSocket） -->
+    <g>
+      <rect x="115" y="616" width="150" height="14" rx="3" fill="#ffffff" fill-opacity="0.9"/>
+      <text x="190" y="627" text-anchor="middle">推送投递状态（WebSocket）</text>
+      <line x1="280" y1="630" x2="105" y2="630" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-async)"/>
+      <circle cx="280" cy="608" r="8" fill="#1a73e8"/>
+      <text x="280" y="612" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">10</text>
+    </g>
+  </g>
+
+  <!-- ============ 底部图例 ============ -->
+  <g id="legend">
+    <rect x="30" y="668" width="1040" height="62" rx="6" ry="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+    <text x="50" y="688" font-size="11" font-weight="700" fill="#475569">图例 Legend</text>
+
+    <!-- 同步消息 -->
+    <g transform="translate(50,708)">
+      <line x1="0" y1="0" x2="40" y2="0" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-sync)"/>
+      <text x="52" y="4" font-size="11" fill="#334155">同步消息（实线 + 实心箭头）</text>
+    </g>
+
+    <!-- 异步消息 -->
+    <g transform="translate(370,708)">
+      <line x1="0" y1="0" x2="40" y2="0" stroke="#475569" stroke-width="1.6" marker-end="url(#arrow-async)"/>
+      <text x="52" y="4" font-size="11" fill="#334155">异步消息（实线 + 开放箭头）</text>
+    </g>
+
+    <!-- 返回消息 -->
+    <g transform="translate(700,708)">
+      <line x1="0" y1="0" x2="40" y2="0" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
+      <text x="52" y="4" font-size="11" fill="#334155">返回消息（虚线 + 开放箭头）</text>
+    </g>
+  </g>
+
+  <!-- 生命线终端终止符号（X 在最末端可选，此处省略保持简洁） -->
+</svg>

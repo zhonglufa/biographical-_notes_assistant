@@ -1,0 +1,27 @@
+name: PRD-HLD 对齐校验
+
+# 第二道闸门：代码推送到 GitHub 后，云端自动再跑一遍校验器。
+# 仅在 prd/ 或 design/ 下文档变更时触发，避免无关提交被卡。
+# 若 PRD 与 HLD 未对齐，本步骤失败（红色 X），配合分支保护规则可阻断合并。
+
+on:
+  push:
+    paths:
+      - 'prd/**'
+      - 'design/**'
+  pull_request:
+    paths:
+      - 'prd/**'
+      - 'design/**'
+
+jobs:
+  traceability:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run PRD<->HLD traceability checker
+        run: python3 design/check_prd_hld_traceability.py

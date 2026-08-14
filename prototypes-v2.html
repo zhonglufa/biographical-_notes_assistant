@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>简历智投 — 高保真原型 v2</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Design System
+   Referenced award-winning designs:
+   ① Vero New-York (awwwards.com SOTD Aug 8, 2026) — 2-color palette #F3F0ED/#181615, WebGL interactions
+   ② Thomas Carré Portfolio (SOTD Aug 10) — dark minimal, bold typography
+   ③ 20 Years Inspired by People /nk.studio (SOTD Jul 7) — scroll-driven storytelling, parallax
+   ④ SaaS Dashboard by Mirhayot (muz.li) — dark + lavender accents, glassmorphism
+   ⑤ Dashboard — Dark by Felix (muz.li) — soft gradients, bold typography, clear hierarchy
+   ⑥ Hynex Healthcare Dashboard (muz.li) — glowing accents, data cards, fintech precision
+   ⑦ TerraFlux Dark Analytics (muz.li) — neon teal accents, dark mode analytics
+   ═══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --bg-deep: #090a0f;
+  --bg-page: #0d0e14;
+  --bg-card: #14161e;
+  --bg-elevated: #1a1d28;
+  --bg-glass: rgba(255, 255, 255, 0.03);
+  --bg-glass-hover: rgba(255, 255, 255, 0.06);
+  --border: rgba(255, 255, 255, 0.06);
+  --border-light: rgba(255, 255, 255, 0.10);
+  --border-glow: rgba(99, 102, 241, 0.20);
+  --ink: #f1f3f6;
+  --ink-secondary: #8b92a8;
+  --ink-tertiary: #5c6378;
+  /* Neon accent palette (inspired by 2026 dark glassmorphism trend, c.f. DesignTrends & nk.studio) */
+  --neon-teal: #00f5d4;
+  --neon-blue: #00bbf9;
+  --neon-purple: #9b5de5;
+  --neon-pink: #f15bb5;
+  --accent-1: #6366f1;
+  --accent-2: #8b5cf6;
+  --accent-3: #ec4899;
+  --gradient-primary: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+  --gradient-neon: linear-gradient(135deg, #00f5d4, #00bbf9, #9b5de5);
+  --gradient-subtle: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08));
+  --green: #10b981;
+  --green-bg: rgba(16,185,129,0.10);
+  --amber: #f59e0b;
+  --amber-bg: rgba(245,158,11,0.10);
+  --red: #ef4444;
+  --red-bg: rgba(239,68,68,0.10);
+  --blue: #3b82f6;
+  --blue-bg: rgba(59,130,246,0.10);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --shadow-card: 0 4px 24px rgba(0,0,0,0.3);
+  --shadow-glow: 0 0 40px rgba(99,102,241,0.08);
+  --shadow-neon: 0 0 20px rgba(0,245,212,0.15), 0 0 40px rgba(155,93,229,0.08);
+  --font: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg-deep);
+  color: var(--ink);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* Background glow — inspired by Vero New-York's ambient lighting */
+body::before {
+  content: '';
+  position: fixed;
+  top: -20%; left: -10%;
+  width: 60%; height: 60%;
+  background: radial-gradient(ellipse, rgba(99,102,241,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed;
+  bottom: -20%; right: -10%;
+  width: 60%; height: 60%;
+  background: radial-gradient(ellipse, rgba(0,245,212,0.02) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ═══ Navigation ═══ */
+.navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 1000;
+  background: rgba(9, 10, 15, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.navbar .brand {
+  font-weight: 800;
+  font-size: 1.1rem;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.02em;
+}
+.navbar .nav-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+.navbar .nav-links a {
+  color: var(--ink-secondary);
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: color 0.2s;
+  position: relative;
+}
+.navbar .nav-links a:hover,
+.navbar .nav-links a.active {
+  color: var(--ink);
+}
+.navbar .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+}
+
+/* ═══ Hero ═══ */
+.hero {
+  padding: 120px 32px 64px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+.hero .badge-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.hero .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  background: var(--bg-glass);
+  border: 1px solid var(--border);
+  color: var(--ink-secondary);
+}
+.hero .badge.gradient {
+  background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.10));
+  border-color: rgba(99,102,241,0.2);
+  color: #a5b4fc;
+}
+.hero h1 {
+  font-size: 3.2rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, var(--ink) 40%, var(--ink-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero h1 .highlight {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero p {
+  color: var(--ink-secondary);
+  font-size: 1.05rem;
+  max-width: 640px;
+  margin: 0 auto 32px;
+}
+
+/* ═══ Main Container ═══ */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ═══ Section Header ═══ */
+.section-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+.section-header .label {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.10));
+  border: 1px solid rgba(99,102,241,0.2);
+  color: #a5b4fc;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.section-header h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  margin-bottom: 12px;
+}
+.section-header p {
+  color: var(--ink-secondary);
+  font-size: 0.95rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ═══ Reference Grid (Design Sources) ═══ */
+.ref-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 48px;
+}
+.ref-card {
+  padding: 20px;
+  border-radius: var(--radius-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transition: all 0.25s;
+}
+.ref-card:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-glow);
+}
+.ref-card .ref-source {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.ref-card .ref-source .platform {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.ref-card .ref-source .platform.awwwards {
+  background: rgba(99,102,241,0.15);
+  color: #a5b4fc;
+}
+.ref-card .ref-source .platform.muzli {
+  background: rgba(0,245,212,0.12);
+  color: var(--neon-teal);
+}
+.ref-card h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.ref-card .ref-meta {
+  font-size: 0.72rem;
+  color: var(--ink-tertiary);
+  margin-bottom: 8px;
+}
+.ref-card .ref-score {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  background: rgba(245,158,11,0.1);
+  color: var(--amber);
+}
+.ref-card .ref-colors {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.ref-card .ref-colors .swatch {
+  width: 20px; height: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+.ref-card .ref-colors .swatch.white { background: #f3f0ed; }
+.ref-card .ref-colors .swatch.black { background: #181615; }
+.ref-card p {
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+  line-height: 1.5;
+  margin-top: 6px;
+}
+
+/* ═══ Prototype Card ═══ */
+.prototype-card {
+  margin-bottom: 80px;
+  position: relative;
+}
+.prototype-card:last-child { margin-bottom: 0; }
+
+.prototype-card .card-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.prototype-card .card-header .num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  background: var(--gradient-subtle);
+  border: 1px solid rgba(99,102,241,0.15);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #a5b4fc;
+  flex-shrink: 0;
+}
+.prototype-card .card-header .info h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.prototype-card .card-header .info p {
+  font-size: 0.85rem;
+  color: var(--ink-secondary);
+  margin-top: 2px;
+}
+.prototype-card .card-header .ref-tag {
+  margin-left: auto;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: rgba(0,245,212,0.08);
+  border: 1px solid rgba(0,245,212,0.15);
+  font-size: 0.7rem;
+  color: var(--neon-teal);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* ═══ Mac-style Browser Window ═══ */
+.browser-window {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  box-shadow: var(--shadow-card), var(--shadow-glow);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.browser-window:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-card), 0 0 60px rgba(99,102,241,0.12);
+}
+.browser-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 18px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+}
+.browser-bar .dots {
+  display: flex;
+  gap: 6px;
+}
+.browser-bar .dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+}
+.browser-bar .dot.red { background: #ff5f57; }
+.browser-bar .dot.yellow { background: #ffbd2e; }
+.browser-bar .dot.green { background: #28c840; }
+.browser-bar .url-bar {
+  flex: 1;
+  margin: 0 12px;
+  padding: 6px 14px;
+  border-radius: 8px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  font-size: 0.75rem;
+  color: var(--ink-tertiary);
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.browser-bar .url-bar .lock { margin-right: 4px; color: var(--green); }
+.browser-content {
+  padding: 24px;
+  min-height: 400px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Prototype 1: Resume Editor
+   Inspired by: Vero New-York (awwwards) — 2-color palette, glassmorphism cards
+   + Dashboard — Dark by Felix (muz.li) — soft gradients, bold typography
+   ═══════════════════════════════════════════════════════════════ */
+.resume-editor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  height: 500px;
+}
+.resume-editor .panel {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  overflow-y: auto;
+}
+.resume-editor .panel::-webkit-scrollbar { width: 4px; }
+.resume-editor .panel::-webkit-scrollbar-track { background: transparent; }
+.resume-editor .panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.panel-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-tertiary);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.resume-section { margin-bottom: 16px; }
+.resume-section .section-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--border);
+}
+.resume-field {
+  display: flex;
+  margin-bottom: 6px;
+  gap: 8px;
+  align-items: center;
+}
+.resume-field .label {
+  font-size: 0.75rem;
+  color: var(--ink-tertiary);
+  width: 40px;
+  flex-shrink: 0;
+}
+.resume-field .input {
+  flex: 1;
+  padding: 5px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  color: var(--ink);
+}
+.resume-field .input.filled {
+  border-color: rgba(99,102,241,0.25);
+  background: rgba(99,102,241,0.05);
+}
+.skill-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 4px;
+}
+.skill-tag {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.15);
+  color: #a5b4fc;
+}
+.skill-tag.add {
+  background: var(--bg-glass);
+  border: 1px dashed var(--border);
+  color: var(--ink-tertiary);
+  cursor: pointer;
+}
+.score-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--bg-deep);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.score-bar .num {
+  font-size: 1.6rem;
+  font-weight: 800;
+  background: var(--gradient-neon);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  min-width: 48px;
+  text-align: center;
+}
+.score-bar .bar-track {
+  flex: 1;
+  height: 6px;
+  background: var(--bg-elevated);
+  border-radius: 3px;
+  overflow: hidden;
+}
+.score-bar .bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: var(--gradient-neon);
+  transition: width 0.5s ease;
+}
+.score-bar .bar-label { font-size: 0.7rem; color: var(--ink-tertiary); }
+.ai-suggestion {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(99,102,241,0.15);
+  background: rgba(99,102,241,0.05);
+}
+.ai-suggestion .tip { font-size: 0.75rem; font-weight: 600; margin-bottom: 4px; color: var(--accent-1); }
+.ai-suggestion .text { font-size: 0.72rem; color: var(--ink-secondary); line-height: 1.5; }
+.ai-suggestion.warning { border-color: rgba(245,158,11,0.2); background: rgba(245,158,11,0.05); }
+.ai-suggestion.warning .tip { color: var(--amber); }
+.ai-suggestion.success { border-color: rgba(16,185,129,0.2); background: rgba(16,185,129,0.05); }
+.ai-suggestion.success .tip { color: var(--green); }
+.action-row {
+  display: flex;
+  gap: 6px;
+  margin-top: 12px;
+}
+.btn-sm {
+  padding: 5px 12px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+.btn-sm.primary {
+  background: var(--gradient-primary);
+  color: #fff;
+  border: none;
+}
+.btn-sm.primary:hover {
+  box-shadow: 0 4px 12px rgba(99,102,241,0.3);
+  transform: translateY(-1px);
+}
+.btn-sm.outline { background: transparent; color: var(--ink-secondary); }
+.btn-sm.outline:hover { border-color: var(--border-light); color: var(--ink); }
+.btn-sm.green { background: transparent; color: var(--green); border-color: rgba(16,185,129,0.3); }
+.btn-sm.green:hover { background: var(--green-bg); }
+
+/* ═══════════════════════════════════════════════════════════════
+   Prototype 2: Job Browser
+   Inspired by: TerraFlux Dark Analytics (muz.li) — neon teal accents, dark analytics
+   + Hynex Healthcare Dashboard (muz.li) — glowing accents, data cards
+   ═══════════════════════════════════════════════════════════════ */
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  background: var(--bg-deep);
+  padding: 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+.tab-item {
+  padding: 6px 16px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-tertiary);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.tab-item.active {
+  background: var(--bg-elevated);
+  color: var(--ink);
+  border: 1px solid var(--border);
+}
+.job-browser {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 16px;
+  height: 500px;
+}
+.job-browser .sidebar {
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  overflow-y: auto;
+}
+.filter-group { margin-bottom: 14px; }
+.filter-group .filter-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--ink-tertiary);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 0;
+  font-size: 0.75rem;
+  color: var(--ink-secondary);
+}
+.filter-option input[type="checkbox"],
+.filter-option input[type="radio"] {
+  accent-color: var(--neon-teal);
+  width: 14px; height: 14px;
+}
+.job-browser .main { overflow-y: auto; padding-right: 4px; }
+.job-browser .main::-webkit-scrollbar { width: 4px; }
+.job-browser .main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.job-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.job-list-header .count { font-size: 0.78rem; color: var(--ink-secondary); }
+.job-list-header .sort { font-size: 0.72rem; color: var(--ink-tertiary); cursor: pointer; }
+.job-card-new {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.job-card-new:hover {
+  border-color: var(--border-light);
+  background: rgba(255,255,255,0.05);
+  transform: translateY(-1px);
+}
+.job-card-new .info .title { font-size: 0.88rem; font-weight: 600; margin-bottom: 2px; }
+.job-card-new .info .company { font-size: 0.75rem; color: var(--ink-secondary); margin-bottom: 4px; }
+.job-card-new .info .tags { display: flex; gap: 4px; }
+.job-card-new .info .tags span {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  color: var(--ink-tertiary);
+}
+.job-card-new .match { text-align: center; min-width: 56px; }
+.job-card-new .match .score { font-size: 1.1rem; font-weight: 700; }
+.job-card-new .match .score.high { color: var(--neon-teal); }
+.job-card-new .match .score.med { color: var(--amber); }
+.job-card-new .match .score.low { color: var(--red); }
+.job-card-new .match .label { font-size: 0.62rem; color: var(--ink-tertiary); }
+
+/* ═══════════════════════════════════════════════════════════════
+   Prototype 3: Batch Submission
+   Inspired by: SaaS Dashboard (muz.li, Mirhayot) — dark + lavender accents, glassmorphism
+   + Dashboard — Dark (muz.li, Felix) — soft gradients, clear hierarchy
+   ═══════════════════════════════════════════════════════════════ */
+.batch-app { padding: 4px 0; }
+.batch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 12px;
+}
+.batch-header .left { display: flex; align-items: center; gap: 10px; }
+.batch-header input[type="checkbox"] { accent-color: var(--accent-1); width: 16px; height: 16px; }
+.batch-header .info { font-size: 0.78rem; color: var(--ink-secondary); }
+.batch-header .info strong { color: var(--ink); }
+.batch-job-new {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  margin-bottom: 6px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+.batch-job-new input[type="checkbox"] { accent-color: var(--accent-1); width: 16px; height: 16px; flex-shrink: 0; }
+.batch-job-new .detail { flex: 1; min-width: 0; }
+.batch-job-new .detail .title { font-size: 0.82rem; font-weight: 600; }
+.batch-job-new .detail .sub { font-size: 0.72rem; color: var(--ink-tertiary); }
+.batch-job-new .match-badge {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.batch-job-new .match-badge.high { background: rgba(0,245,212,0.12); color: var(--neon-teal); }
+.batch-job-new .match-badge.med { background: var(--amber-bg); color: var(--amber); }
+.batch-job-new .status-text { font-size: 0.7rem; flex-shrink: 0; min-width: 80px; text-align: right; }
+.batch-job-new .status-text.pending { color: var(--ink-tertiary); }
+.batch-job-new .status-text.done { color: var(--green); }
+.batch-job-new .status-text.warn { color: var(--amber); }
+.batch-job-new .status-text.danger { color: var(--red); }
+.batch-job-new.warning { border-color: rgba(245,158,11,0.2); background: rgba(245,158,11,0.03); }
+.batch-job-new.danger { border-color: rgba(239,68,68,0.15); background: rgba(239,68,68,0.03); }
+.batch-job-new.done { border-color: rgba(16,185,129,0.15); background: rgba(16,185,129,0.03); opacity: 0.7; }
+.batch-info {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: rgba(0,245,212,0.04);
+  border: 1px solid rgba(0,245,212,0.1);
+  font-size: 0.72rem;
+  color: var(--ink-secondary);
+  line-height: 1.6;
+}
+.batch-info strong { color: var(--neon-teal); }
+
+/* ═══════════════════════════════════════════════════════════════
+   Prototype 4: Kanban Board
+   Inspired by: Hynex Healthcare Dashboard (muz.li) — data cards, glowing accents, bento grid
+   ═══════════════════════════════════════════════════════════════ */
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  height: 500px;
+}
+.kanban-col {
+  background: rgba(255,255,255,0.02);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.kanban-col .col-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-shrink: 0;
+}
+.kanban-col .col-header .col-name { font-size: 0.78rem; font-weight: 600; }
+.kanban-col .col-header .col-count {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: var(--bg-deep);
+  color: var(--ink-tertiary);
+}
+.kanban-col .col-body { flex: 1; overflow-y: auto; padding: 8px; }
+.kanban-col .col-body::-webkit-scrollbar { width: 3px; }
+.kanban-col .col-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.kanban-item {
+  padding: 10px 12px;
+  margin-bottom: 6px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.kanban-item:hover {
+  border-color: var(--border-light);
+  transform: translateY(-1px);
+}
+.kanban-item .item-title { font-size: 0.75rem; font-weight: 600; margin-bottom: 2px; }
+.kanban-item .item-sub { font-size: 0.68rem; color: var(--ink-tertiary); margin-bottom: 4px; }
+.kanban-item .item-time { font-size: 0.62rem; color: var(--ink-tertiary); }
+
+/* ═══════════════════════════════════════════════════════════════
+   Prototype 5: AI Interview
+   Inspired by: Vero New-York (awwwards) — interactive navigation, 3D elements
+   + Thomas Carré Portfolio (awwwards) — dark minimal, typography
+   ═══════════════════════════════════════════════════════════════ */
+.interview-panel {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+}
+.interview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+.interview-header .interview-label { font-size: 0.72rem; font-weight: 600; color: var(--ink-tertiary); }
+.interview-header .interview-tags { display: flex; gap: 4px; }
+.interview-header .interview-tag {
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.68rem;
+  font-weight: 500;
+}
+.interview-header .interview-tag.tech {
+  background: rgba(0,245,212,0.1);
+  color: var(--neon-teal);
+  border: 1px solid rgba(0,245,212,0.2);
+}
+.interview-header .interview-tag.strict {
+  background: rgba(241,91,181,0.1);
+  color: var(--neon-pink);
+  border: 1px solid rgba(241,91,181,0.15);
+}
+.chat-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  background: var(--bg-deep);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  margin-bottom: 12px;
+}
+.chat-area::-webkit-scrollbar { width: 4px; }
+.chat-area::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.chat-msg { display: flex; gap: 10px; margin-bottom: 14px; }
+.chat-msg .avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.chat-msg.ai .avatar { background: var(--gradient-primary); color: #fff; }
+.chat-msg.user .avatar { background: var(--bg-elevated); border: 1px solid var(--border); color: var(--ink-secondary); }
+.chat-msg .bubble {
+  padding: 10px 14px;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  max-width: 80%;
+}
+.chat-msg.ai .bubble {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  color: var(--ink);
+  border-bottom-left-radius: 4px;
+}
+.chat-msg.user .bubble {
+  background: rgba(99,102,241,0.1);
+  border: 1px solid rgba(99,102,241,0.15);
+  color: var(--ink);
+  border-bottom-right-radius: 4px;
+  margin-left: auto;
+}
+.chat-msg .bubble strong { color: var(--accent-1); }
+.chat-input-area { display: flex; gap: 6px; flex-shrink: 0; }
+.chat-input-area input {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-deep);
+  color: var(--ink);
+  font-size: 0.78rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.chat-input-area input:focus { border-color: rgba(99,102,241,0.4); }
+.chat-input-area input::placeholder { color: var(--ink-tertiary); }
+.chat-input-area .chat-btn {
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--ink-secondary);
+  transition: all 0.2s;
+}
+.chat-input-area .chat-btn.send {
+  background: var(--gradient-primary);
+  color: #fff;
+  border: none;
+}
+.chat-input-area .chat-btn.send:hover { box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+.chat-input-area .chat-btn:hover { border-color: var(--border-light); color: var(--ink); }
+
+/* ═══════════════════════════════════════════════════════════════
+   Prototype 6: Interview Prep
+   Inspired by: 20 Years Inspired by People (awwwards, /nk.studio) — scroll storytelling
+   + TerraFlux (muz.li) — data cards with neon accents
+   ═══════════════════════════════════════════════════════════════ */
+.prep-header { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap; }
+.prep-tag {
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+.prep-tag.green { background: rgba(0,245,212,0.1); color: var(--neon-teal); border: 1px solid rgba(0,245,212,0.2); }
+.prep-tag.blue { background: rgba(99,102,241,0.1); color: #a5b4fc; border: 1px solid rgba(99,102,241,0.15); }
+.prep-tag.purple { background: rgba(155,93,229,0.1); color: #c4b5fd; border: 1px solid rgba(155,93,229,0.15); }
+.prep-card {
+  display: flex;
+  gap: 14px;
+  padding: 16px;
+  margin-bottom: 10px;
+  border-radius: var(--radius-md);
+  background: rgba(255,255,255,0.03);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+.prep-card:hover {
+  border-color: var(--border-light);
+  background: rgba(255,255,255,0.05);
+  transform: translateY(-1px);
+}
+.prep-card .prep-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.1));
+  border: 1px solid rgba(99,102,241,0.15);
+  color: #a5b4fc;
+  flex-shrink: 0;
+}
+.prep-card .prep-content .q { font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; }
+.prep-card .prep-content .a { font-size: 0.75rem; color: var(--ink-secondary); line-height: 1.5; }
+.prep-card .prep-content .a strong { color: var(--ink); }
+.prep-actions { display: flex; gap: 8px; margin-top: 14px; }
+
+/* ═══ Footer ═══ */
+.footer {
+  text-align: center;
+  padding: 64px 32px 48px;
+  border-top: 1px solid var(--border);
+  margin-top: 80px;
+}
+.footer p { font-size: 0.8rem; color: var(--ink-tertiary); }
+.footer .gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 600;
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 900px) {
+  .resume-editor { grid-template-columns: 1fr; height: auto; }
+  .resume-editor .panel { height: 300px; }
+  .job-browser { grid-template-columns: 1fr; height: auto; }
+  .job-browser .sidebar { height: auto; max-height: 200px; }
+  .kanban-board { grid-template-columns: 1fr 1fr; height: auto; }
+  .kanban-col { height: 300px; }
+  .ref-grid { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 2rem; }
+  .section-header h2 { font-size: 1.6rem; }
+}
+@media (max-width: 600px) {
+  .kanban-board { grid-template-columns: 1fr; }
+  .navbar .nav-links { display: none; }
+  .container { padding: 0 16px; }
+  .browser-content { padding: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ Navigation ═══ -->
+<nav class="navbar">
+  <span class="brand">ResumeAI</span>
+  <ul class="nav-links">
+    <li><a href="#refs" class="active">设计来源</a></li>
+    <li><a href="#p1">简历编辑</a></li>
+    <li><a href="#p2">岗位浏览</a></li>
+    <li><a href="#p3">批量投递</a></li>
+    <li><a href="#p4">看板管理</a></li>
+    <li><a href="#p5">AI面试</a></li>
+    <li><a href="#p6">面试准备</a></li>
+  </ul>
+  <span class="badge">✦ v2 · 参考获奖站点</span>
+</nav>
+
+<!-- ═══ Hero ═══ -->
+<section class="hero">
+  <div class="badge-row">
+    <span class="badge gradient">✦ 参考来源</span>
+    <span class="badge">Awwwards SOTD 2026</span>
+    <span class="badge">Muz.Li Dashboard 2026</span>
+  </div>
+  <h1>高保真产品原型 <span class="highlight">v2</span></h1>
+  <p>每个原型均标注了所参考的 Awwwards 获奖站点或 Muz.Li 用户分享的设计作品，并应用了对应的设计语言</p>
+</section>
+
+<div class="container">
+
+<!-- ═══════════════════════════════════════════════════════════════
+   SECTION: Design References (Actual user-shared designs)
+   ═══════════════════════════════════════════════════════════════ -->
+<section id="refs" style="margin-bottom: 80px;">
+  <div class="section-header">
+    <span class="label">Design References</span>
+    <h2>参考的获奖作品</h2>
+    <p>以下是从 Awwwards 2026年8月 SOTD 获奖站点和 Muz.Li 用户分享的 Dashboard 设计中提取的设计语言</p>
+  </div>
+
+  <div class="ref-grid">
+    <div class="ref-card">
+      <div class="ref-source">
+        <span class="platform awwwards">Awwwards</span>
+        <span class="ref-score">★ 7.21 / 10</span>
+      </div>
+      <h3>Vero New-York</h3>
+      <div class="ref-meta">Rodéo studio · SOTD 2026-08-08 · Developer Award</div>
+      <div class="ref-colors">
+        <span class="swatch white"></span>
+        <span class="swatch black"></span>
+      </div>
+      <p>双色极简配色 #F3F0ED / #181615，WebGL 交互导航与 3D 滑动组件，全屏视差滚动。Next.js + Sanity 构建。</p>
+    </div>
+
+    <div class="ref-card">
+      <div class="ref-source">
+        <span class="platform awwwards">Awwwards</span>
+        <span class="ref-score">★ SOTD</span>
+      </div>
+      <h3>Thomas Carré — NOTHIN'</h3>
+      <div class="ref-meta">Thomas Carré · SOTD 2026-08-10 · Developer Award</div>
+      <p>暗色极简个人作品集，大标题排版作为核心视觉元素，微交互动效，沉浸式滚动体验。</p>
+    </div>
+
+    <div class="ref-card">
+      <div class="ref-source">
+        <span class="platform awwwards">Awwwards</span>
+        <span class="ref-score">★ Nominee</span>
+      </div>
+      <h3>20 Years Inspired by People</h3>
+      <div class="ref-meta">/nk.studio · 2026-07-03 · 76 件作品，15 次 SOTD</div>
+      <p>以滚动驱动的故事叙事，视差滚动 + 分层动画，文字排版作为视觉引导，沉浸式品牌体验。</p>
+    </div>
+
+    <div class="ref-card">
+      <div class="ref-source">
+        <span class="platform muzli">Muz.Li</span>
+      </div>
+      <h3>SaaS Dashboard Design</h3>
+      <div class="ref-meta">Mirhayot · 2026 Dashboard Collection</div>
+      <p>暗色优雅仪表盘，薰衣草紫色强调色，平滑数据可视化，清晰布局与精致配色方案，营造现代可信赖的界面。</p>
+    </div>
+
+    <div class="ref-card">
+      <div class="ref-source">
+        <span class="platform muzli">Muz.Li</span>
+      </div>
+      <h3>Dashboard — Dark</h3>
+      <div class="ref-meta">Felix · 2026 Dashboard Collection</div>
+      <p>精简暗色仪表盘，柔和渐变、大号粗体字、清晰的视觉层次。数据易读，界面专业且富有视觉吸引力。</p>
+    </div>
+
+    <div class="ref-card">
+      <div class="ref-source">
+        <span class="platform muzli">Muz.Li</span>
+      </div>
+      <h3>Hynex Healthcare Dashboard</h3>
+      <div class="ref-meta">Orbix Studio · 2026 Dashboard Collection</div>
+      <p>融合金融科技精度与未来感医疗设计。发光强调色、清晰数据卡片、平衡排版，支持 AI 驱动洞察。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+   PROTOTYPE 1: Resume Editor
+   Inspired by: Vero New-York (awwwards) + Dashboard Dark (muz.li)
+   ═══════════════════════════════════════════════════════════════ -->
+<section id="p1" class="prototype-card">
+  <div class="card-header">
+    <span class="num">01</span>
+    <div class="info">
+      <h3>简历编辑器</h3>
+      <p>在线编辑 + AI 实时评分与优化建议</p>
+    </div>
+    <span class="ref-tag">← Vero New-York · Dashboard Dark</span>
+  </div>
+  <div class="browser-window">
+    <div class="browser-bar">
+      <div class="dots">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="url-bar"><span class="lock">🔒</span> app.resumeai.com/resume/edit</div>
+      <span style="font-size:0.7rem;color:var(--ink-tertiary)">钟璐发</span>
+    </div>
+    <div class="browser-content">
+      <div class="resume-editor">
+        <div class="panel">
+          <div class="panel-label">✏️ 编辑模式 · 基本信息</div>
+          <div class="resume-section">
+            <div class="section-title">基本信息</div>
+            <div class="resume-field"><span class="label">姓名</span><span class="input filled">钟璐发</span></div>
+            <div class="resume-field"><span class="label">学校</span><span class="input filled">桂林航天工业学院</span></div>
+            <div class="resume-field"><span class="label">专业</span><span class="input filled">软件工程</span></div>
+            <div class="resume-field"><span class="label">学历</span><span class="input filled">本科 · 2026届</span></div>
+          </div>
+          <div class="resume-section">
+            <div class="section-title">项目经历</div>
+            <div class="resume-field"><span class="label">项目</span><span class="input filled">简历智投系统 · 核心开发</span></div>
+            <div class="resume-field"><span class="label">描述</span><span class="input" style="font-size:0.7rem;">负责简历自动投递引擎的架构设计与开发，基于 Playwright 实现多平台自动化投递，覆盖 Boss/猎聘等5个平台</span></div>
+          </div>
+          <div class="resume-section">
+            <div class="section-title">技能标签</div>
+            <div class="skill-tags">
+              <span class="skill-tag">Java</span>
+              <span class="skill-tag">Spring Boot</span>
+              <span class="skill-tag">Python</span>
+              <span class="skill-tag">MySQL</span>
+              <span class="skill-tag">Redis</span>
+              <span class="skill-tag">Playwright</span>
+              <span class="skill-tag add">+ 添加</span>
+            </div>
+          </div>
+        </div>
+        <div class="panel">
+          <div class="panel-label">🤖 AI 优化建议</div>
+          <div class="score-bar">
+            <span class="num">78</span>
+            <div class="bar-track"><div class="bar-fill" style="width:78%"></div></div>
+            <span class="bar-label">ATS 匹配度</span>
+          </div>
+          <div class="ai-suggestion">
+            <div class="tip">💡 建议优化项目描述 (STAR 法则)</div>
+            <div class="text">原：负责简历自动投递引擎的架构设计与开发<br>→ 建议：主导简历自动投递引擎从 0 到 1 的架构设计，使用 Playwright 实现多平台自动化投递，投递成功率从 0 提升至 85%</div>
+          </div>
+          <div class="ai-suggestion">
+            <div class="tip">📌 建议补充关键词</div>
+            <div class="text">根据热门 JD 分析，建议补充：<strong>微服务</strong>、<strong>Docker</strong>、<strong>消息队列</strong>，可将匹配度提升至 92%</div>
+          </div>
+          <div class="ai-suggestion warning">
+            <div class="tip">⚡ 技能标签排序优化</div>
+            <div class="text">将 Python 和 Playwright 移至技能列表前两位，与目标岗位 JD 匹配度更高</div>
+          </div>
+          <div class="action-row">
+            <button class="btn-sm primary">采纳全部建议</button>
+            <button class="btn-sm outline">逐条审阅</button>
+            <button class="btn-sm green">保存版本 v2</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+   PROTOTYPE 2: Job Browser
+   Inspired by: TerraFlux (muz.li) + Hynex Healthcare (muz.li)
+   ═══════════════════════════════════════════════════════════════ -->
+<section id="p2" class="prototype-card">
+  <div class="card-header">
+    <span class="num">02</span>
+    <div class="info">
+      <h3>岗位浏览</h3>
+      <p>社招/校招双入口，实时展示匹配度</p>
+    </div>
+    <span class="ref-tag">← TerraFlux · Hynex Dashboard</span>
+  </div>
+  <div class="browser-window">
+    <div class="browser-bar">
+      <div class="dots">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="url-bar"><span class="lock">🔒</span> app.resumeai.com/jobs</div>
+      <span style="font-size:0.7rem;color:var(--ink-tertiary)">钟璐发</span>
+    </div>
+    <div class="browser-content">
+      <div class="tab-bar">
+        <span class="tab-item active">🎯 社招岗位</span>
+        <span class="tab-item">🎓 校园招聘</span>
+        <span class="tab-item">📌 收藏夹</span>
+        <span class="tab-item" style="margin-left:auto;color:var(--neon-teal);">+ 添加筛选</span>
+      </div>
+      <div class="job-browser">
+        <div class="sidebar">
+          <div class="filter-group">
+            <div class="filter-title">工作地点</div>
+            <div class="filter-option"><input type="checkbox" checked> 广州 (18)</div>
+            <div class="filter-option"><input type="checkbox"> 深圳 (12)</div>
+            <div class="filter-option"><input type="checkbox"> 远程 (8)</div>
+          </div>
+          <div class="filter-group">
+            <div class="filter-title">岗位类型</div>
+            <div class="filter-option"><input type="checkbox" checked> Java 开发 (24)</div>
+            <div class="filter-option"><input type="checkbox"> 全栈开发 (10)</div>
+            <div class="filter-option"><input type="checkbox"> 后端开发 (8)</div>
+          </div>
+          <div class="filter-group">
+            <div class="filter-title">匹配度</div>
+            <div class="filter-option"><input type="radio" name="match" checked> ≥ 80%</div>
+            <div class="filter-option"><input type="radio" name="match"> ≥ 60%</div>
+            <div class="filter-option"><input type="radio" name="match"> 全部</div>
+          </div>
+          <div class="filter-group">
+            <div class="filter-title">数据来源</div>
+            <div class="filter-option"><input type="checkbox" checked> 企业公众号 (16)</div>
+            <div class="filter-option"><input type="checkbox" checked> 企业官网 (12)</div>
+            <div class="filter-option"><input type="checkbox"> 高校就业网 (8)</div>
+          </div>
+        </div>
+        <div class="main">
+          <div class="job-list-header">
+            <span class="count">共 42 个匹配岗位</span>
+            <span class="sort">按匹配度排序 ▽</span>
+          </div>
+          <div class="job-card-new">
+            <div class="info">
+              <div class="title">Java 后端开发工程师</div>
+              <div class="company">字节跳动 · 广州 · 15-30K·15薪</div>
+              <div class="tags"><span>Spring Boot</span><span>微服务</span><span>Redis</span></div>
+            </div>
+            <div class="match">
+              <div class="score high">92%</div>
+              <div class="label">匹配度</div>
+            </div>
+          </div>
+          <div class="job-card-new">
+            <div class="info">
+              <div class="title">Java 开发工程师（校招）</div>
+              <div class="company">腾讯 · 深圳 · 20-30K·16薪</div>
+              <div class="tags"><span>Java</span><span>分布式</span><span>校招</span></div>
+            </div>
+            <div class="match">
+              <div class="score high">88%</div>
+              <div class="label">匹配度</div>
+            </div>
+          </div>
+          <div class="job-card-new">
+            <div class="info">
+              <div class="title">后端开发工程师</div>
+              <div class="company">美团 · 广州 · 18-28K·15薪</div>
+              <div class="tags"><span>Spring Cloud</span><span>MySQL</span><span>Kafka</span></div>
+            </div>
+            <div class="match">
+              <div class="score med">76%</div>
+              <div class="label">匹配度</div>
+            </div>
+          </div>
+          <div class="job-card-new">
+            <div class="info">
+              <div class="title">软件工程师（Java 方向）</div>
+              <div class="company">阿里巴巴 · 杭州 · 25-35K·16薪</div>
+              <div class="tags"><span>Java</span><span>高并发</span><span>中间件</span></div>
+            </div>
+            <div class="match">
+              <div class="score med">72%</div>
+              <div class="label">匹配度</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+   PROTOTYPE 3: Batch Submission
+   Inspired by: SaaS Dashboard (muz.li, Mirhayot) + Dashboard Dark (muz.li, Felix)
+   ═══════════════════════════════════════════════════════════════ -->
+<section id="p3" class="prototype-card">
+  <div class="card-header">
+    <span class="num">03</span>
+    <div class="info">
+      <h3>批量投递</h3>
+      <p>半自动确认制 — 系统自动填表 + 用户逐份确认提交</p>
+    </div>
+    <span class="ref-tag">← SaaS Dashboard · Dashboard Dark</span>
+  </div>
+  <div class="browser-window">
+    <div class="browser-bar">
+      <div class="dots">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="url-bar"><span class="lock">🔒</span> app.resumeai.com/apply/batch</div>
+      <span style="font-size:0.7rem;color:var(--ink-tertiary)">钟璐发</span>
+    </div>
+    <div class="browser-content">
+      <div class="batch-app">
+        <div class="batch-header">
+          <div class="left">
+            <input type="checkbox" checked>
+            <span class="info">全选 3 个岗位 · 使用简历版本：<strong>v2-优化版</strong></span>
+          </div>
+          <button class="btn-sm primary">逐份确认投递</button>
+        </div>
+        <div class="batch-job-new">
+          <input type="checkbox" checked>
+          <div class="detail">
+            <div class="title">Java 后端开发工程师</div>
+            <div class="sub">字节跳动 · 广州 · 15-30K · 系统已自动填表</div>
+          </div>
+          <span class="match-badge high">92%</span>
+          <span class="status-text pending">待确认</span>
+        </div>
+        <div class="batch-job-new warning">
+          <input type="checkbox" checked>
+          <div class="detail">
+            <div class="title">Java 开发工程师（校招）</div>
+            <div class="sub">腾讯 · 深圳 · 20-30K · 系统已自动填表</div>
+          </div>
+          <span class="match-badge high">88%</span>
+          <span class="status-text warn">⚠️ 建议投递</span>
+        </div>
+        <div class="batch-job-new danger">
+          <input type="checkbox" checked>
+          <div class="detail">
+            <div class="title">后端开发工程师</div>
+            <div class="sub">美团 · 广州 · 18-28K · 系统已自动填表</div>
+          </div>
+          <span class="match-badge med">76%</span>
+          <span class="status-text danger">⚠️ 匹配度较低</span>
+        </div>
+        <div class="batch-job-new done">
+          <input type="checkbox" disabled>
+          <div class="detail">
+            <div class="title">软件工程师（Java 方向）</div>
+            <div class="sub">阿里巴巴 · 杭州 · 25-35K · 已投递</div>
+          </div>
+          <span class="match-badge med">72%</span>
+          <span class="status-text done">✅ 已投递 10:23</span>
+        </div>
+        <div class="batch-info">
+          <strong>💡 参考 Simplify.jobs 模式：</strong>系统自动填充表单，您确认后提交。低于 60% 匹配度将弹窗提醒，避免盲目海投被标记为垃圾求职者。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+   PROTOTYPE 4: Kanban Board
+   Inspired by: Hynex Healthcare Dashboard (muz.li) — data cards, glowing accents
+   ═══════════════════════════════════════════════════════════════ -->
+<section id="p4" class="prototype-card">
+  <div class="card-header">
+    <span class="num">04</span>
+    <div class="info">
+      <h3>投递管理看板</h3>
+      <p>Kanban 式状态跟踪 + 实时推送 + 面试邀约触发话术准备</p>
+    </div>
+    <span class="ref-tag">← Hynex Healthcare Dashboard</span>
+  </div>
+  <div class="browser-window">
+    <div class="browser-bar">
+      <div class="dots">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="url-bar"><span class="lock">🔒</span> app.resumeai.com/applications</div>
+      <span style="font-size:0.7rem;color:var(--ink-tertiary)">钟璐发</span>
+    </div>
+    <div class="browser-content">
+      <div class="kanban-board">
+        <div class="kanban-col">
+          <div class="col-header">
+            <span class="col-name">📤 已投递</span>
+            <span class="col-count">3</span>
+          </div>
+          <div class="col-body">
+            <div class="kanban-item">
+              <div class="item-title">字节跳动 · Java 后端</div>
+              <div class="item-sub">广州 · 15-30K</div>
+              <div class="item-time">10:23 投递</div>
+            </div>
+            <div class="kanban-item">
+              <div class="item-title">美团 · 后端开发</div>
+              <div class="item-sub">广州 · 18-28K</div>
+              <div class="item-time">10:24 投递</div>
+            </div>
+            <div class="kanban-item">
+              <div class="item-title">快手 · Java 开发</div>
+              <div class="item-sub">北京 · 20-35K</div>
+              <div class="item-time">昨天 14:30</div>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="col-header">
+            <span class="col-name">👁️ 被查看</span>
+            <span class="col-count">2</span>
+          </div>
+          <div class="col-body">
+            <div class="kanban-item">
+              <div class="item-title">腾讯 · Java 校招</div>
+              <div class="item-sub">深圳 · 20-30K</div>
+              <div class="item-time">10:25 被查看</div>
+            </div>
+            <div class="kanban-item">
+              <div class="item-title">网易 · 后端开发</div>
+              <div class="item-sub">广州 · 18-28K</div>
+              <div class="item-time">昨天 16:00</div>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="col-header">
+            <span class="col-name">📋 面试邀约</span>
+            <span class="col-count">1</span>
+          </div>
+          <div class="col-body">
+            <div class="kanban-item" style="border-color:rgba(0,245,212,0.25);background:rgba(0,245,212,0.05);">
+              <div class="item-title">阿里巴巴 · 软件工程师</div>
+              <div class="item-sub">杭州 · 25-35K</div>
+              <div class="item-time">10:30 收到邀约</div>
+              <div style="margin-top:6px;display:flex;gap:4px;">
+                <span style="padding:2px 6px;border-radius:4px;font-size:0.6rem;background:rgba(0,245,212,0.15);color:var(--neon-teal);cursor:pointer;">🎯 准备话术</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="kanban-col">
+          <div class="col-header">
+            <span class="col-name">❌ 已关闭</span>
+            <span class="col-count">1</span>
+          </div>
+          <div class="col-body">
+            <div class="kanban-item">
+              <div class="item-title">美团 · 后端开发</div>
+              <div class="item-sub">广州 · 18-28K</div>
+              <div class="item-time">岗位已下线</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+   PROTOTYPE 5: AI Interview
+   Inspired by: Vero New-York (awwwards) — interactive 3D elements, dark minimal
+   + Thomas Carré Portfolio (awwwards) — bold typography, micro-interactions
+   ═══════════════════════════════════════════════════════════════ -->
+<section id="p5" class="prototype-card">
+  <div class="card-header">
+    <span class="num">05</span>
+    <div class="info">
+      <h3>AI 模拟面试</h3>
+      <p>实时对话 + 多风格面试官 + 智能追问</p>
+    </div>
+    <span class="ref-tag">← Vero New-York · Thomas Carré</span>
+  </div>
+  <div class="browser-window">
+    <div class="browser-bar">
+      <div class="dots">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="url-bar"><span class="lock">🔒</span> app.resumeai.com/interview/mock</div>
+      <span style="font-size:0.7rem;color:var(--ink-tertiary)">钟璐发</span>
+    </div>
+    <div class="browser-content">
+      <div class="interview-panel">
+        <div class="interview-header">
+          <span class="interview-label">🎤 模拟面试 · 字节跳动 Java 后端</span>
+          <div class="interview-tags">
+            <span class="interview-tag tech">技术面</span>
+            <span class="interview-tag strict">AI 面试官: 严厉模式</span>
+          </div>
+        </div>
+        <div class="chat-area">
+          <div class="chat-msg ai">
+            <div class="avatar">AI</div>
+            <div class="bubble">你好，我是字节跳动的面试官。请先做个自我介绍，重点说说你的项目经历和你在其中扮演的角色。</div>
+          </div>
+          <div class="chat-msg user">
+            <div class="avatar">ZL</div>
+            <div class="bubble">您好，我是钟璐发，桂林航天工业学院软件工程专业 2026 届毕业生。在简历智投系统项目中，我主导了架构设计...</div>
+          </div>
+          <div class="chat-msg ai">
+            <div class="avatar">AI</div>
+            <div class="bubble">项目很有亮点。追问一下，你提到投递成功率从 0 提升到 85%，<strong>这个数据是怎么得出的？</strong>你们在反风控策略上做了哪些具体工作？</div>
+          </div>
+          <div class="chat-msg user">
+            <div class="avatar">ZL</div>
+            <div class="bubble">这个数据是通过 A/B 测试得出的... 反风控方面我们采用了三段式投递策略，包括浏览器指纹随机化、代理 IP 池轮换和请求频率动态调整...</div>
+          </div>
+          <div class="chat-msg ai">
+            <div class="avatar">AI</div>
+            <div class="bubble">回答得很好。下一个问题：<strong>谈谈你对 Spring Boot 自动配置原理的理解，以及在实际项目中你是如何自定义 Starter 的？</strong></div>
+          </div>
+        </div>
+        <div class="chat-input-area">
+          <input type="text" placeholder="输入你的回答... (按 Enter 发送)" value="Spring Boot 的自动配置基于 @EnableAutoConfiguration 注解...">
+          <button class="chat-btn send">发送</button>
+          <button class="chat-btn">🎤 语音</button>
+          <button class="chat-btn">⏸ 暂停</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════
+   PROTOTYPE 6: Interview Prep
+   Inspired by: 20 Years Inspired by People (awwwards, /nk.studio) — scroll storytelling
+   + TerraFlux (muz.li) — neon teal data cards
+   ═══════════════════════════════════════════════════════════════ -->
+<section id="p6" class="prototype-card" style="margin-bottom: 0;">
+  <div class="card-header">
+    <span class="num">06</span>
+    <div class="info">
+      <h3>AI 面试话术准备</h3>
+      <p>仅在收到面试邀约后触发，基于 JD + 简历定制</p>
+    </div>
+    <span class="ref-tag">← /nk.studio · TerraFlux</span>
+  </div>
+  <div class="browser-window">
+    <div class="browser-bar">
+      <div class="dots">
+        <span class="dot red"></span>
+        <span class="dot yellow"></span>
+        <span class="dot green"></span>
+      </div>
+      <div class="url-bar"><span class="lock">🔒</span> app.resumeai.com/interview/prep?job=bytedance-java</div>
+      <span style="font-size:0.7rem;color:var(--ink-tertiary)">钟璐发</span>
+    </div>
+    <div class="browser-content">
+      <div class="panel-label">📋 面试话术 · 字节跳动 Java 后端开发 · 基于面试邀约生成 2026-08-12 10:30</div>
+      <div class="prep-header">
+        <span class="prep-tag green">基于 JD 自动生成</span>
+        <span class="prep-tag blue">匹配简历 v2</span>
+        <span class="prep-tag purple">预计面试时长: 45min</span>
+      </div>
+      <div class="prep-card">
+        <span class="prep-num">1</span>
+        <div class="prep-content">
+          <div class="q">自我介绍（1-2 min）</div>
+          <div class="a">重点突出：① 简历智投系统项目（匹配 JD 中的"有自动化工具开发经验"）② 技术栈：Java + Spring Boot + Python（匹配 JD 要求）③ 学历背景 + 毕业时间</div>
+        </div>
+      </div>
+      <div class="prep-card">
+        <span class="prep-num">2</span>
+        <div class="prep-content">
+          <div class="q">项目深挖 · 简历智投系统</div>
+          <div class="a">JD 关键词：高并发、分布式、微服务。准备方向：① 系统架构设计（微服务拆分）② 投递引擎并发处理（线程池 + 队列）③ 反风控策略设计（代理 IP + 指纹随机化）</div>
+        </div>
+      </div>
+      <div class="prep-card">
+        <span class="prep-num">3</span>
+        <div class="prep-content">
+          <div class="q">技术深度 · Spring Boot 自动配置</div>
+          <div class="a">JD 明确要求"深入理解 Spring Boot"。准备：① @EnableAutoConfiguration 原理 ② 自定义 Starter 实现 ③ 条件注解 @Conditional 使用场景</div>
+        </div>
+      </div>
+      <div class="prep-card">
+        <span class="prep-num">4</span>
+        <div class="prep-content">
+          <div class="q">系统设计 · 设计一个简历投递系统</div>
+          <div class="a">JD 要求"有系统设计能力"。建议用 STAR 法则：从用户量预估 → 架构选型 → 数据库设计 → 风控策略 → 监控告警，完整阐述</div>
+        </div>
+      </div>
+      <div class="prep-actions">
+        <button class="btn-sm primary">🎤 开始模拟面试</button>
+        <button class="btn-sm outline">📥 导出 PDF</button>
+        <button class="btn-sm outline">🔄 重新生成</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div>
+
+<!-- ═══ Footer ═══ -->
+<footer class="footer">
+  <p>参考设计来源：<span class="gradient-text">Vero New-York</span> · <span class="gradient-text">Thomas Carré</span> · <span class="gradient-text">/nk.studio</span>（Awwwards SOTD 2026.08）</p>
+  <p>· <span class="gradient-text">SaaS Dashboard</span> · <span class="gradient-text">Dashboard Dark</span> · <span class="gradient-text">Hynex Healthcare</span> · <span class="gradient-text">TerraFlux</span>（Muz.Li 2026 Dashboard Collection）</p>
+  <p style="margin-top: 8px; color: var(--ink-tertiary);">暗色玻璃拟态 · 霓虹强调色 · 大号字体 · 微交互动效 · Bento 布局</p>
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,145 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 700" width="100%" height="100%">
+  <defs>
+    <!-- 阴影滤镜 -->
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+
+    <!-- 同步调用箭头（实线） -->
+    <marker id="arrow-sync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+
+    <!-- 异步消息箭头（虚线空心） -->
+    <marker id="arrow-async" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+    </marker>
+  </defs>
+
+  <!-- ========== 背景 ========== -->
+  <rect width="1000" height="700" fill="#ffffff"/>
+
+  <!-- ========== 标题区 ========== -->
+  <text x="30" y="38" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="18" font-weight="bold" fill="#1f2937">图 C1 系统上下文图</text>
+
+  <!-- ======================================================================== -->
+  <!-- 1. 关联线（置于底层，避免遮挡框体） -->
+  <!-- ======================================================================== -->
+
+  <!-- 1a. 求职者 → 系统：投递简历、管理策略（同步，实线箭头 #475569） -->
+  <path d="M 180 127.5 L 240 127.5 L 240 220 L 300 220"
+        fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+        marker-end="url(#arrow-sync)"/>
+  <rect x="190" y="163" width="110" height="18" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="245" y="176" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#1f2937">投递简历、管理策略</text>
+
+  <!-- 1b. 系统 → 招聘平台：自动投递简历（同步，实线箭头） -->
+  <path d="M 680 195 L 710 195 L 710 87.5 L 730 87.5"
+        fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+        marker-end="url(#arrow-sync)"/>
+  <rect x="660" y="135" width="100" height="18" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="710" y="148" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#1f2937">自动投递简历</text>
+
+  <!-- 1c. 系统 → 邮件服务：发送通知邮件（异步，虚线箭头 #94a3b8） -->
+  <path d="M 680 240 L 710 240 L 710 207.5 L 730 207.5"
+        fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round"
+        marker-end="url(#arrow-async)"/>
+  <rect x="660" y="220" width="100" height="18" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="710" y="233" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#1f2937">发送通知邮件</text>
+
+  <!-- 1d. 系统 → AI 大模型：发起匹配分析（同步，实线箭头） -->
+  <path d="M 680 280 L 710 280 L 710 327.5 L 730 327.5"
+        fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+        marker-end="url(#arrow-sync)"/>
+  <rect x="660" y="298" width="100" height="18" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="710" y="311" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#1f2937">发起匹配分析</text>
+
+  <!-- 1e. AI 大模型 → 系统：返回分析结果（异步，虚线箭头） -->
+  <path d="M 940 350 L 980 350 L 980 250 L 680 250"
+        fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round"
+        marker-end="url(#arrow-async)"/>
+  <rect x="780" y="255" width="100" height="18" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="830" y="268" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#1f2937">返回分析结果</text>
+
+  <!-- 1f. 系统 → 文件存储：上传/读取附件（同步，实线箭头） -->
+  <path d="M 680 310 L 710 310 L 710 447.5 L 730 447.5"
+        fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+        marker-end="url(#arrow-sync)"/>
+  <rect x="660" y="375" width="100" height="18" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="710" y="388" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#1f2937">上传/读取附件</text>
+
+  <!-- ======================================================================== -->
+  <!-- 2. 中心系统框 -->
+  <!-- ======================================================================== -->
+  <rect x="300" y="160" width="380" height="160" rx="12" fill="#e8f4fd" stroke="#1a73e8" stroke-width="2" filter="url(#shadow)"/>
+  <text x="490" y="225" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="14" font-weight="bold" fill="#1a73e8">简历自动投递与面试模拟系统</text>
+  <text x="490" y="250" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="10" fill="#9ca3af">AI 简历助手</text>
+
+  <!-- ======================================================================== -->
+  <!-- 3. 左侧参与者（人物图标 + 文字） -->
+  <!-- ======================================================================== -->
+
+  <!-- 求职者（个人用户） -->
+  <rect x="40" y="90" width="140" height="75" rx="8" fill="#fefce8" stroke="#eab308" stroke-width="1.5"/>
+  <!-- 人物图标：圆圈+竖线+斜线 -->
+  <g transform="translate(70, 120)">
+    <circle cx="0" cy="-7" r="5" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>
+    <line x1="0" y1="-2" x2="0" y2="8" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-6" y1="2" x2="6" y2="2" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-5" y1="12" x2="0" y2="8" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="5" y1="12" x2="0" y2="8" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  <text x="110" y="134" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="14" font-weight="bold" fill="#1f2937">求职者</text>
+  <text x="110" y="150" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#6b7280">（个人用户）</text>
+  <text x="110" y="162" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#9ca3af">每日投递 80-100 份</text>
+
+  <!-- ======================================================================== -->
+  <!-- 4. 右侧外部系统 -->
+  <!-- ======================================================================== -->
+
+  <!-- 招聘平台 -->
+  <rect x="730" y="50" width="210" height="75" rx="8" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="835" y="82" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="13" font-weight="bold" fill="#1f2937">招聘平台</text>
+  <text x="835" y="102" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#6b7280">BOSS直聘 · 猎聘 · 智联</text>
+
+  <!-- 邮件服务 -->
+  <rect x="730" y="170" width="210" height="75" rx="8" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="835" y="202" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="13" font-weight="bold" fill="#1f2937">邮件服务</text>
+  <text x="835" y="222" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#6b7280">SMTP 发送通知</text>
+
+  <!-- AI 大模型服务 -->
+  <rect x="730" y="290" width="210" height="75" rx="8" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="835" y="322" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="13" font-weight="bold" fill="#1f2937">AI 大模型服务</text>
+  <text x="835" y="342" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#6b7280">匹配分析 · 面试模拟</text>
+
+  <!-- 文件存储服务 -->
+  <rect x="730" y="410" width="210" height="75" rx="8" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="835" y="442" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="13" font-weight="bold" fill="#1f2937">文件存储服务</text>
+  <text x="835" y="462" text-anchor="middle" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" fill="#6b7280">简历附件 · 缓存</text>
+
+  <!-- ======================================================================== -->
+  <!-- 5. 底部图例区 -->
+  <!-- ======================================================================== -->
+  <rect x="30" y="590" width="940" height="65" rx="8" fill="#f8f9fa" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="50" y="620" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="14" font-weight="bold" fill="#1f2937">图例</text>
+
+  <!-- 图例项 1：系统边界 -->
+  <rect x="130" y="608" width="20" height="20" rx="3" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1.5"/>
+  <text x="158" y="623" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="13" fill="#1f2937">系统边界</text>
+
+  <!-- 图例项 2：参与者 -->
+  <rect x="290" y="608" width="20" height="20" rx="3" fill="#fefce8" stroke="#eab308" stroke-width="1.5"/>
+  <text x="318" y="623" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="13" fill="#1f2937">参与者</text>
+
+  <!-- 图例项 3：外部系统 -->
+  <rect x="440" y="608" width="20" height="20" rx="3" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="468" y="623" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="13" fill="#1f2937">外部系统</text>
+
+  <!-- 图例项 4：同步调用 -->
+  <line x1="590" y1="618" x2="618" y2="618" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="628" y="623" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="13" fill="#1f2937">同步调用</text>
+
+  <!-- 图例项 5：异步消息 -->
+  <line x1="740" y1="618" x2="768" y2="618" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-async)"/>
+  <text x="778" y="623" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="13" fill="#1f2937">异步消息</text>
+</svg>

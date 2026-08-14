@@ -1,0 +1,183 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 750" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.10"/>
+    </filter>
+    <marker id="arrowSync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#333333"/>
+    </marker>
+    <marker id="arrowReturn" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="none" stroke="#999999" stroke-width="1.5"/>
+    </marker>
+    <marker id="arrowAsync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="none" stroke="#666666" stroke-width="1.5"/>
+    </marker>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1000" height="750" fill="#ffffff"/>
+
+  <!-- ========== 标题区 ========== -->
+  <text x="30" y="38" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="18" font-weight="bold" fill="#1f2937">图 3-1 每日日报推送流程时序图</text>
+  <text x="30" y="56" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" fill="#9ca3af">UML 2.5 时序图 · 触发条件 · 数据方向 · 频次 · 时限约束 · 异常处理</text>
+
+  <!-- ======================================================================== -->
+  <!-- Lifeline 头部 -->
+  <!-- ======================================================================== -->
+  <!-- 参与者：求职者 -->
+  <rect x="60" y="65" width="110" height="32" rx="6" fill="#fefce8" stroke="#eab308" stroke-width="1.5"/>
+  <text x="115" y="85" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" font-weight="bold" fill="#1f2937">求职者</text>
+
+  <!-- 系统 -->
+  <rect x="235" y="65" width="110" height="32" rx="6" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1.5"/>
+  <text x="290" y="85" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" font-weight="bold" fill="#1a73e8">系统</text>
+
+  <!-- 招聘平台 -->
+  <rect x="410" y="65" width="110" height="32" rx="6" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="465" y="85" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" font-weight="bold" fill="#1f2937">招聘平台</text>
+
+  <!-- AI 匹配 -->
+  <rect x="585" y="65" width="110" height="32" rx="6" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="640" y="85" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" font-weight="bold" fill="#1f2937">AI 匹配</text>
+
+  <!-- 推送服务 -->
+  <rect x="760" y="65" width="110" height="32" rx="6" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="815" y="85" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" font-weight="bold" fill="#1f2937">推送服务</text>
+
+  <!-- Lifeline 虚线 -->
+  <line x1="115" y1="97" x2="115" y2="480" stroke="#94a3b8" stroke-width="1" stroke-dasharray="8,4"/>
+  <line x1="290" y1="97" x2="290" y2="480" stroke="#94a3b8" stroke-width="1" stroke-dasharray="8,4"/>
+  <line x1="465" y1="97" x2="465" y2="480" stroke="#94a3b8" stroke-width="1" stroke-dasharray="8,4"/>
+  <line x1="640" y1="97" x2="640" y2="480" stroke="#94a3b8" stroke-width="1" stroke-dasharray="8,4"/>
+  <line x1="815" y1="97" x2="815" y2="480" stroke="#94a3b8" stroke-width="1" stroke-dasharray="8,4"/>
+
+  <!-- ======================================================================== -->
+  <!-- loop 片段：每日 08:00 执行 -->
+  <!-- ======================================================================== -->
+  <rect x="80" y="100" width="760" height="370" rx="6" fill="none" stroke="#666666" stroke-width="1.5" stroke-dasharray="4,2"/>
+  <rect x="80" y="100" width="150" height="20" rx="4" fill="#f0f0f0" stroke="#666666" stroke-width="1"/>
+  <text x="90" y="114" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" font-weight="bold" fill="#666666">loop</text>
+  <text x="120" y="114" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#666666">每日 08:00 执行</text>
+
+  <!-- ======================================================================== -->
+  <!-- 消息 1：系统自调用（定时任务触发） -->
+  <!-- ======================================================================== -->
+  <path d="M 290 125 Q 330 125 330 140 Q 330 155 290 155"
+        fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrowSync)"/>
+  <text x="340" y="140" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#1f2937">定时任务 08:00 触发</text>
+  <!-- 触发条件标注 -->
+  <text x="340" y="153" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#9ca3af">频次: 每日 1 次</text>
+
+  <!-- 激活条：系统（从消息 1 开始到消息 7 结束） -->
+  <rect x="288" y="125" width="4" height="250" fill="#dbeafe" stroke="#93c5fd" stroke-width="0.5"/>
+
+  <!-- ======================================================================== -->
+  <!-- 消息 2：系统 → 招聘平台（获取投递状态，同步） -->
+  <!-- ======================================================================== -->
+  <!-- 激活条：招聘平台 -->
+  <rect x="463" y="165" width="4" height="50" fill="#dbeafe" stroke="#93c5fd" stroke-width="0.5"/>
+
+  <path d="M 290 175 L 460 175"
+        fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrowSync)"/>
+  <!-- 数据方向标注 -->
+  <text x="375" y="169" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#1f2937">获取投递状态</text>
+  <!-- 时限约束 -->
+  <text x="375" y="192" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" font-weight="bold" fill="#dc2626">{≤30s}</text>
+  <!-- 协议标注 -->
+  <text x="375" y="163" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="9" fill="#6b7280">HTTPS:443</text>
+
+  <!-- 消息 3：招聘平台 → 系统（返回投递结果，返回消息） -->
+  <path d="M 465 205 L 295 205"
+        fill="none" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrowReturn)"/>
+  <text x="380" y="200" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#666666">返回投递结果</text>
+
+  <!-- 数据量标注 -->
+  <text x="380" y="218" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="9" fill="#9ca3af">~2KB/次</text>
+
+  <!-- ======================================================================== -->
+  <!-- 消息 4：系统 → AI 匹配（分析匹配质量，同步） -->
+  <!-- ======================================================================== -->
+  <!-- 激活条：AI 匹配 -->
+  <rect x="638" y="235" width="4" height="50" fill="#dbeafe" stroke="#93c5fd" stroke-width="0.5"/>
+
+  <path d="M 290 245 L 635 245"
+        fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrowSync)"/>
+  <text x="462" y="239" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#1f2937">分析匹配质量</text>
+  <text x="462" y="262" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" font-weight="bold" fill="#dc2626">{≤10s}</text>
+  <text x="462" y="233" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="9" fill="#6b7280">gRPC:50051</text>
+
+  <!-- 消息 5：AI 匹配 → 系统（返回匹配分数，返回消息） -->
+  <path d="M 640 275 L 295 275"
+        fill="none" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrowReturn)"/>
+  <text x="467" y="270" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#666666">返回匹配分数</text>
+  <text x="467" y="288" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="9" fill="#9ca3af">~10KB/次</text>
+
+  <!-- ======================================================================== -->
+  <!-- 消息 6：系统 → 推送服务（推送日报通知，异步） -->
+  <!-- ======================================================================== -->
+  <!-- 激活条：推送服务 -->
+  <rect x="813" y="305" width="4" height="50" fill="#dbeafe" stroke="#93c5fd" stroke-width="0.5"/>
+
+  <path d="M 290 315 L 810 315"
+        fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrowAsync)"/>
+  <text x="550" y="309" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#1f2937">推送日报通知</text>
+  <text x="550" y="332" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" font-weight="bold" fill="#dc2626">{≤5s}</text>
+  <text x="550" y="303" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="9" fill="#6b7280">HTTP:8080</text>
+
+  <!-- 消息 7：推送服务 → 系统（送达回执，返回消息） -->
+  <path d="M 815 345 L 295 345"
+        fill="none" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrowReturn)"/>
+  <text x="555" y="340" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#666666">送达回执</text>
+
+  <!-- ======================================================================== -->
+  <!-- 消息 8：系统 → 求职者（推送日报，异步） -->
+  <!-- ======================================================================== -->
+  <path d="M 290 365 L 120 365"
+        fill="none" stroke="#666666" stroke-width="1.5" marker-end="url(#arrowAsync)"/>
+  <text x="205" y="359" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#1f2937">推送日报</text>
+  <text x="205" y="372" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="9" fill="#6b7280">邮件/微信/站内</text>
+
+  <!-- ======================================================================== -->
+  <!-- break 片段：异常处理 -->
+  <!-- ======================================================================== -->
+  <rect x="100" y="395" width="720" height="60" rx="6" fill="#fef2f2" stroke="#dc2626" stroke-width="1.5"/>
+  <rect x="100" y="395" width="95" height="20" rx="4" fill="#fee2e2" stroke="#dc2626" stroke-width="1"/>
+  <text x="110" y="409" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" font-weight="bold" fill="#dc2626">break</text>
+  <text x="140" y="409" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#dc2626">招聘平台接口异常</text>
+
+  <text x="115" y="430" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#dc2626">异常处理：</text>
+  <text x="195" y="430" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#475569">降级策略 → 跳过平台数据，仅推送本地统计</text>
+  <text x="115" y="446" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#475569">重试策略 → 最多重试 3 次，间隔 30s，均失败则冷却 24h</text>
+
+  <!-- ======================================================================== -->
+  <!-- 图例区 -->
+  <!-- ======================================================================== -->
+  <rect x="30" y="490" width="940" height="200" rx="8" fill="#f8f9fa" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="50" y="520" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="14" font-weight="bold" fill="#1f2937">图例与动态信息说明</text>
+
+  <!-- 线型图例 -->
+  <line x1="50" y1="545" x2="78" y2="545" stroke="#333333" stroke-width="1.5" marker-end="url(#arrowSync)"/>
+  <text x="88" y="550" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" fill="#1f2937">同步消息（实线 + 实心箭头）</text>
+
+  <line x1="280" y1="545" x2="308" y2="545" stroke="#666666" stroke-width="1.5" marker-end="url(#arrowAsync)"/>
+  <text x="318" y="550" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" fill="#1f2937">异步消息（实线 + 开放箭头）</text>
+
+  <line x1="530" y1="545" x2="558" y2="545" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrowReturn)"/>
+  <text x="568" y="550" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" fill="#1f2937">返回消息（虚线 + 开放箭头）</text>
+
+  <!-- 动态信息标注说明 -->
+  <text x="50" y="580" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" font-weight="bold" fill="#1f2937">动态信息标注格式</text>
+
+  <text x="50" y="600" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#475569">触发条件：消息线上方文字（如"定时任务 08:00 触发""获取投递状态"）</text>
+  <text x="50" y="618" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#475569">协议标注：消息线上方灰色小字（如"HTTPS:443""gRPC:50051"）</text>
+  <text x="50" y="636" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#475569">时限约束：消息线下方红色（如 <tspan fill="#dc2626" font-weight="bold">{≤30s}</tspan>）</text>
+  <text x="50" y="654" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#475569">数据量：返回消息下方灰色小字（如 <tspan fill="#9ca3af">~2KB/次</tspan>）</text>
+  <text x="50" y="672" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#475569">异常处理：红色 break 片段，标注降级策略和重试策略</text>
+
+  <!-- ======================================================================== -->
+  <!-- 元数据区 -->
+  <!-- ======================================================================== -->
+  <text x="30" y="720" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="9" fill="#9ca3af">
+    作者: Trae | 创建: 2026-08-14 | 版本: v1.0 | 遵循标准: 作图大全标准 v1.2 §6.5
+  </text>
+</svg>

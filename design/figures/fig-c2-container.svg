@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 720" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow-sync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 Z" fill="#64748b"/>
+    </marker>
+    <marker id="arrow-async" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10" fill="none" stroke="#64748b" stroke-width="1.5"/>
+    </marker>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1000" height="720" fill="#ffffff"/>
+
+  <!-- 标题 -->
+  <text x="60" y="30" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="14" font-weight="bold" fill="#1f2937">图 C2 容器图</text>
+  <text x="60" y="46" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="10" fill="#9ca3af">C4 模型标准 · 通信路径标注协议:端口 · 三层布局（业务层/数据层/基础设施层）</text>
+
+  <!-- 用户 -->
+  <rect x="430" y="25" width="140" height="36" rx="18" fill="#fefce8" stroke="#eab308" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="500" y="47" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="12" font-weight="bold" fill="#1f2937" text-anchor="middle" dominant-baseline="middle">用户</text>
+
+  <!-- ===== 行1：业务层 Business Layer ===== -->
+  <rect x="60" y="80" width="880" height="140" rx="8" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="70" y="95" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" font-weight="bold" fill="#64748b">Business Layer</text>
+
+  <!-- Java 后端服务 -->
+  <rect x="80" y="115" width="240" height="80" rx="10" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="200" y="135" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="12" font-weight="bold" fill="#1f2937" text-anchor="middle">Java 后端服务</text>
+  <text x="200" y="150" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">Spring Boot 3.2 · REST API</text>
+  <text x="200" y="170" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">业务编排、用户管理、策略控制</text>
+
+  <!-- Python 自动化引擎 -->
+  <rect x="530" y="115" width="240" height="80" rx="10" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="650" y="135" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="12" font-weight="bold" fill="#1f2937" text-anchor="middle">Python 自动化引擎</text>
+  <text x="650" y="150" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">FastAPI 0.110 · 浏览器自动化</text>
+  <text x="650" y="170" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">AI 匹配、平台对接、状态轮询</text>
+
+  <!-- ===== 行2：数据层 Data Layer ===== -->
+  <rect x="60" y="260" width="880" height="140" rx="8" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="70" y="275" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" font-weight="bold" fill="#64748b">Data Layer</text>
+
+  <!-- MySQL（仅 Java 业务侧直连） -->
+  <rect x="80" y="295" width="240" height="80" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="200" y="315" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="12" font-weight="bold" fill="#1f2937" text-anchor="middle">MySQL 8.0 数据库</text>
+  <text x="200" y="330" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">主数据存储（仅 Java 直连）</text>
+  <text x="200" y="350" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">用户、简历、投递记录</text>
+
+  <!-- Redis -->
+  <rect x="530" y="295" width="240" height="80" rx="10" fill="#f0fdf4" stroke="#22c55e" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="650" y="315" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="12" font-weight="bold" fill="#1f2937" text-anchor="middle">Redis 缓存</text>
+  <text x="650" y="330" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">Redis 7.2 · 高性能缓存</text>
+  <text x="650" y="350" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">会话缓存、分布式锁、幂等令牌</text>
+
+  <!-- ===== 行3：基础设施层 Infrastructure Layer ===== -->
+  <rect x="60" y="440" width="880" height="140" rx="8" fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,3"/>
+  <text x="70" y="455" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="11" font-weight="bold" fill="#64748b">Infrastructure Layer</text>
+
+  <!-- RabbitMQ -->
+  <rect x="80" y="475" width="240" height="80" rx="10" fill="#fef2f2" stroke="#ef4444" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="200" y="495" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="12" font-weight="bold" fill="#1f2937" text-anchor="middle">RabbitMQ 消息队列</text>
+  <text x="200" y="510" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">异步消息总线</text>
+  <text x="200" y="530" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">任务分发、事件解耦</text>
+
+  <!-- 浏览器沙箱 -->
+  <rect x="530" y="475" width="240" height="80" rx="10" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="650" y="495" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="12" font-weight="bold" fill="#1f2937" text-anchor="middle">浏览器沙箱</text>
+  <text x="650" y="510" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">Docker 容器</text>
+  <text x="650" y="530" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">隔离执行浏览器自动化</text>
+
+  <!-- ===== 连线 ===== -->
+
+  <!-- 1. 用户 → Java -->
+  <path d="M 500 43 L 500 70 L 200 70 L 200 115" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+
+  <!-- 2. 用户 → Python -->
+  <path d="M 500 43 L 500 70 L 650 70 L 650 115" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-async)"/>
+
+  <!-- 3. Java → Python -->
+  <path d="M 320 155 L 530 155" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+
+  <!-- 4. Java → MySQL（JDBC :3306）-->
+  <path d="M 200 195 L 200 295" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+
+  <!-- 5. Java → Redis -->
+  <path d="M 320 180 L 400 180 L 400 335 L 530 335" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+
+  <!-- 6. Java → RabbitMQ -->
+  <path d="M 200 195 L 200 475" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-async)"/>
+
+  <!-- 7. Python → RabbitMQ -->
+  <path d="M 530 165 L 320 165 L 320 475" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-async)"/>
+
+  <!-- 8. Python → 浏览器沙箱 -->
+  <path d="M 650 195 L 650 475" fill="none" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-async)"/>
+
+  <!-- ===== 协议标签 ===== -->
+
+  <!-- 1. HTTPS REST API（用户→Java） -->
+  <g>
+    <rect x="335" y="58" width="84" height="18" rx="3" fill="#ffffff" fill-opacity="0.95"/>
+    <text x="377" y="70" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#475569" text-anchor="middle" dominant-baseline="middle">HTTPS REST API</text>
+  </g>
+
+  <!-- 2. HTTPS WebSocket（用户→Python） -->
+  <g>
+    <rect x="555" y="58" width="98" height="18" rx="3" fill="#ffffff" fill-opacity="0.95"/>
+    <text x="604" y="70" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#475569" text-anchor="middle" dominant-baseline="middle">HTTPS WebSocket</text>
+  </g>
+
+  <!-- 3. HTTP/gRPC（Java→Python） -->
+  <g>
+    <rect x="360" y="135" width="76" height="18" rx="3" fill="#ffffff" fill-opacity="0.95"/>
+    <text x="398" y="147" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#475569" text-anchor="middle" dominant-baseline="middle">HTTP/gRPC</text>
+  </g>
+
+  <!-- 4. JDBC :3306（Java→MySQL，仅 Java 直连） -->
+  <g>
+    <rect x="150" y="233" width="92" height="18" rx="3" fill="#ffffff" fill-opacity="0.95"/>
+    <text x="196" y="245" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#475569" text-anchor="start" dominant-baseline="middle">JDBC :3306</text>
+  </g>
+
+  <!-- 5. Redis Protocol :6379（Java→Redis） -->
+  <g>
+    <rect x="345" y="160" width="118" height="18" rx="3" fill="#ffffff" fill-opacity="0.95"/>
+    <text x="404" y="172" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#475569" text-anchor="middle" dominant-baseline="middle">Redis Protocol :6379</text>
+  </g>
+
+  <!-- 6. AMQP :5672（Java→RabbitMQ） -->
+  <g>
+    <rect x="150" y="323" width="80" height="18" rx="3" fill="#ffffff" fill-opacity="0.95"/>
+    <text x="190" y="335" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#475569" text-anchor="start" dominant-baseline="middle">AMQP :5672</text>
+  </g>
+
+  <!-- 7. AMQP :5672（Python→RabbitMQ） -->
+  <g>
+    <rect x="388" y="145" width="80" height="18" rx="3" fill="#ffffff" fill-opacity="0.95"/>
+    <text x="428" y="157" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#475569" text-anchor="middle" dominant-baseline="middle">AMQP :5672</text>
+  </g>
+
+  <!-- 8. WebSocket/DevTools（Python→浏览器沙箱） -->
+  <g>
+    <rect x="655" y="323" width="110" height="18" rx="3" fill="#ffffff" fill-opacity="0.95"/>
+    <text x="710" y="335" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#475569" text-anchor="start" dominant-baseline="middle">WebSocket/DevTools</text>
+  </g>
+
+  <!-- ===== 图例 ===== -->
+  <line x1="60" y1="610" x2="940" y2="610" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- 应用容器 -->
+  <rect x="70" y="634" width="12" height="12" rx="2" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1"/>
+  <text x="88" y="644" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="10" fill="#475569" dominant-baseline="middle">应用容器</text>
+
+  <!-- 数据存储 -->
+  <rect x="190" y="634" width="12" height="12" rx="2" fill="#f0fdf4" stroke="#22c55e" stroke-width="1"/>
+  <text x="208" y="644" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="10" fill="#475569" dominant-baseline="middle">数据存储</text>
+
+  <!-- 消息中间件 -->
+  <rect x="315" y="634" width="12" height="12" rx="2" fill="#fef2f2" stroke="#ef4444" stroke-width="1"/>
+  <text x="333" y="644" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="10" fill="#475569" dominant-baseline="middle">消息中间件</text>
+
+  <!-- 基础设施 -->
+  <rect x="440" y="634" width="12" height="12" rx="2" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1"/>
+  <text x="458" y="644" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="10" fill="#475569" dominant-baseline="middle">基础设施</text>
+
+  <!-- 用户 -->
+  <rect x="555" y="634" width="12" height="12" rx="6" fill="#fefce8" stroke="#eab308" stroke-width="1"/>
+  <text x="573" y="644" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="10" fill="#475569" dominant-baseline="middle">用户</text>
+
+  <!-- 同步调用 -->
+  <line x1="675" y1="640" x2="695" y2="640" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="701" y="644" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="10" fill="#475569" dominant-baseline="middle">同步调用</text>
+
+  <!-- 异步消息 -->
+  <line x1="790" y1="640" x2="810" y2="640" stroke="#64748b" stroke-width="1.5" marker-end="url(#arrow-async)"/>
+  <text x="816" y="644" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="10" fill="#475569" dominant-baseline="middle">异步消息</text>
+
+  <!-- 元数据 -->
+  <text x="60" y="710" font-family="system-ui, -apple-system, 'Microsoft YaHei', sans-serif" font-size="9" fill="#9ca3af">作者: Trae | 版本: v1.3 | 遵循标准: C4 模型 (c4model.com) · 作图大全标准 v1.3 §7.3</text>
+</svg>

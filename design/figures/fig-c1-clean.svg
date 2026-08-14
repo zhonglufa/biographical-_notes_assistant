@@ -1,0 +1,144 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 720" width="100%" height="100%">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#000000" flood-opacity="0.12"/>
+    </filter>
+    <filter id="shadow-light" x="-5%" y="-5%" width="115%" height="115%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.06"/>
+    </filter>
+    <marker id="arrow-sync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    </marker>
+    <marker id="arrow-async" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+    </marker>
+  </defs>
+
+  <!-- 背景 -->
+  <rect width="1000" height="720" fill="#ffffff"/>
+
+  <!-- ========== 标题区 ========== -->
+  <text x="30" y="38" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="18" font-weight="bold" fill="#1f2937">图 C1 系统上下文图</text>
+  <text x="30" y="56" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" fill="#9ca3af">C4 模型标准 · 关系描述标注（动词短语）· 纯拓扑关系图</text>
+
+  <!-- ======================================================================== -->
+  <!-- 连接线（置于底层，避免遮挡框体） -->
+  <!-- ======================================================================== -->
+
+  <!-- ① 求职者 → 系统：使用 -->
+  <!-- 求职者右边缘 x=180，系统左边缘 x=300，线在 y=347.5 -->
+  <path d="M 180 347.5 L 300 347.5"
+        fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round"
+        marker-end="url(#arrow-sync)"/>
+  <!-- 标签：使用，x=240 居中，宽约 14px，左边界 233，右边界 247 -->
+  <!-- 线 y=347.5，标签底部 y=345.5，间距 2px ≥ 2px ✓ -->
+  <rect x="233" y="329" width="14" height="16" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="240" y="339" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" fill="#1f2937">使用</text>
+
+  <!-- ② 系统 → 招聘平台：获取投递状态 -->
+  <path d="M 700 240 L 720 240 L 720 197.5 L 780 197.5"
+        fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+        marker-end="url(#arrow-sync)"/>
+  <!-- 标签：获取投递状态，x=740 居中，宽约 40px，左边界 720，右边界 760 -->
+  <!-- 外部系统左 780 → 间距 20px ≥ 10px ✓ -->
+  <rect x="720" y="189" width="40" height="16" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="740" y="201" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" fill="#1f2937">获取投递状态</text>
+
+  <!-- ③ 系统 → AI 匹配服务：分析匹配质量 -->
+  <path d="M 700 352.5 L 780 352.5"
+        fill="none" stroke="#475569" stroke-width="1.5" stroke-linecap="round"
+        marker-end="url(#arrow-sync)"/>
+  <!-- 标签：分析匹配质量，x=740 居中，宽约 40px，左边界 720，右边界 760 -->
+  <!-- 线 y=352.5，标签底部 y=350.5，间距 2px ≥ 2px ✓ -->
+  <rect x="720" y="334" width="40" height="16" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="740" y="344" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" fill="#1f2937">分析匹配质量</text>
+
+  <!-- ④ 系统 → 推送服务：推送通知 -->
+  <path d="M 700 440 L 720 440 L 720 507.5 L 780 507.5"
+        fill="none" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" stroke-linecap="round" stroke-linejoin="round"
+        marker-end="url(#arrow-async)"/>
+  <!-- 标签：推送通知，x=740 居中，宽约 26px，左边界 727，右边界 753 -->
+  <!-- 线 y=507.5，标签底部 y=505.5，间距 2px ≥ 2px ✓ -->
+  <rect x="727" y="489" width="26" height="16" rx="3" fill="white" stroke="#e5e7eb" stroke-width="0.5"/>
+  <text x="740" y="499" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="11" fill="#1f2937">推送通知</text>
+
+  <!-- ======================================================================== -->
+  <!-- 中心系统框 -->
+  <!-- ======================================================================== -->
+  <rect x="300" y="240" width="400" height="200" rx="12" fill="#e8f4fd" stroke="#1a73e8" stroke-width="2" filter="url(#shadow)"/>
+  <text x="500" y="305" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="14" font-weight="bold" fill="#1a73e8">简历自动投递与面试模拟系统</text>
+  <text x="500" y="325" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#9ca3af">后端服务 · 客户端 Agent · PostgreSQL 16 · RabbitMQ 3.13 · Redis 7</text>
+
+  <!-- 技术栈简要 -->
+  <rect x="320" y="345" width="360" height="75" rx="6" fill="#ffffff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="335" y="365" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#6b7280" font-weight="bold">技术栈</text>
+  <text x="335" y="383" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#475569">
+    <tspan x="335" dy="0">├─ 运行时：Java 21 + Spring Boot 3.2</tspan>
+    <tspan x="335" dy="16">├─ 持久化：PostgreSQL 16 + Redis 7</tspan>
+    <tspan x="335" dy="16">├─ 消息：RabbitMQ 3.13（异步解耦）</tspan>
+    <tspan x="335" dy="16">└─ AI：对接 AI 匹配服务（简历解析）</tspan>
+  </text>
+
+  <!-- ======================================================================== -->
+  <!-- 参与者（左侧） -->
+  <!-- ======================================================================== -->
+  <rect x="40" y="310" width="140" height="75" rx="8" fill="#fefce8" stroke="#eab308" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <g transform="translate(70, 340)">
+    <circle cx="0" cy="-7" r="5" fill="#fbbf24" stroke="#d97706" stroke-width="1.5"/>
+    <line x1="0" y1="-2" x2="0" y2="8" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+    <line x1="-6" y1="2" x2="6" y2="2" stroke="#d97706" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  <text x="110" y="354" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="13" font-weight="bold" fill="#1f2937">求职者</text>
+  <text x="110" y="370" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#6b7280">PRD §4.1 · 个人用户</text>
+
+  <!-- ======================================================================== -->
+  <!-- 外部系统（右侧，等间距垂直分布） -->
+  <!-- ======================================================================== -->
+
+  <!-- 招聘平台 -->
+  <rect x="780" y="160" width="190" height="75" rx="8" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="875" y="192" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="13" font-weight="bold" fill="#1f2937">招聘平台</text>
+  <text x="875" y="212" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#6b7280">BOSS直聘 · 猎聘 · 智联</text>
+
+  <!-- AI 匹配服务 -->
+  <rect x="780" y="315" width="190" height="75" rx="8" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="875" y="347" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="13" font-weight="bold" fill="#1f2937">AI 匹配服务</text>
+  <text x="875" y="367" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#6b7280">简历解析 · 职位匹配</text>
+
+  <!-- 推送服务 -->
+  <rect x="780" y="470" width="190" height="75" rx="8" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5" filter="url(#shadow-light)"/>
+  <text x="875" y="502" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="13" font-weight="bold" fill="#1f2937">推送服务</text>
+  <text x="875" y="522" text-anchor="middle" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#6b7280">邮件 · 微信 · 站内通知</text>
+
+  <!-- ======================================================================== -->
+  <!-- 图例区（底部独立区域，与主图无重叠） -->
+  <!-- ======================================================================== -->
+  <!-- 主图最低元素底部 y=545（推送服务 470+75=545），图例起始 y=600，间距 55px ≥ 20px ✓ -->
+  <rect x="30" y="600" width="940" height="65" rx="8" fill="#f8f9fa" stroke="#e5e7eb" stroke-width="1"/>
+  <text x="50" y="630" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="14" font-weight="bold" fill="#1f2937">图例</text>
+
+  <rect x="130" y="618" width="20" height="20" rx="3" fill="#e8f4fd" stroke="#1a73e8" stroke-width="1.5"/>
+  <text x="158" y="633" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" fill="#1f2937">系统边界</text>
+
+  <rect x="290" y="618" width="20" height="20" rx="3" fill="#fefce8" stroke="#eab308" stroke-width="1.5"/>
+  <text x="318" y="633" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" fill="#1f2937">参与者</text>
+
+  <rect x="440" y="618" width="20" height="20" rx="3" fill="#f8f9fa" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="468" y="633" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" fill="#1f2937">外部系统</text>
+
+  <line x1="590" y1="628" x2="618" y2="628" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="628" y="633" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" fill="#1f2937">同步调用</text>
+
+  <line x1="740" y1="628" x2="768" y2="628" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-async)"/>
+  <text x="778" y="633" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="12" fill="#1f2937">异步消息</text>
+
+  <!-- 标注格式说明 -->
+  <text x="50" y="656" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="10" fill="#6b7280">标注格式：关系描述（动词短语，如"获取投递状态"）— 符合 C4 模型标准。C1 为纯拓扑关系图，不包含协议信息。</text>
+
+  <!-- ======================================================================== -->
+  <!-- 元数据区 -->
+  <!-- ======================================================================== -->
+  <text x="30" y="710" font-family="'Microsoft YaHei', 'PingFang SC', sans-serif" font-size="9" fill="#9ca3af">
+    作者: Trae | 创建: 2026-08-14 | 版本: v1.3 | 遵循标准: C4 模型 (c4model.com) · 作图大全标准 v1.3 §7.3
+  </text>
+</svg>

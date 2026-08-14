@@ -1,0 +1,14 @@
+# 手动备份文件：git 本身就是历史机制，不重复纳入版本库
+*-备份.md
+*备份.md
+
+# 依赖与构建产物（若后续引入）
+node_modules/
+dist/
+build/
+
+# 操作系统 / 编辑器临时文件
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
