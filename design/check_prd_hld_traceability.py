@@ -21,6 +21,16 @@ import sys
 import os
 import argparse
 
+# 强制 UTF-8 输出，避免 Windows GBK 控制台下打印 ↔ 等非 GBK 字符时
+# 抛 UnicodeEncodeError 导致门禁误报失败（CI/部分 Windows 终端为 GBK 代码页）。
+try:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
+except Exception:
+    pass
+
 # ---------- 可调分类（与 PRD-HLD-对齐规范.md §7 保持一致） ----------
 # HLD 必须追溯的技术/设计相关 PRD 章节
 MUST_TRACE = {5, 6, 7, 8, 9, 10, 11, 12, 15, 16, 17, 18, 19, 20, 21,
