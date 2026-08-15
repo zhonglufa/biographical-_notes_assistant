@@ -1,0 +1,33 @@
+{
+  "name": "几何规则",
+  "description": "线段穿矩形、路径交叉、容器内外连接等几何约束",
+  "rules": [
+    {
+      "id": "GEO-001",
+      "name": "路径穿透检测",
+      "severity": "error",
+      "detect": "function(eventType, payload) { return eventType === 'geometry-fail' && payload.error && payload.error.includes('穿透'); }",
+      "analyze": "function(payload) { return { rootCause: '线段穿越了不应经过的矩形区域', impact: '视觉混乱，违反规范 §2.3.2', suggestedFix: '调整路径路由，绕行或走容器外侧', severity: 'high' }; }",
+      "specSection": "作图-01-通用规范.md §2.3.2",
+      "checklist": "Q5.1"
+    },
+    {
+      "id": "GEO-002",
+      "name": "折线正交化",
+      "severity": "warning",
+      "detect": "function(eventType, payload) { return eventType === 'lint-fail' && payload.error && payload.error.includes('折线'); }",
+      "analyze": "function(payload) { return { rootCause: '路径未使用正交折线（水平+垂直）', impact: '不符合线型规范', suggestedFix: '改为 L 型或 Z 型正交折线', severity: 'medium' }; }",
+      "specSection": "作图-01-通用规范.md §2.3.2",
+      "checklist": "Q5.3"
+    },
+    {
+      "id": "GEO-003",
+      "name": "容器内不连线",
+      "severity": "error",
+      "detect": "function(eventType, payload) { return eventType === 'geometry-fail' && payload.error && payload.error.includes('容器内'); }",
+      "analyze": "function(payload) { return { rootCause: '线段起点在容器内部', impact: '违反 §2.4.5 容器内不连线', suggestedFix: '起点移至容器外 6px', severity: 'high' }; }",
+      "specSection": "作图-01-通用规范.md §2.4.5",
+      "checklist": "Q12.3"
+    }
+  ]
+}

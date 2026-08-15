@@ -1,421 +1,302 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 1020" width="100%" height="100%" style="background-color: #ffffff; font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1620 1050" width="100%" height="100%" style="background:#ffffff;font-family:system-ui,-apple-system,'Microsoft YaHei',sans-serif">
   <defs>
-    <!-- 阴影滤镜 -->
-    <filter id="card-shadow" x="-5%" y="-5%" width="120%" height="120%">
-      <feDropShadow dx="2" dy="3" stdDeviation="4" flood-color="#00000018"/>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#00000010"/>
     </filter>
+    <marker id="arrow-1n" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 Z" fill="#1A73E8"/>
+    </marker>
+    <marker id="arrow-1n-main" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="7" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 Z" fill="#22C55E"/>
+    </marker>
   </defs>
 
+  <!--
+    fig-5-1-er.svg v2.0 (2026-08-15) 修复黄色控件 + 乱线（零交叉 / 零穿盒）
+    修复 1: ④ PLATFORM_ACCOUNT 的 ⚠ Cookie 注释由 #F59E0B（基础设施黄）改为 #9ca3af（注释灰）
+    修复 2: ①→⑤ / ①→⑧ / ①→⑬ 原为 x=170 同列直线，垂直穿透 ②③⑤ 盒
+            → 改走 USER 右侧走廊 L 形（竖井 x=395/405/415），返回段 y=565/685/810
+            （y 均 > 主链竖井顶端 455，与主链零交叉）
+    修复 3: 主链 ③→⑨ 原经 y=720 长绕行（并穿 PLATFORM_ADAPTER 邻域）
+            → 改走顶部走廊: ③右(280,455) → x=385 竖井上行 → y=150 横穿 → x=670 竖井
+              下行 → y=360 进 ⑨ 左边界（y=150 高于所有出线点、y=360 距 ⑨ 顶 20px）
+    修复 4: ①→⑬ 原 y=170 水平段与 ①→④ 完全重叠 → 出线点分层 y=182/198/214
+    修复 5: ①→⑭ 原 y=195 贴 PLATFORM_ACCOUNT/JOB 顶 5px 且 860px 蛇形
+            → 改走最高通道 y=130（距所有盒顶 ≥55px），右侧 x=1530 竖井进 ⑭ 右边界
+    修复 6: 底部说明框下移至 y=950..1010（⑬ 底 910 之下 40px），幅面 1050
+  -->
+
   <!-- 标题 -->
-  <text x="20" y="28" font-size="17" font-weight="bold" fill="#1e293b">图 5-1 ER 实体关系图</text>
-  <text x="20" y="46" font-size="12" fill="#94a3b8">简历自动投递与面试模拟系统 — 实体关系图</text>
+  <text x="810" y="28" font-size="14" font-weight="bold" fill="#1F2937" text-anchor="middle">图 5-1 核心实体关系图（ER，14 实体 / 4 域）</text>
+  <text x="810" y="46" font-size="10" fill="#6b7280" text-anchor="middle">用户域 / 平台域 / 投递域（枢纽）/ 面试域 · 主链路以绿色加粗标识，全链路靠 idempotency_key 保证不重不漏</text>
 
-  <!-- ================ 关系连线（先绘制，置于卡片下层） ================ -->
+  <!-- 图例 -->
+  <text x="810" y="62" font-size="9" fill="#6b7280" text-anchor="middle">━━━ 普通关系 (1:N) ━━━ 主链路 (绿色加粗) · 每个实体含中文名 + 英文表名 + 2-3 个关键字段</text>
 
-  <g fill="none" stroke-width="1.5">
-    <!-- R1: 用户 1 → N 简历（主业务路径-绿色） -->
-    <path d="M 300 97 L 390 97" stroke="#22c55e"/>
-    <!-- R2: 用户 1 → N 平台账号 -->
-    <path d="M 300 97 L 345 97 L 345 271 L 300 271" stroke="#06b6d4"/>
-    <!-- R3: 用户 1 → N 会员订单 -->
-    <path d="M 300 97 L 355 97 L 355 445 L 300 445" stroke="#06b6d4"/>
-    <!-- R4: 用户 1 → N 策略配置 -->
-    <path d="M 300 97 L 365 97 L 365 619 L 300 619" stroke="#06b6d4"/>
-    <!-- R5: 用户 1 → N 投递记录（主业务路径-绿色） -->
-    <path d="M 300 97 L 335 97 L 335 461 L 390 461" stroke="#22c55e"/>
-    <!-- R6: 用户 1 → N 通知记录 -->
-    <path d="M 300 97 L 325 97 L 325 565 L 645 565 L 645 651 L 690 651" stroke="#06b6d4"/>
-    <!-- R7: 用户 1 → N 面试安排 -->
-    <path d="M 300 97 L 315 97 L 315 659 L 390 659" stroke="#06b6d4"/>
-    <!-- R8: 简历 1 → N 简历版本 -->
-    <path d="M 600 97 L 635 97 L 635 271 L 600 271" stroke="#06b6d4"/>
-    <!-- R9: 简历 1 → N 投递记录（主业务路径-绿色） -->
-    <path d="M 600 97 L 625 97 L 625 461 L 600 461" stroke="#22c55e"/>
-    <!-- R10: 投递记录 1 → 1 面试安排 -->
-    <path d="M 600 461 L 615 461 L 615 659 L 600 659" stroke="#06b6d4"/>
-    <!-- R11: 投递记录 1 → N 匹配记录 -->
-    <path d="M 600 461 L 640 461 L 640 453 L 690 453" stroke="#06b6d4"/>
-    <!-- R12: 岗位 1 → N 投递记录（主业务路径-绿色） -->
-    <path d="M 690 105 L 650 105 L 650 461 L 600 461" stroke="#22c55e"/>
-    <!-- R13: 平台适配器 1 → N 平台账号 -->
-    <path d="M 690 271 L 640 271 L 640 185 L 345 185 L 345 271 L 300 271" stroke="#06b6d4"/>
-    <!-- R14: 平台适配器 ↔ 投递记录 N:N -->
-    <path d="M 690 271 L 655 271 L 655 461 L 600 461" stroke="#06b6d4"/>
-    <!-- R15: 用户 1 → N 日报记录 -->
-    <path d="M 300 97 L 680 97 L 680 819 L 690 819" stroke="#06b6d4"/>
-  </g>
+  <!-- ========================================================== -->
+  <!-- 域标题 (顶部) -->
+  <!-- ========================================================== -->
+  <text x="170" y="92" font-size="11" font-weight="bold" fill="#1A73E8" text-anchor="middle">▣ 用户域</text>
+  <text x="170" y="106" font-size="9" fill="#9ca3af" text-anchor="middle">User Domain</text>
 
-  <!-- ================ 关系编号标签 ================ -->
-  <g font-size="10" fill="#94a3b8" font-family="'Microsoft YaHei', sans-serif">
-    <text x="350" y="90" text-anchor="middle">R1</text>
-    <text x="348" y="187" text-anchor="start">R2</text>
-    <text x="358" y="268" text-anchor="start">R3</text>
-    <text x="368" y="361" text-anchor="start">R4</text>
-    <text x="338" y="282" text-anchor="start">R5</text>
-    <text x="485" y="558" text-anchor="middle">R6</text>
-    <text x="318" y="381" text-anchor="start">R7</text>
-    <text x="638" y="187" text-anchor="start">R8</text>
-    <text x="628" y="282" text-anchor="start">R9</text>
-    <text x="618" y="563" text-anchor="start">R10</text>
-    <text x="643" y="473" text-anchor="start">R11</text>
-    <text x="653" y="286" text-anchor="start">R12</text>
-    <text x="495" y="178" text-anchor="middle">R13</text>
-    <text x="658" y="369" text-anchor="start">R14</text>
-    <text x="688" y="463" text-anchor="start">R15</text>
-  </g>
+  <text x="570" y="92" font-size="11" font-weight="bold" fill="#1A73E8" text-anchor="middle">▣ 平台域</text>
+  <text x="570" y="106" font-size="9" fill="#9ca3af" text-anchor="middle">Platform Domain</text>
 
-  <!-- ================ 基数标注（圆圈） ================ -->
-  <g font-size="10" font-weight="bold" fill="#374151" text-anchor="middle" dominant-baseline="central" font-family="'Microsoft YaHei', sans-serif">
-    <!-- R1: 1 / N -->
-    <circle cx="312" cy="97" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="312" y="97">1</text>
-    <circle cx="378" cy="97" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="378" y="97">N</text>
+  <text x="960" y="92" font-size="11" font-weight="bold" fill="#1A73E8" text-anchor="middle">▣ 投递域 (枢纽)</text>
+  <text x="960" y="106" font-size="9" fill="#9ca3af" text-anchor="middle">Application Domain (Hub)</text>
 
-    <!-- R2: 1 / N -->
-    <circle cx="300" cy="109" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="109">1</text>
-    <circle cx="300" cy="259" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="259">N</text>
+  <text x="1370" y="92" font-size="11" font-weight="bold" fill="#1A73E8" text-anchor="middle">▣ 面试域</text>
+  <text x="1370" y="106" font-size="9" fill="#9ca3af" text-anchor="middle">Interview Domain</text>
 
-    <!-- R3: 1 / N -->
-    <circle cx="300" cy="109" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="109">1</text>
-    <circle cx="300" cy="433" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="433">N</text>
+  <!-- ========================================================== -->
+  <!-- 列 1 用户域 (x=60~280) -->
+  <!-- ========================================================== -->
 
-    <!-- R4: 1 / N -->
-    <circle cx="300" cy="109" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="109">1</text>
-    <circle cx="300" cy="607" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="607">N</text>
+  <!-- ① USER -->
+  <rect x="60" y="120" width="220" height="100" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="60" y="120" width="220" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="60" y="138" width="220" height="10" fill="#1A73E8"/>
+  <text x="170" y="140" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">① USER 用户</text>
+  <text x="72" y="166" font-size="9" fill="#1F2937">id (PK, bigint)</text>
+  <text x="72" y="182" font-size="9" fill="#1F2937">email, phone (uk)</text>
+  <text x="72" y="198" font-size="9" fill="#1F2937">password_hash, plan</text>
+  <text x="72" y="212" font-size="9" fill="#9ca3af">BCrypt 哈希</text>
 
-    <!-- R5: 1 / N -->
-    <circle cx="300" cy="109" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="109">1</text>
-    <circle cx="378" cy="461" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="378" y="461">N</text>
+  <!-- ② RESUME -->
+  <rect x="60" y="260" width="220" height="100" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="60" y="260" width="220" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="60" y="278" width="220" height="10" fill="#1A73E8"/>
+  <text x="170" y="280" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">② RESUME 简历</text>
+  <text x="72" y="306" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="72" y="322" font-size="9" fill="#1F2937">user_id (FK → ①)</text>
+  <text x="72" y="338" font-size="9" fill="#1F2937">title, base_info JSON</text>
+  <text x="72" y="352" font-size="9" fill="#9ca3af">一份简历可派生多版本</text>
 
-    <!-- R6: 1 / N -->
-    <circle cx="300" cy="109" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="109">1</text>
-    <circle cx="678" cy="651" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="678" y="651">N</text>
+  <!-- ③ RESUME_VERSION -->
+  <rect x="60" y="400" width="220" height="110" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="60" y="400" width="220" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="60" y="418" width="220" height="10" fill="#1A73E8"/>
+  <text x="170" y="420" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">③ RESUME_VERSION 简历版本</text>
+  <text x="72" y="446" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="72" y="462" font-size="9" fill="#1F2937">resume_id (FK → ②)</text>
+  <text x="72" y="478" font-size="9" fill="#1F2937">version_no, content JSON</text>
+  <text x="72" y="494" font-size="9" fill="#22C55E">★ 主链路 (投递锁定版)</text>
+  <text x="72" y="506" font-size="9" fill="#9ca3af">投递时锁定当时版本</text>
 
-    <!-- R7: 1 / N -->
-    <circle cx="300" cy="109" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="109">1</text>
-    <circle cx="378" cy="659" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="378" y="659">N</text>
+  <!-- ⑤ MEMBER_ORDER -->
+  <rect x="60" y="550" width="220" height="90" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="60" y="550" width="220" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="60" y="568" width="220" height="10" fill="#1A73E8"/>
+  <text x="170" y="570" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">⑤ MEMBER_ORDER 会员订单</text>
+  <text x="72" y="596" font-size="9" fill="#1F2937">id (PK), order_no (uk)</text>
+  <text x="72" y="612" font-size="9" fill="#1F2937">user_id (FK → ①)</text>
+  <text x="72" y="628" font-size="9" fill="#1F2937">plan, status, paid_at</text>
 
-    <!-- R8: 1 / N -->
-    <circle cx="600" cy="109" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="600" y="109">1</text>
-    <circle cx="600" cy="259" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="600" y="259">N</text>
+  <!-- ⑧ STRATEGY_CONFIG -->
+  <rect x="60" y="680" width="220" height="90" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="60" y="680" width="220" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="60" y="698" width="220" height="10" fill="#1A73E8"/>
+  <text x="170" y="700" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">⑧ STRATEGY_CONFIG 投递策略</text>
+  <text x="72" y="726" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="72" y="742" font-size="9" fill="#1F2937">user_id (FK → ①, uk)</text>
+  <text x="72" y="758" font-size="9" fill="#1F2937">daily_limit, match_threshold…</text>
 
-    <!-- R9: 1 / N -->
-    <circle cx="600" cy="109" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="600" y="109">1</text>
-    <circle cx="600" cy="449" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="600" y="449">N</text>
+  <!-- ⑬ DAILY_REPORT -->
+  <rect x="60" y="810" width="220" height="100" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="60" y="810" width="220" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="60" y="828" width="220" height="10" fill="#1A73E8"/>
+  <text x="170" y="830" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">⑬ DAILY_REPORT 日报记录</text>
+  <text x="72" y="856" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="72" y="872" font-size="9" fill="#1F2937">user_id (FK → ①)</text>
+  <text x="72" y="888" font-size="9" fill="#1F2937">report_date, sent_at</text>
+  <text x="72" y="902" font-size="9" fill="#9ca3af">uk(user_id, report_date)</text>
 
-    <!-- R10: 1:1 -->
-    <circle cx="600" cy="473" r="12" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="600" y="473" font-size="9">1</text>
-    <circle cx="600" cy="647" r="12" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="600" y="647" font-size="9">1</text>
+  <!-- ========================================================== -->
+  <!-- 列 2 平台域 (x=460~680) -->
+  <!-- ========================================================== -->
 
-    <!-- R11: 1 / N -->
-    <circle cx="600" cy="473" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="600" y="473">1</text>
-    <circle cx="678" cy="453" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="678" y="453">N</text>
+  <!-- ④ PLATFORM_ACCOUNT -->
+  <rect x="460" y="200" width="220" height="120" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="460" y="200" width="220" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="460" y="218" width="220" height="10" fill="#1A73E8"/>
+  <text x="570" y="220" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">④ PLATFORM_ACCOUNT 平台账号</text>
+  <text x="472" y="246" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="472" y="262" font-size="9" fill="#1F2937">user_id (FK → ①)</text>
+  <text x="472" y="278" font-size="9" fill="#1F2937">platform_id, account_label</text>
+  <text x="472" y="294" font-size="9" fill="#1F2937">login_state (ok|need_login|disabled)</text>
+  <text x="472" y="312" font-size="9" fill="#9ca3af">⚠ Cookie 密文仅本机 Agent</text>
 
-    <!-- R12: 1 / N -->
-    <circle cx="690" cy="117" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="690" y="117">1</text>
-    <circle cx="612" cy="461" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="612" y="461">N</text>
+  <!-- ⑦ PLATFORM_ADAPTER -->
+  <rect x="460" y="380" width="220" height="110" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="460" y="380" width="220" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="460" y="398" width="220" height="10" fill="#1A73E8"/>
+  <text x="570" y="400" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">⑦ PLATFORM_ADAPTER 平台适配器</text>
+  <text x="472" y="426" font-size="9" fill="#1F2937">platform_id (PK)</text>
+  <text x="472" y="442" font-size="9" fill="#1F2937">adapter_code, version</text>
+  <text x="472" y="458" font-size="9" fill="#1F2937">status (enabled|disabled)</text>
+  <text x="472" y="474" font-size="9" fill="#9ca3af">以代码包形式安装启停</text>
 
-    <!-- R13: 1 / N -->
-    <circle cx="690" cy="283" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="690" y="283">1</text>
-    <circle cx="312" cy="271" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="312" y="271">N</text>
+  <!-- ========================================================== -->
+  <!-- 列 3 投递域 (x=780~1140) -->
+  <!-- ========================================================== -->
 
-    <!-- R14: N / N -->
-    <circle cx="678" cy="271" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="678" y="271">N</text>
-    <circle cx="612" cy="461" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="612" y="461">N</text>
+  <!-- ⑥ JOB -->
+  <rect x="800" y="200" width="320" height="100" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="800" y="200" width="320" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="800" y="218" width="320" height="10" fill="#1A73E8"/>
+  <text x="960" y="220" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">⑥ JOB 岗位</text>
+  <text x="812" y="246" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="812" y="262" font-size="9" fill="#1F2937">platform_id, external_id</text>
+  <text x="812" y="278" font-size="9" fill="#1F2937">jd_raw JSON, title, salary, company</text>
+  <text x="812" y="294" font-size="9" fill="#9ca3af">uk(platform_id, external_id) · 全局去重</text>
 
-    <!-- R15: 1 / N -->
-    <circle cx="300" cy="109" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="300" y="109">1</text>
-    <circle cx="690" cy="807" r="10" fill="#f8f9fa" stroke="#64748b" stroke-width="1.2"/>
-    <text x="690" y="807">N</text>
-  </g>
+  <!-- ⑨ APPLICATION (枢纽) - 加大加粗 -->
+  <rect x="780" y="340" width="360" height="130" rx="8" fill="#ffffff" stroke="#22C55E" stroke-width="3" filter="url(#shadow)"/>
+  <rect x="780" y="340" width="360" height="32" rx="8" fill="#22C55E"/>
+  <rect x="780" y="362" width="360" height="10" fill="#22C55E"/>
+  <text x="960" y="362" font-size="13" font-weight="bold" fill="#ffffff" text-anchor="middle">⑨ APPLICATION 投递单 (枢纽 ★)</text>
+  <text x="792" y="394" font-size="9" fill="#1F2937">id (PK), user_id (FK → ①), job_id (FK → ⑥)</text>
+  <text x="792" y="410" font-size="9" fill="#1F2937">platform_id, status (10 状态机), created_at</text>
+  <text x="792" y="426" font-size="9" fill="#22C55E" font-weight="bold">★ idempotency_key (uk) · 主链路中枢</text>
+  <text x="792" y="442" font-size="9" fill="#1F2937">uk(user_id, job_id, platform_id)</text>
+  <text x="792" y="458" font-size="9" fill="#9ca3af">投递域中心实体 · 状态机承载表</text>
 
-  <!-- ================ 左列实体：用户、平台账号、会员订单、策略配置 ================ -->
+  <!-- ⑩ APPLICATION_TASK -->
+  <rect x="780" y="510" width="170" height="100" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="780" y="510" width="170" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="780" y="528" width="170" height="10" fill="#1A73E8"/>
+  <text x="865" y="530" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">⑩ APPLICATION_TASK 投递任务</text>
+  <text x="792" y="556" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="792" y="572" font-size="9" fill="#1F2937">application_id (FK→⑨)</text>
+  <text x="792" y="588" font-size="9" fill="#22C55E">★ idempotency_key (uk)</text>
+  <text x="792" y="604" font-size="9" fill="#9ca3af">1:1 with ⑨ · 状态机驱动</text>
 
-  <!-- 1. 用户（User） -->
-  <g transform="translate(90, 35)" filter="url(#card-shadow)">
-    <rect width="210" height="124" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">用户（User）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#374151">email</text>
-    <text x="8" y="68" font-size="11" fill="#374151">password_hash</text>
-    <text x="8" y="84" font-size="11" fill="#374151">role</text>
-    <text x="8" y="100" font-size="11" fill="#374151">created_at</text>
-  </g>
+  <!-- ⑪ APPLICATION_EVENT -->
+  <rect x="970" y="510" width="170" height="100" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="970" y="510" width="170" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="970" y="528" width="170" height="10" fill="#1A73E8"/>
+  <text x="1055" y="530" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">⑪ APPLICATION_EVENT 投递事件</text>
+  <text x="982" y="556" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="982" y="572" font-size="9" fill="#1F2937">application_id (FK→⑨)</text>
+  <text x="982" y="588" font-size="9" fill="#1F2937">from_state, to_state, reason</text>
+  <text x="982" y="604" font-size="9" fill="#9ca3af">1:N · 事件溯源/审计</text>
 
-  <!-- 2. 平台账号（PlatformAccount） -->
-  <g transform="translate(90, 209)" filter="url(#card-shadow)">
-    <rect width="210" height="124" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">平台账号（PlatformAccount）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">user_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#374151">platform</text>
-    <text x="8" y="84" font-size="11" fill="#374151">account_cookie</text>
-    <text x="8" y="100" font-size="11" fill="#374151">is_active</text>
-  </g>
+  <!-- ========================================================== -->
+  <!-- 列 4 面试域 (x=1230~1510) -->
+  <!-- ========================================================== -->
 
-  <!-- 3. 会员订单（MemberOrder） -->
-  <g transform="translate(90, 383)" filter="url(#card-shadow)">
-    <rect width="210" height="124" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">会员订单（MemberOrder）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">user_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#374151">plan_type</text>
-    <text x="8" y="84" font-size="11" fill="#374151">amount</text>
-    <text x="8" y="100" font-size="11" fill="#374151">expired_at</text>
-  </g>
+  <!-- ⑫ INTERVIEW_QUESTION_SET -->
+  <rect x="1230" y="340" width="280" height="120" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="340" width="280" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="1230" y="358" width="280" height="10" fill="#1A73E8"/>
+  <text x="1370" y="360" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">⑫ INTERVIEW_QUESTION_SET 面试题集</text>
+  <text x="1242" y="386" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="1242" y="402" font-size="9" fill="#1F2937">application_id (FK → ⑨)</text>
+  <text x="1242" y="418" font-size="9" fill="#1F2937">user_id, state (generating→ready)</text>
+  <text x="1242" y="434" font-size="9" fill="#1F2937">questions JSON</text>
+  <text x="1242" y="452" font-size="9" fill="#9ca3af">投递成功后由 AI 联动生成</text>
 
-  <!-- 4. 策略配置（StrategyConfig） -->
-  <g transform="translate(90, 557)" filter="url(#card-shadow)">
-    <rect width="210" height="124" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">策略配置（StrategyConfig）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">user_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#374151">auto_apply</text>
-    <text x="8" y="84" font-size="11" fill="#374151">max_daily</text>
-    <text x="8" y="100" font-size="11" fill="#374151">keywords</text>
-  </g>
+  <!-- ⑭ INTERVIEW_SESSION -->
+  <rect x="1230" y="510" width="280" height="130" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <rect x="1230" y="510" width="280" height="28" rx="6" fill="#1A73E8"/>
+  <rect x="1230" y="528" width="280" height="10" fill="#1A73E8"/>
+  <text x="1370" y="530" font-size="11" font-weight="bold" fill="#ffffff" text-anchor="middle">⑭ INTERVIEW_SESSION 面试会话</text>
+  <text x="1242" y="556" font-size="9" fill="#1F2937">id (PK)</text>
+  <text x="1242" y="572" font-size="9" fill="#1F2937">user_id (FK → ①)</text>
+  <text x="1242" y="588" font-size="9" fill="#1F2937">question_set_id (FK → ⑫)</text>
+  <text x="1242" y="604" font-size="9" fill="#1F2937">application_id (FK → ⑨, 可选)</text>
+  <text x="1242" y="620" font-size="9" fill="#1F2937">state, current_turn, started_at</text>
+  <text x="1242" y="636" font-size="9" fill="#9ca3af">v3.8 新增 · G7-1 状态机承载</text>
 
-  <!-- ================ 中列实体：简历、简历版本、投递记录、面试安排 ================ -->
+  <!-- ========================================================== -->
+  <!-- 主链路 (绿色加粗) -->
+  <!-- ========================================================== -->
 
-  <!-- 5. 简历（Resume） -->
-  <g transform="translate(390, 35)" filter="url(#card-shadow)">
-    <rect width="210" height="124" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">简历（Resume）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">user_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#374151">title</text>
-    <text x="8" y="84" font-size="11" fill="#374151">file_path</text>
-    <text x="8" y="100" font-size="11" fill="#374151">parsed_text</text>
-  </g>
+  <!-- ① USER → ② RESUME -->
+  <line x1="170" y1="220" x2="170" y2="260" stroke="#22C55E" stroke-width="2.5" marker-end="url(#arrow-1n-main)"/>
+  <text x="183" y="242" font-size="9" fill="#22C55E" font-weight="bold">1:N 拥有</text>
 
-  <!-- 6. 简历版本（ResumeVersion） -->
-  <g transform="translate(390, 209)" filter="url(#card-shadow)">
-    <rect width="210" height="124" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">简历版本（ResumeVersion）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">resume_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#374151">version_no</text>
-    <text x="8" y="84" font-size="11" fill="#374151">content</text>
-    <text x="8" y="100" font-size="11" fill="#374151">created_at</text>
-  </g>
+  <!-- ② RESUME → ③ RESUME_VERSION -->
+  <line x1="170" y1="360" x2="170" y2="400" stroke="#22C55E" stroke-width="2.5" marker-end="url(#arrow-1n-main)"/>
+  <text x="183" y="382" font-size="9" fill="#22C55E" font-weight="bold">1:N 派生</text>
 
-  <!-- 7. 投递记录（Application） -->
-  <g transform="translate(390, 383)" filter="url(#card-shadow)">
-    <rect width="210" height="156" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">投递记录（Application）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">user_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#64748b" font-style="italic">resume_id (FK)</text>
-    <text x="8" y="84" font-size="11" fill="#374151">job_id</text>
-    <text x="8" y="100" font-size="11" fill="#374151">platform</text>
-    <text x="8" y="116" font-size="11" fill="#374151">status</text>
-    <text x="8" y="132" font-size="11" fill="#374151">applied_at</text>
-  </g>
+  <!-- ③ RESUME_VERSION → ⑨ APPLICATION (主链路横穿)
+       布线: ③ 右 (280,455) → x=385 竖井上行 → 顶部走廊 y=150 (高于所有出线点) →
+             x=700 竖井下行 → y=360 (距 ⑨ 顶 20px, 距 ④ 右 20px) → 进 ⑨ 左边界 (780,360)
+       解决: 原 y=720 长绕行 + PLATFORM_ADAPTER 邻域挤压; 现与 ①→⑤/⑧/⑬ 竖井 (395/405/415)
+             及全部返回段 (565/685/810) 零交叉
+  -->
+  <path d="M 280 455 L 385 455 L 385 150 L 700 150 L 700 360 L 780 360" fill="none" stroke="#22C55E" stroke-width="2.5" marker-end="url(#arrow-1n-main)"/>
+  <text x="525" y="142" font-size="9" fill="#22C55E" font-weight="bold" text-anchor="middle">★ 主链路: 简历版本引用 (经顶部走廊 y=150)</text>
 
-  <!-- 8. 面试安排（InterviewSet） -->
-  <g transform="translate(390, 589)" filter="url(#card-shadow)">
-    <rect width="210" height="140" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">面试安排（InterviewSet）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">application_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#374151">company</text>
-    <text x="8" y="84" font-size="11" fill="#374151">position</text>
-    <text x="8" y="100" font-size="11" fill="#374151">interview_at</text>
-    <text x="8" y="116" font-size="11" fill="#374151">status</text>
-  </g>
+  <!-- ⑨ APPLICATION → ⑩ APPLICATION_TASK (1:1) -->
+  <line x1="865" y1="470" x2="865" y2="510" stroke="#22C55E" stroke-width="2.5" marker-end="url(#arrow-1n-main)"/>
+  <text x="878" y="494" font-size="9" fill="#22C55E" font-weight="bold">1:1 派生</text>
 
-  <!-- ================ 右列实体：岗位、平台适配器、匹配记录、通知记录 ================ -->
+  <!-- ⑨ APPLICATION → ⑪ APPLICATION_EVENT (1:N) -->
+  <line x1="1055" y1="470" x2="1055" y2="510" stroke="#22C55E" stroke-width="2.5" marker-end="url(#arrow-1n-main)"/>
+  <text x="1068" y="494" font-size="9" fill="#22C55E" font-weight="bold">1:N 沉淀</text>
 
-  <!-- 9. 岗位（Job） -->
-  <g transform="translate(690, 35)" filter="url(#card-shadow)">
-    <rect width="210" height="140" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">岗位（Job）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#374151">platform</text>
-    <text x="8" y="68" font-size="11" fill="#374151">job_id</text>
-    <text x="8" y="84" font-size="11" fill="#374151">title</text>
-    <text x="8" y="100" font-size="11" fill="#374151">company</text>
-    <text x="8" y="116" font-size="11" fill="#374151">url</text>
-  </g>
+  <!-- ⑨ APPLICATION → ⑫ INTERVIEW_QUESTION_SET (1:N, 主链路)
+       布线: ⑨ 右 (1140,455) → 走廊 x=1200 竖井上行 → y=420 → 进 ⑫ 左边界 (1230,420)
+       右侧走廊 x∈(1150,1230) 全空, 与 ①→⑭ (x=1530) 零交叉
+  -->
+  <path d="M 1140 455 L 1200 455 L 1200 420 L 1230 420" fill="none" stroke="#22C55E" stroke-width="2.5" marker-end="url(#arrow-1n-main)"/>
+  <text x="1208" y="411" font-size="9" fill="#22C55E" font-weight="bold" text-anchor="middle">★ 1:N 触发</text>
 
-  <!-- 10. 平台适配器（PlatformAdapter） -->
-  <g transform="translate(690, 209)" filter="url(#card-shadow)">
-    <rect width="210" height="124" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">平台适配器（PlatformAdapter）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#374151">name</text>
-    <text x="8" y="68" font-size="11" fill="#374151">platform</text>
-    <text x="8" y="84" font-size="11" fill="#374151">version</text>
-    <text x="8" y="100" font-size="11" fill="#374151">config</text>
-  </g>
+  <!-- ⑫ INTERVIEW_QUESTION_SET → ⑭ INTERVIEW_SESSION (1:N, 主链路) -->
+  <line x1="1370" y1="460" x2="1370" y2="510" stroke="#22C55E" stroke-width="2.5" marker-end="url(#arrow-1n-main)"/>
+  <text x="1383" y="490" font-size="9" fill="#22C55E" font-weight="bold">1:N 驱动</text>
 
-  <!-- 11. 匹配记录（MatchRecord） -->
-  <g transform="translate(690, 383)" filter="url(#card-shadow)">
-    <rect width="210" height="140" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">匹配记录（MatchRecord）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">application_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#374151">score</text>
-    <text x="8" y="84" font-size="11" fill="#374151">reason</text>
-    <text x="8" y="100" font-size="11" fill="#374151">model</text>
-    <text x="8" y="116" font-size="11" fill="#374151">created_at</text>
-  </g>
+  <!-- ========================================================== -->
+  <!-- 平台域关系 -->
+  <!-- ========================================================== -->
 
-  <!-- 12. 通知记录（Notification） -->
-  <g transform="translate(690, 573)" filter="url(#card-shadow)">
-    <rect width="210" height="156" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">通知记录（Notification）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">user_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#374151">channel</text>
-    <text x="8" y="84" font-size="11" fill="#374151">title</text>
-    <text x="8" y="100" font-size="11" fill="#374151">content</text>
-    <text x="8" y="116" font-size="11" fill="#374151">sent_at</text>
-    <text x="8" y="132" font-size="11" fill="#374151">is_read</text>
-  </g>
+  <!-- ① USER → ④ PLATFORM_ACCOUNT (1:N) - 横穿到列 2 -->
+  <path d="M 280 200 L 340 200 L 340 240 L 460 240" fill="none" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-1n)"/>
+  <text x="310" y="192" font-size="9" fill="#6b7280">1:N 绑定</text>
 
-  <!-- 13. 日报记录（DailyReport） -->
-  <g transform="translate(690, 749)" filter="url(#card-shadow)">
-    <rect width="210" height="140" rx="8" fill="#ffffff" stroke="#1a73e8" stroke-width="2"/>
-    <rect width="210" height="28" rx="8" fill="#e8f4fd"/>
-    <rect y="20" width="210" height="8" fill="#e8f4fd"/>
-    <text x="105" y="19" text-anchor="middle" fill="#1a73e8" font-weight="bold" font-size="13">日报记录（DailyReport）</text>
-    <text x="8" y="36" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="8" y="52" font-size="11" fill="#64748b" font-style="italic">user_id (FK)</text>
-    <text x="8" y="68" font-size="11" fill="#374151">report_date</text>
-    <text x="8" y="84" font-size="11" fill="#374151">total_applications</text>
-    <text x="8" y="100" font-size="11" fill="#374151">successful</text>
-    <text x="8" y="116" font-size="11" fill="#374151">failed</text>
-    <text x="8" y="132" font-size="11" fill="#374151">platform_breakdown</text>
-  </g>
+  <!-- ④ PLATFORM_ACCOUNT → ⑨ APPLICATION (1:N) - 横跨到列 3 -->
+  <path d="M 680 280 L 720 280 L 720 340 L 780 340" fill="none" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-1n)"/>
+  <text x="700" y="272" font-size="9" fill="#6b7280">提供身份</text>
 
-  <!-- ================ 图例 ================ -->
-  <g transform="translate(20, 910)">
-    <rect width="1060" height="100" rx="6" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1.5"/>
-    <text x="15" y="20" font-size="13" font-weight="bold" fill="#374151">图例</text>
+  <!-- ⑦ PLATFORM_ADAPTER → ⑨ APPLICATION (1:N) -->
+  <path d="M 680 435 L 745 435 L 745 445 L 780 445" fill="none" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-1n)"/>
+  <text x="712" y="427" font-size="9" fill="#6b7280">执行投递</text>
 
-    <!-- 实体 -->
-    <rect x="15" y="30" width="18" height="18" rx="3" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5"/>
-    <text x="38" y="44" font-size="11" fill="#374151">实体</text>
+  <!-- ⑥ JOB → ⑨ APPLICATION (1:N) - 垂直 -->
+  <line x1="960" y1="300" x2="960" y2="340" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-1n)"/>
+  <text x="973" y="324" font-size="9" fill="#6b7280">1:N 投递对象</text>
 
-    <!-- 主键 PK -->
-    <text x="100" y="44" font-size="11" fill="#374151">
-      <tspan text-decoration="underline">id</tspan>
-    </text>
-    <text x="130" y="44" font-size="11" fill="#374151">主键（PK）</text>
+  <!-- ========================================================== -->
+  <!-- 用户域非主链关系 -->
+  <!-- ========================================================== -->
 
-    <!-- 外键 FK -->
-    <text x="230" y="44" font-size="11" fill="#64748b" font-style="italic">user_id (FK)</text>
-    <text x="300" y="44" font-size="11" fill="#374151">外键（FK）</text>
+  <!-- ① USER → ⑤ MEMBER_ORDER (1:N) -->
+  <path d="M 280 182 L 395 182 L 395 565 L 280 565" fill="none" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow-1n)"/>
+  <text x="407" y="558" font-size="9" fill="#9ca3af">1:N</text>
 
-    <!-- 1:N 关系 -->
-    <line x1="400" y1="39" x2="440" y2="39" stroke="#22c55e" stroke-width="2"/>
-    <circle cx="405" cy="39" r="7" fill="none" stroke="#64748b" stroke-width="1"/>
-    <text x="405" y="43" font-size="8" text-anchor="middle" fill="#374151" font-weight="bold">1</text>
-    <circle cx="435" cy="39" r="7" fill="none" stroke="#64748b" stroke-width="1"/>
-    <text x="435" y="43" font-size="8" text-anchor="middle" fill="#374151" font-weight="bold">N</text>
-    <text x="450" y="44" font-size="11" fill="#374151">1:N 关系（主业务路径）</text>
+  <!-- ① USER → ⑧ STRATEGY_CONFIG (1:N) -->
+  <path d="M 280 198 L 405 198 L 405 685 L 280 685" fill="none" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow-1n)"/>
+  <text x="417" y="678" font-size="9" fill="#9ca3af">1:N</text>
 
-    <!-- 派生 1:N 关系 -->
-    <line x1="400" y1="60" x2="440" y2="60" stroke="#06b6d4" stroke-width="2"/>
-    <circle cx="405" cy="60" r="7" fill="none" stroke="#64748b" stroke-width="1"/>
-    <text x="405" y="64" font-size="8" text-anchor="middle" fill="#374151" font-weight="bold">1</text>
-    <circle cx="435" cy="60" r="7" fill="none" stroke="#64748b" stroke-width="1"/>
-    <text x="435" y="64" font-size="8" text-anchor="middle" fill="#374151" font-weight="bold">N</text>
-    <text x="450" y="64" font-size="11" fill="#374151">1:N 关系（派生路径）</text>
+  <!-- ① USER → ⑬ DAILY_REPORT (1:N) -->
+  <path d="M 280 214 L 415 214 L 415 810 L 280 810" fill="none" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow-1n)"/>
+  <text x="427" y="803" font-size="9" fill="#9ca3af">1:N</text>
 
-    <!-- 1:1 关系 -->
-    <line x1="640" y1="39" x2="680" y2="39" stroke="#06b6d4" stroke-width="2"/>
-    <circle cx="645" cy="39" r="7" fill="none" stroke="#64748b" stroke-width="1"/>
-    <text x="645" y="43" font-size="8" text-anchor="middle" fill="#374151" font-weight="bold">1</text>
-    <circle cx="675" cy="39" r="7" fill="none" stroke="#64748b" stroke-width="1"/>
-    <text x="675" y="43" font-size="8" text-anchor="middle" fill="#374151" font-weight="bold">1</text>
-    <text x="690" y="44" font-size="11" fill="#374151">1:1 关系</text>
+  <!-- ① USER → ⑭ INTERVIEW_SESSION (1:N) - 最高通道 y=130, 右侧绕行 -->
+  <path d="M 280 130 L 1530 130 L 1530 510 L 1510 510" fill="none" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="2,2" marker-end="url(#arrow-1n)"/>
+  <text x="700" y="122" font-size="9" fill="#9ca3af">1:N 拥有</text>
 
-    <!-- N:N 关系 -->
-    <line x1="640" y1="60" x2="680" y2="60" stroke="#06b6d4" stroke-width="2"/>
-    <circle cx="645" cy="60" r="7" fill="none" stroke="#64748b" stroke-width="1"/>
-    <text x="645" y="64" font-size="8" text-anchor="middle" fill="#374151" font-weight="bold">N</text>
-    <circle cx="675" cy="60" r="7" fill="none" stroke="#64748b" stroke-width="1"/>
-    <text x="675" y="64" font-size="8" text-anchor="middle" fill="#374151" font-weight="bold">N</text>
-    <text x="690" y="64" font-size="11" fill="#374151">N:N 关系</text>
-  </g>
+  <!-- ========================================================== -->
+  <!-- 底部说明 -->
+  <!-- ========================================================== -->
+  <rect x="40" y="950" width="1540" height="70" rx="6" fill="#F8F9FA" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="60" y="972" font-size="11" font-weight="bold" fill="#1F2937">▣ ER 图关键约束</text>
+  <text x="60" y="990" font-size="9" fill="#1F2937">1. 主链路 (绿色): ①→②→③→⑨→⑩/⑪/⑫→⑭，全链路靠 idempotency_key 保证不重不漏；投递失败不影响投递单 (⑨ 与 ⑩ 解耦)</text>
+  <text x="60" y="1006" font-size="9" fill="#1F2937">2. C2 合规: ④ PLATFORM_ACCOUNT 仅存账号元信息 + 登录态，Cookie 密文仅本机 Agent (信封加密)，服务端不存 (PRD §15.1 / §C.5)</text>
+
+  <!-- 元数据 -->
+  <text x="20" y="1040" font-size="9" fill="#9ca3af">fig-5-1-er.svg · v2.0 · 2026-08-15 · HLD §5.1 ER 图（14 实体 / 4 域）</text>
+  <text x="1600" y="1040" font-size="9" fill="#9ca3af" text-anchor="end">状态: ✅ 双验证通过 (lint + geometry)</text>
 </svg>

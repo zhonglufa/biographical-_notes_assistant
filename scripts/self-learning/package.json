@@ -1,0 +1,15 @@
+{
+  "name": "svg-self-learning",
+  "version": "1.0.0",
+  "description": "SVG 作图自我学习机制 — Hook + Trigger Chain + Distillation",
+  "main": "trigger-chain/dispatch.js",
+  "scripts": {
+    "pre-commit": "node hooks/pre-commit.js",
+    "post-commit": "node hooks/post-commit.js",
+    "distill": "node distillation/classifier.js && node distillation/extractor.js && node distillation/spec-updater.js",
+    "init-db": "node db/init.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.0.0"
+  }
+}

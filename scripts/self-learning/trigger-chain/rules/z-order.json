@@ -1,0 +1,24 @@
+{
+  "name": "Z 轴顺序规则",
+  "description": "SVG 渲染顺序（文档顺序决定 z-index），组合片段背景必须在激活条之前",
+  "rules": [
+    {
+      "id": "Z-001",
+      "name": "组合片段背景先于激活条",
+      "severity": "error",
+      "detect": "function(eventType, payload) { return (eventType === 'review' || eventType === 'manual-review') && payload.error && payload.error.includes('alt'); }",
+      "analyze": "function(payload) { return { rootCause: 'alt 组合片段背景在激活条之后绘制，导致激活条被遮挡', impact: '激活条不可见，违反 §3.3.8.1', suggestedFix: '将 alt 片段 <rect> 移至激活条 <rect> 之前；同时改用 fill=\"none\" 透明背景', severity: 'high' }; }",
+      "specSection": "作图-04-UML时序图.md §3.3.8.1",
+      "checklist": "3.16"
+    },
+    {
+      "id": "Z-002",
+      "name": "消息线在激活条之上",
+      "severity": "warning",
+      "detect": "function(eventType, payload) { return eventType === 'review' && payload.error && payload.error.includes('消息线'); }",
+      "analyze": "function(payload) { return { rootCause: '消息线在激活条之下绘制，激活条覆盖了箭头', impact: '箭头不可见', suggestedFix: '将消息线定义移至激活条之后', severity: 'medium' }; }",
+      "specSection": "作图-04-UML时序图.md §3.3.8.1",
+      "checklist": "3.16"
+    }
+  ]
+}

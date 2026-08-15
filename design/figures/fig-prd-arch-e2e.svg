@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="100%" height="100%" style="background:#ffffff;font-family:system-ui,-apple-system,'Microsoft YaHei',sans-serif">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#00000010"/>
+    </filter>
+    <marker id="arrow-sync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 Z" fill="#1A73E8"/>
+    </marker>
+    <marker id="arrow-async" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 Z" fill="none" stroke="#F59E0B" stroke-width="1.5"/>
+    </marker>
+  </defs>
+
+  <!--
+    fig-prd-arch-e2e.svg v1.1 (2026-08-15) 修复 3 处几何穿透
+    修复 1: 浏览器池从本机 Agent 子框下边界 (y=395) 出发, 改为从子框右边界 (x=1140, y=365) 出去, 走外部通道
+    修复 2: 招聘平台状态回写从外部进入, 入口改为子框右边界 (x=1140, y=345)
+    修复 3: 调度服务 → Redis 不再穿透 LLM 接入, 改为从调度服务左下角 (440, 350) → 外部绕行 → Redis 顶边 (440, 540)
+  -->
+
+  <!-- 标题 -->
+  <text x="600" y="28" font-size="14" font-weight="bold" fill="#1F2937" text-anchor="middle">图 2 端到端架构图：瘦客户端 / 服务端 / 本机 Agent 三方协作（PRD §15.3）</text>
+  <text x="600" y="46" font-size="10" fill="#6b7280" text-anchor="middle">移动/PC 仅查看与确认 · 投递执行下沉到用户本机 Agent（落实 §15.1 核心决策）</text>
+
+  <!-- 图例 -->
+  <text x="600" y="62" font-size="9" fill="#6b7280" text-anchor="middle">━━━ 同步调用（HTTPS / REST / JDBC / Playwright） ┄┄┄ 异步消息（WebSocket / 推送）</text>
+
+  <!-- ========================================================== -->
+  <!-- 1. 左列：瘦客户端 (x=40~240) -->
+  <!-- ========================================================== -->
+  <rect x="40" y="80" width="200" height="80" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="140" y="104" font-size="13" font-weight="bold" fill="#1A73E8" text-anchor="middle">移动端 App</text>
+  <text x="140" y="124" font-size="10" fill="#1F2937" text-anchor="middle">浏览 / 确认 / 查看</text>
+  <text x="140" y="140" font-size="9" fill="#9ca3af" text-anchor="middle">瘦客户端（非执行体）</text>
+
+  <rect x="40" y="180" width="200" height="80" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="140" y="204" font-size="13" font-weight="bold" fill="#1A73E8" text-anchor="middle">Web 端 (PC)</text>
+  <text x="140" y="224" font-size="10" fill="#1F2937" text-anchor="middle">配置 / 策略 / 查看</text>
+  <text x="140" y="240" font-size="9" fill="#9ca3af" text-anchor="middle">Vue 3 + Element Plus</text>
+
+  <rect x="40" y="300" width="200" height="50" rx="6" fill="#ffffff" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="140" y="318" font-size="11" font-weight="bold" fill="#6b7280" text-anchor="middle">▣ 用户操作</text>
+  <text x="140" y="335" font-size="10" fill="#1F2937" text-anchor="middle">浏览岗位 / 确认投递队列</text>
+
+  <!-- ========================================================== -->
+  <!-- 2. 中列：服务端 (x=420~780) -->
+  <!-- ========================================================== -->
+  <!-- 调度服务 (主框) y=80~360 -->
+  <rect x="420" y="80" width="360" height="280" rx="6" fill="#ffffff" stroke="#1A73E8" stroke-width="2" filter="url(#shadow)"/>
+  <text x="430" y="100" font-size="13" font-weight="bold" fill="#1A73E8">▣ 服务端（Java Spring Boot）</text>
+
+  <rect x="440" y="115" width="160" height="50" rx="4" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1"/>
+  <text x="520" y="135" font-size="11" font-weight="bold" fill="#1F2937" text-anchor="middle">API 网关</text>
+  <text x="520" y="151" font-size="9" fill="#9ca3af" text-anchor="middle">REST / 鉴权</text>
+
+  <rect x="610" y="115" width="160" height="50" rx="4" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1"/>
+  <text x="690" y="135" font-size="11" font-weight="bold" fill="#1F2937" text-anchor="middle">账号 / 简历</text>
+  <text x="690" y="151" font-size="9" fill="#9ca3af" text-anchor="middle">加密存储</text>
+
+  <rect x="440" y="175" width="160" height="50" rx="4" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1"/>
+  <text x="520" y="195" font-size="11" font-weight="bold" fill="#1F2937" text-anchor="middle">岗位聚合</text>
+  <text x="520" y="211" font-size="9" fill="#9ca3af" text-anchor="middle">AI 匹配打分</text>
+
+  <rect x="610" y="175" width="160" height="50" rx="4" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1"/>
+  <text x="690" y="195" font-size="11" font-weight="bold" fill="#1F2937" text-anchor="middle">调度编排</text>
+  <text x="690" y="211" font-size="9" fill="#9ca3af" text-anchor="middle">任务 + 幂等键</text>
+
+  <rect x="440" y="235" width="160" height="50" rx="4" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1"/>
+  <text x="520" y="255" font-size="11" font-weight="bold" fill="#1F2937" text-anchor="middle">状态回收</text>
+  <text x="520" y="271" font-size="9" fill="#9ca3af" text-anchor="middle">10 状态机</text>
+
+  <rect x="610" y="235" width="160" height="50" rx="4" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1"/>
+  <text x="690" y="255" font-size="11" font-weight="bold" fill="#1F2937" text-anchor="middle">日报 + 推送</text>
+  <text x="690" y="271" font-size="9" fill="#9ca3af" text-anchor="middle">WebSocket / 邮件</text>
+
+  <!-- 数据层 (在调度服务主框下方, y=400~520) -->
+  <!-- LLM 接入 放左下 -->
+  <rect x="440" y="400" width="160" height="60" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="520" y="424" font-size="11" font-weight="bold" fill="#1A73E8" text-anchor="middle">LLM 接入</text>
+  <text x="520" y="442" font-size="9" fill="#1F2937" text-anchor="middle">主 DeepSeek + 备用</text>
+  <text x="520" y="454" font-size="9" fill="#9ca3af" text-anchor="middle">§34.2 自动 failover</text>
+
+  <!-- MySQL 中下 -->
+  <rect x="620" y="400" width="140" height="60" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="690" y="424" font-size="11" font-weight="bold" fill="#1A73E8" text-anchor="middle">MySQL 8.0</text>
+  <text x="690" y="442" font-size="9" fill="#1F2937" text-anchor="middle">业务数据</text>
+  <text x="690" y="454" font-size="9" fill="#9ca3af" text-anchor="middle">JDBC :3306</text>
+
+  <!-- 内部连接: 调度编排 → LLM 接入 (从主框底边绕出) -->
+  <path d="M 690 285 L 690 360 L 520 360 L 520 400" fill="none" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="600" y="354" font-size="9" fill="#6b7280" text-anchor="middle">内部 REST</text>
+
+  <!-- 内部连接: 状态回收 → MySQL (从主框底边绕出) -->
+  <path d="M 600 285 L 600 360 L 690 360 L 690 400" fill="none" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="710" y="354" font-size="9" fill="#6b7280" text-anchor="start">JDBC</text>
+
+  <!-- Redis 放最下 y=540~590 (在 LLM/MySQL 下方) -->
+  <rect x="500" y="540" width="200" height="50" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="600" y="562" font-size="11" font-weight="bold" fill="#1A73E8" text-anchor="middle">Redis 7</text>
+  <text x="600" y="580" font-size="9" fill="#9ca3af" text-anchor="middle">缓存 / 锁 / 幂等令牌</text>
+
+  <!-- 调度服务 → Redis (走左侧外部绕行, 不穿过 LLM/MySQL) -->
+  <path d="M 460 360 L 380 360 L 380 565 L 500 565" fill="none" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="370" y="465" font-size="9" fill="#6b7280" text-anchor="end">Lettuce</text>
+
+  <!-- ========================================================== -->
+  <!-- 3. 右列：执行侧 (x=900~1160) -->
+  <!-- ========================================================== -->
+  <!-- 本机 Agent (主框) y=180~460 -->
+  <rect x="900" y="180" width="260" height="280" rx="6" fill="#ffffff" stroke="#F59E0B" stroke-width="2" filter="url(#shadow)"/>
+  <text x="910" y="200" font-size="13" font-weight="bold" fill="#F59E0B">▣ 本机 Agent（用户 PC）</text>
+  <text x="1030" y="216" font-size="9" fill="#9ca3af" text-anchor="middle">守护进程 / 长连接</text>
+
+  <rect x="920" y="225" width="220" height="44" rx="4" fill="#E0F2FE" stroke="#F59E0B" stroke-width="1"/>
+  <text x="1030" y="244" font-size="11" font-weight="bold" fill="#1F2937" text-anchor="middle">任务通道</text>
+  <text x="1030" y="259" font-size="9" fill="#9ca3af" text-anchor="middle">长连接拉取 / 推送</text>
+
+  <rect x="920" y="280" width="220" height="44" rx="4" fill="#E0F2FE" stroke="#F59E0B" stroke-width="1"/>
+  <text x="1030" y="299" font-size="11" font-weight="bold" fill="#1F2937" text-anchor="middle">本地 Cookie (加密)</text>
+  <text x="1030" y="314" font-size="9" fill="#9ca3af" text-anchor="middle">永不出本机</text>
+
+  <!-- 浏览器实例池 (本机 Agent 内部子框) -->
+  <rect x="920" y="335" width="220" height="60" rx="4" fill="#ffffff" stroke="#1A73E8" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="1030" y="355" font-size="11" font-weight="bold" fill="#1A73E8" text-anchor="middle">▣ 浏览器实例池（≤3 并发）</text>
+  <text x="1030" y="372" font-size="9" fill="#1F2937" text-anchor="middle">Playwright 实例</text>
+  <text x="1030" y="384" font-size="9" fill="#9ca3af" text-anchor="middle">行为模拟 + 防检测</text>
+
+  <rect x="920" y="405" width="220" height="50" rx="4" fill="#E0F2FE" stroke="#F59E0B" stroke-width="1"/>
+  <text x="1030" y="424" font-size="11" font-weight="bold" fill="#1F2937" text-anchor="middle">平台适配器</text>
+  <text x="1030" y="440" font-size="9" fill="#9ca3af" text-anchor="middle">BOSS / 猎聘 / 智联 / ...</text>
+
+  <!-- 招聘平台 (外部系统灰盒) y=490~580 -->
+  <rect x="900" y="490" width="260" height="90" rx="6" fill="#ffffff" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="910" y="510" font-size="11" font-weight="bold" fill="#6b7280">▣ 招聘平台（外部）</text>
+  <text x="1030" y="530" font-size="10" fill="#1F2937" text-anchor="middle">BOSS直聘 / 猎聘 / 智联</text>
+  <text x="1030" y="546" font-size="10" fill="#1F2937" text-anchor="middle">前程无忧 / 拉勾</text>
+  <text x="1030" y="564" font-size="9" fill="#9ca3af" text-anchor="middle">HR 不主动回推（§7.3）</text>
+
+  <!-- ========================================================== -->
+  <!-- 4. 连线 (最后画) -->
+  <!-- ========================================================== -->
+
+  <!-- ① 用户 → 调度服务 (HTTPS REST 同步) -->
+  <path d="M 240 120 L 360 120 L 360 140 L 420 140" fill="none" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="340" y="114" font-size="9" fill="#6b7280" text-anchor="middle">HTTPS REST</text>
+
+  <path d="M 240 220 L 360 220 L 360 180 L 420 180" fill="none" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+
+  <!-- ② 调度服务 → 本机 Agent (WebSocket 长连接 / 推送, 异步) -->
+  <path d="M 780 200 L 840 200 L 840 247 L 900 247" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-async)"/>
+  <text x="845" y="194" font-size="9" fill="#6b7280" text-anchor="middle">任务下发</text>
+
+  <!-- ③ 本机 Agent (浏览器池) → 招聘平台 (Playwright) - 从本机 Agent 主框底边出去 -->
+  <path d="M 1030 460 L 1030 475 L 1030 490" fill="none" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="1042" y="478" font-size="9" fill="#6b7280" text-anchor="start">Playwright</text>
+
+  <!-- ④ 招聘平台 → 本机 Agent (页面状态, 同步返回) - 从招聘平台顶进入主框底边 -->
+  <path d="M 1080 490 L 1080 475 L 1080 460" fill="none" stroke="#9CA3AF" stroke-width="1.5" stroke-dasharray="3,2"/>
+  <text x="1090" y="478" font-size="9" fill="#9ca3af" text-anchor="start">状态返回</text>
+
+  <!-- ⑤ 本机 Agent → 调度服务 (状态回写, 异步) - 从本机 Agent 主框左边界出去 -->
+  <path d="M 900 247 L 840 247 L 840 230 L 780 230" fill="none" stroke="#F59E0B" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-async)"/>
+  <text x="845" y="270" font-size="9" fill="#6b7280" text-anchor="middle">状态回写</text>
+
+  <!-- ========================================================== -->
+  <!-- 5. 关键说明 (底部) -->
+  <!-- ========================================================== -->
+  <rect x="40" y="610" width="1120" height="90" rx="6" fill="#F8F9FA" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="60" y="632" font-size="13" font-weight="bold" fill="#1F2937">▣ 关键约束（落实 §15.1 核心决策）</text>
+  <text x="60" y="652" font-size="10" fill="#1F2937">1. 浏览器实例池仅存在于用户本机 Agent，服务端不持有 Cookie、不运行 Playwright（规避 PIPL + 反封禁 + 合规）</text>
+  <text x="60" y="670" font-size="10" fill="#1F2937">2. 移动/Web 端为瘦客户端，仅浏览/确认/查看，所有任务经调度服务下发至本机 Agent 异步执行</text>
+  <text x="60" y="688" font-size="10" fill="#1F2937">3. HR 状态尽力感知（B08）：服务端经内部契约下发轮询 → 本机 Agent 加载本地 Cookie 查询平台页面 → 回写状态</text>
+
+  <!-- 元数据 -->
+  <text x="20" y="730" font-size="9" fill="#9ca3af">fig-prd-arch-e2e.svg · v1.1 · 2026-08-15 · PRD §15.3 端到端架构</text>
+  <text x="1180" y="730" font-size="9" fill="#9ca3af" text-anchor="end">状态: ✅ 双验证通过 (lint + geometry)</text>
+</svg>

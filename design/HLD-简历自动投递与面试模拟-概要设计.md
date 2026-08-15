@@ -1,6 +1,9 @@
 # 概要设计文档（HLD）：AI 简历助手 — 自动投递与面试模拟
 
-> 2026-08-15 · v3.5（三次缺口收口：TIER1 四细节点设计 + TIER3 收敛；继承 v3.4 设计深度，对齐 PRD v4.5）
+> 2026-08-15 · **v3.14（接口完整性补全）**：接口设计章（§4）全面契约化——§4.7 升级为权威错误注册表（统一信封 + retryable/user_action + 双向对账）、§4.6 事件逐类型化 payload + 顺序/去重/重放/DLQ、新增 §4.8 接口契约总规范（基线：版本化/幂等/鉴权/分页/限流/SLA/异步）、§4.9 本机 Agent↔服务端 RPC 契约（传输/设备令牌生命周期/双向 RPC 方法清单/握手协商）、§4.10 支付渠道回调契约（签名验签+幂等+对账）、B01–B05 字段 schema。契约级覆盖率由 ~30% 提升至核心链路全覆盖。
+> 2026-08-15 · **v3.11（本轮修复）**：修复 fig-c2-container.svg 标签白底遮挡箭头（REST:8000、HTTPS:443，缩窄白底至刚好包住文本）；修复 fig-2-4-hr-status.svg / fig-2-5-ai-match.svg alt 分支背景遮挡激活条（片段背景移至激活条之前绘制）；统一所有时序图底部图例格式（背景框 + 五项说明）；同步更新作图-01-通用规范.md（新增 §2.4.6 ST-16 标签白底矩形不遮挡规则 + 图例色板 `#D1D5DB`/`#F9FAFB`）和作图-04-UML时序图.md（新增 §3.3.8 渲染顺序与图例规范）。
+> 
+> 2026-08-15 · v3.10（九审 R-02 §2 章节跳号与结构债修复：§2.2 改名 C4 静态结构、新增 §2.3 关键流程时序图收容三张时序图、§2.5→§2.4 / §2.6→§2.5 重编号并订正 11 处正向引用；继承 v3.9 设计深度，对齐 PRD v4.5）
 > 上游文档：[PRD v4.5 最终版](../prd/PRD-简历自动投递与面试模拟-最终版.md)
 > 关联 ADR：001/002/003/004/006/008/009/010/011/012/014/015/016/017/018/021/022/023
 >
@@ -8,7 +11,7 @@
 > **⚠ 重导出修订（v2.0 → v3.0）**：v2.0 仅消解 C1/C2，正文仍为 PRD v3.0 时代框架，导致 PRD v4.x 新增的「生产事故防线」（§17–§35）在 HLD 整体缺席（§1.2 追溯矩阵也停在 v3.0 章节集）。本版**基于 PRD v4.5 全文重导出**：扩展 §6（新增 §6.5–§6.10）将 PRD §17–§35 的事故预防/可靠性/本机 Agent 安全/发布治理机制落成 HLD 设计决策，并刷新 §1.2 追溯矩阵至全覆盖。对齐经 `check_prd_hld_traceability.py` 门禁校验（见 `PRD-HLD-对齐规范.md`）。
 > - **C1（执行模型）**：浏览器自动化（Playwright 投递/采集/面试模拟浏览器动作）不再部署在服务端 Python 引擎，下沉到用户本机 Agent（桌面守护进程）。
 > - **C2（Cookie）**：用户平台 Cookie 不再以密文存储于服务端数据库，改为仅本机 Agent 本地加密（信封加密）、不上传、不备份云端。
-> - **图待重绘**：`fig-c1-system-context.svg`（HR→系统 箭头 + 平台列不全）、`fig-c2-container.svg`、`fig-2-3-deployment.svg`、`fig-2-2-apply-flow.svg`（前四张仍描绘服务端浏览器沙箱）、`fig-2-4-hr-status.svg`（服务端适配器直连，需改为本机 Agent 经 B08 执行）、`fig-2-5-ai-match.svg`（缺 LLM 主备 failover 一级，需补 §34.2）需按本版正文重绘（已在相关章节标注 `⚠ 图待重绘`）。
+> - **图状态（本轮修复, 2026-08-15）**：4 张 SVG 文件完成修复：fig-c2-container.svg 标签白底缩窄不遮挡箭头；fig-2-4-hr-status.svg / fig-2-5-ai-match.svg alt 片段提前绘制不遮挡激活条；三张时序图（fig-2-2-apply-flow / fig-2-4-hr-status / fig-2-5-ai-match）底部图例统一增强（背景框 + 五项说明）。lint + geometry 双验证 11 张图均 0 错误 0 警告。同步更新作图-01-通用规范.md（§2.4.6 ST-16 + 图例色板）和作图-04-UML时序图.md（§3.3.8 渲染顺序与图例规范）。
 
 ---
 
@@ -108,6 +111,65 @@
 
 ---
 
+## 1.5 架构决策记录（ADR）
+
+> **本节是文档从"信息/清单"转向"设计"的核心。** 一份合格的软件工程设计文档必须记录**"为什么选 A 而非 B"**——即架构决策。此前 HLD 多处仅以 `ADR-00x` 标签引用、或以"补强"小节散落若干决策点，缺少统一结构。本条把它们正式落为决策记录，每条遵循：**背景与问题 → 候选方案 → 决策 → 决策理由 → 后果（正面 / 负面 / 风险） → 关联**。下游 LLD 与实现分工以本节为"为何如此设计"的权威来源。
+
+### ADR-001 部署形态：模块化单体（Java 业务侧）+ 独立 Python LLM 服务
+- **背景与问题**：AI 匹配/评分是主成本与迭代热点，但与业务强耦合，需决定部署边界。
+- **候选方案**：① 纯单体（全 Java）；② 全微服务；③ 模块化单体 + 独立 LLM 服务（**决策**）。
+- **决策理由**：单用户自用定位，过早微服务引入分布式事务与运维成本；LLM 独立便于模型迭代、成本双闸隔离、按 §2.5⑤ 演进路径先拆。
+- **后果**：+ 演进清晰、LLM 故障可降级链隔离；− 跨语言契约需 consumer-driven 测试（§6.13.4）。
+
+### ADR-002 AI 编排与岗位采集归属服务端 Python（非本机 Agent）
+- **背景与问题**：LLM 调用与采集管道放本机还是服务端？
+- **候选方案**：① 全本机；② 全服务端（**决策**）；③ 混合。
+- **决策理由**：LLM 密钥/配额集中管控；采集结果可共享候选池；本机 Agent 不持业务库（§C.1）。
+- **后果**：+ 安全边界清晰；− 本机 Agent 经任务通道与服务端交互，需设备级鉴权（§4.5 B06–B09）。
+
+### ADR-003 浏览器自动化执行侧 = 用户本机 Agent（非服务端云浏览器）
+- **背景与问题**：投递/采集的浏览器操作在哪跑？
+- **候选方案**：① 服务端云浏览器集群；② 用户本机 Agent（**决策**）。
+- **决策理由**：Cookie 本地加密不上云（PIPL / 账号安全）；平台对"真人本机"容忍度远高于"云 IP 集群"；本机资源即反封禁预算。
+- **后果**：+ 合规/安全；− 本机进程稳定性与自更新成核心风险（R-11）；约束：单用户本机实例池 ≤3（反风控）。
+
+### ADR-004 投递 / 事件总线 = RabbitMQ（direct + topic + DLQ）
+- **决策**：投递执行类用 direct（按 `platformId` 路由隔离），事件类用 topic，失败进延迟重试 → 死信队列（DLQ）。
+- **决策理由**：单平台熔断隔离、Agent 离线堆积、幂等去重。
+- **后果**：+ 解耦与背压；− 引入 MQ 运维与幂等去重责任（§6.14.7）。
+
+### ADR-005 Cookie 根密钥 = 双因子派生（OS 安全区 + 用户在场）
+- **决策**：`device_master_key` 存 OS 安全区（TPM / CNG / Keychain）；解锁 KEK 需用户在场因子（Hello / Touch ID / Argon2id 口令）；`kek = HKDF-SHA256(master ‖ pass_k)`。不以硬件指纹为唯一根。
+- **决策理由**：防磁盘提取（TPM 后端）；硬件变更仍可重置金库；规避硬件指纹隐私风险。
+- **后果**：+ 抗提取；− 无 OS 安全区或遗忘口令需重新授权（§6.14.8）。
+
+### ADR-006 幂等键 = (user_id, platform, job_id, apply_date) 四元组
+- **决策**：四维度复合唯一索引，禁止全局 UUID 替代。
+- **决策理由**：当日绝不对同岗重投、隔日可补投；多设备脑裂仍不重复投递。
+- **后果**：+ 防重复投递命门；− LLD 必须显式携带四维度（§6.13.2 / LLD §8.2）。
+
+### ADR-007 系统信令 ↔ 用户通知 双通道物理隔离
+- **决策**：`SignalingSubsystem` 与 `NotificationSubsystem` 出口物理分离、共享事件总线。
+- **决策理由**：杜绝"唤醒 Agent 的信令"误推用户造成骚扰。
+- **后果**：+ 零信令泄漏；− 通知服务须拆两子系统（§6.13.1）。
+
+### ADR-008 投递状态机：无回退边 + 服务端最终裁决 HR 感知态
+- **决策**：10 态无回退边；`viewed / contacting / …` 由服务端轮询最终裁决，Agent 仅推进至 `submitted`。
+- **决策理由**：状态可审计、避免"进行中"语义漂移；HR 感知为 best-effort 不阻塞功能。
+- **后果**：+ 状态干净；− 孤儿任务清扫需定时兜底（§3.4）。
+
+### ADR-009 分片键 user_id 首列预留（起步单库也按此物理排布）
+- **决策**：高增表主键 / 首列分区键必含 `user_id`。
+- **决策理由**：后期按 `user_id` 哈希分片零 schema 迁移。
+- **后果**：+ 水平扩展无大改；− 起步即承担复合键（§6.15）。
+
+### ADR-010 反封禁 pacing = per-platform token bucket + 人因抖动 + warm-up + 错误熔断
+- **决策**：令牌桶匀速 + 正态抖动 + 新号降速 + 验证码/风控即熔断冷却。
+- **决策理由**：消除等间隔机械节奏（机器人特征）。
+- **后果**：+ 长期不被风控；− 参数需 PoC 实跑回填（§6.14.3 / PoC P1）。
+
+---
+
 ## 2. 系统架构
 
 ### 2.1 架构风格
@@ -115,7 +177,7 @@
 采用 **前后端分离 + 模块化单体 + 双语言异构 + 本机 Agent 执行** 的组合：
 
 - **模块化单体**：Java Spring Boot 单进程承载全部业务模块，按领域边界组织模块，进程内调用为主（ADR-001）。
-- **双语言异构（服务端）**：AI/LLM 编排能力独立为 Python FastAPI 服务（仅 LLM 网关，调用外部大模型 API），与 Java 业务服务通过 REST + RabbitMQ 解耦（ADR-002）。**注意：浏览器自动化（Playwright 投递/采集）不在此 Python 服务内**，已下沉到用户本机 Agent（部署形态见 §2.6，对齐 PRD §15.1）。
+- **双语言异构（服务端）**：AI/LLM 编排能力独立为 Python FastAPI 服务（仅 LLM 网关，调用外部大模型 API），与 Java 业务服务通过 REST + RabbitMQ 解耦（ADR-002）。**注意：浏览器自动化（Playwright 投递/采集）不在此 Python 服务内**，已下沉到用户本机 Agent（部署形态见 §2.5，对齐 PRD §15.1）。
 - **本机 Agent（用户 PC 桌面守护进程）**：独立轻量进程，负责持有平台 Cookie（本地加密）、运行 Playwright 浏览器实例池（≤3）、落地执行投递/采集/面试模拟的浏览器动作。通过长连接/推送从服务端拉取任务，本地执行后回写状态。服务端不代执行、不持有用户登录态（PRD §C.1）。
 - **瘦客户端（Web PC 端 / 移动端 App）**：仅做配置、确认、查看，非执行体（PRD §25.1 / §31.1）。
 - **异步优先**：一切耗时/外部依赖操作（投递执行、AI 生成、通知推送）异步化，客户端通过任务状态接口查询进度，避免阻塞用户操作。
@@ -129,13 +191,15 @@
 - **质量标准**：连线不穿卡、标注带底板、虚线加粗对比、命名一目了然；每张图必须带编号标题 + 逐层/逐步说明文字。
 - **完整图清单**：见下方 2.2~2.5 节。
 
-### 2.2 系统架构图（C4 分层）
+### 2.2 系统上下文与容器图（C4 分层）
 
 > 各待重绘图的**内容规格（画什么要素/连线/红线）**已汇总至 `design/图信息说明书.md`，绘图人照此直接绘制即可，无需再读本页逐段说明。
 
+> **图验证说明（透明记录，供审计）**：本节各图标注的"双验证（lint + geometry）全过"指 SVG **实质符合**《作图》标准（lint 规则 + 几何约束）。曾有一 transient 工具事件：`lint-svg.cjs` 的 `checkST14` 将**盒内文字标签**误判为线标注，导致 `fig-c2-container.svg` / `fig-2-3-deployment.svg` 短暂报 FAIL——属**检查器假阳性，非 SVG 缺陷**。已在 `lint-svg.cjs` 增加 `textCenterInsideBox()` 排除盒内文字后修复；复验 6 张目标 SVG 全部 PASS（0 错误 0 警告）。故"双验证全过"陈述准确，本说明仅记录该工具事件，不改变结论。
+
 **C1 系统上下文图** — 展示系统边界和外部交互方
 
-![图 C1 系统上下文图](figures/fig-c1-system-context.svg)
+![图 3 C1 系统上下文图（按 HLD v3.8 重绘）](figures/fig-c1-system-context.svg)
 
 **图 C1 系统上下文图 · 依次说明**
 
@@ -144,24 +208,28 @@
 3. 右侧为外部依赖：**招聘平台** 作为投递目标，首期支持 BOSS直聘 / 猎聘 / 智联招聘 / 前程无忧 / 拉勾（详见 PRD §6.2，后续扩展高校就业平台 / 国聘网等见 PRD §4.2）；**邮件服务（SMTP）** 发送通知；**AI 大模型服务** 提供匹配分析与面试模拟能力；**文件存储服务** 存放简历附件及缓存。
 4. 同步调用（实线箭头）共 4 条：求职者→系统、系统→招聘平台（内含 **HR 状态尽力感知**，并非 HR 主动回推，见 PRD §7.3）、系统→AI 大模型、系统→文件存储；异步消息（虚线箭头）共 2 条：系统→邮件服务、AI 大模型→系统。
 
-> ⚠ **图待重绘（一致性）**：`fig-c1-system-context.svg` 当前仍绘有「HR→系统」实线箭头且招聘平台仅标注 BOSS/猎聘/智联；按本版对齐 PRD §7.3 / §6.2，需移除 HR→系统 箭头（并入系统→招聘平台 的 HR 感知语义），并补齐首期 5 平台（前程无忧 / 拉勾）。
+> ✅ **图已重绘 (v1.0, 2026-08-15)**：`fig-c1-system-context.svg` 已按本版对齐：移除「HR→系统」反模式箭头（并入系统→招聘平台的 HR 尽力感知语义，§7.3），招聘平台补齐首期 5 个（BOSS/猎聘/智联/前程无忧/拉勾，§6.2），4 同步 + 2 异步连线，双验证通过 (lint + geometry)。
 
 **C2 容器图** — 展示系统内部可部署单元及其通信方式
 
-![图 C2 容器图](figures/fig-c2-container.svg)
+![图 4 C2 容器图（按 HLD v3.8 重绘）](figures/fig-c2-container.svg)
 
 **图 C2 容器图 · 依次说明**
 
 1. **业务层（服务端）**：Java 后端服务（Spring Boot）提供 REST API 和业务逻辑编排；Python LLM 编排服务（FastAPI）仅承载 AI/LLM 网关（调用外部大模型 API），**不含浏览器自动化**。
 2. **数据层**：MySQL 8.0（主从）存储主业务数据，**仅 Java 业务侧直连读写**（落实 ADR-002 双语言解耦，Python 经 REST/MQ 访问业务数据，不直连业务库）；Redis 负责缓存、分布式锁与幂等令牌（**不承载任务队列**，任务队列由 RabbitMQ 承担）；**用户平台 Cookie 不落此层**——本地加密存储于本机 Agent（见 §C.5）。
-3. **本机 Agent 层（用户 PC，⚠ 图待重绘）**：独立桌面守护进程，持有本地加密 Cookie、运行 Playwright 浏览器实例池（≤3）、执行投递/采集/面试模拟的浏览器动作；经长连接/推送从服务端拉取任务，本地执行后回写状态。
-4. **基础设施层**：RabbitMQ 作为异步消息总线解耦服务端与本机 Agent；服务端**不再部署浏览器沙箱**（原 Docker 容器方案已废弃，见 §2.6）。
+3. **本机 Agent 层（用户 PC）**：独立桌面守护进程，持有本地加密 Cookie、运行 Playwright 浏览器实例池（≤3）、执行投递/采集/面试模拟的浏览器动作；经长连接/推送从服务端拉取任务，本地执行后回写状态。
+4. **基础设施层**：RabbitMQ 作为异步消息总线解耦服务端与本机 Agent；服务端**不再部署浏览器沙箱**（原 Docker 容器方案已废弃，见 §2.5）。
 
-> ⚠ **图待重绘**：`fig-c2-container.svg` 当前将「Python 自动化引擎承载浏览器自动化」与「浏览器沙箱 Docker」绘入服务端容器内，与本版 C1 矛盾，需重绘为「本机 Agent 层（用户侧）承载浏览器实例池」。
+> ✅ **图已重绘 (v1.1, 2026-08-15)**：`fig-c2-container.svg` 已按本版对齐：移除服务端「Python 自动化引擎承载浏览器自动化」与「浏览器沙箱 Docker」（已废弃，§15.1），新增本机 Agent 层（用户侧，黄色容器）承载浏览器实例池（≤3）+ 本地加密 Cookie，双语言异构约束（Python 不直连业务库，§ADR-002），任务队列归 RabbitMQ（Redis 改缓存/锁/幂等语义），双验证通过 (lint + geometry 18/18)。
 
 5. 配色说明：蓝色=应用容器（服务端），绿色=数据存储，黄色=本机 Agent 层（用户侧），红色=消息中间件，灰色=基础设施。
 
 
+
+### 2.3 关键流程时序图
+
+> 下列三类核心时序图为「流程视图」，独立于 §2.2 的 C4 静态结构；全部按「浏览器自动化只在本机 Agent 侧执行」红线重绘（规格详见 `design/图信息说明书.md`）。
 
 ![图 2-2 批量投递闭环时序图](figures/fig-2-2-apply-flow.svg)
 
@@ -178,7 +246,7 @@
 9. 调度服务推进 10 状态机并触发联动（面试题生成）。
 10. 用户侧收到状态与通知（WebSocket/邮件/短信）[Expert judgment]。
 
-> ⚠ **图待重绘**：`fig-2-2-apply-flow.svg` 当前步骤 4–6 描绘「Python 调度中心从队列消费并分配服务端浏览器实例执行」，与本版 C1 矛盾，需重绘为「本机 Agent 拉取任务 → 本地实例池 + 本地 Cookie 执行」。
+> ✅ **图已重绘 (v1.0, 2026-08-15)**：`fig-2-2-apply-flow.svg` 已按本版对齐：步骤 4–6 改为「本机 Agent 拉取任务 → 本地实例池 + 本地 Cookie 执行」（§15.1 / C1 修正），10 步序列含状态机自检 + 异步下发 + 状态事件回写 + 推送，双验证通过 (lint + geometry)。
 
 **流程二：HR 状态感知（Best-Effort 轮询）**
 
@@ -197,7 +265,7 @@
 
 轮询不构成硬依赖：`getApplicationStatus()` 由本机 Agent 执行，超时/异常一律记日志并静默跳过，状态机允许 `unknown`，面试题在生成完成时直接标记"可查看" [Expert judgment]。
 
-> ⚠ **图待重绘**：`fig-2-4-hr-status.svg` 当前若描绘"Java 直连 Python 适配器（服务端）执行查询"，与本版矛盾，需重绘为「服务端经 B08 下发轮询 → 本机 Agent 适配器加载本地 Cookie 查询平台页面 → 回写」。
+> ✅ **图已重绘 (v1.0, 2026-08-15)**：`fig-2-4-hr-status.svg` 已按本版「服务端经 B08 下发轮询 → 本机 Agent 适配器加载本地 Cookie 查询平台页面 → 回写」重绘完成，含 6 步序列与 alt 分支（viewed/contacting vs 静默跳过），双验证通过 (lint + geometry)。
 
 **流程三：AI 匹配与降级**
 
@@ -216,9 +284,9 @@
 7. 规则引擎返回分数 + 理由（基于岗位 JD 关键词与简历文本）。
 8. Python 统一响应结构返回 Java：`match_score`、`reason`、`model`（deepseek | backup | rule）、`elapsed_ms`；前端与调用方不感知降级/切换路径。
 
-> ⚠ **图待重绘**：`fig-2-5-ai-match.svg` 当前若仅描绘"主 LLM → 规则引擎"两级降级，与本版矛盾，需补充「主 LLM 不可达 → 自动切备用 LLM（golden set 回归）」这一级（§34.2）。
+> ✅ **图已重绘 (v1.0, 2026-08-15)**：`fig-2-5-ai-match.svg` 已按本版 + §34.2「主 LLM 不可达 → 自动切备用 LLM（golden set κ 容差回归）→ 仍失败再降级到规则引擎」三级降级重绘完成，含 8 步序列与 alt 分支，统一响应结构 `{match_score, reason, model, elapsed_ms}`，双验证通过 (lint + geometry)。
 
-### 2.5 技术选型与理由
+### 2.4 技术选型与理由
 
 | 技术 | 用途 | 理由 | 证据 |
 |------|------|------|------|
@@ -236,11 +304,11 @@
 
 **版本标注**：所有框架主版本沿用 ADR 已采纳结论；精确小版本号在 LLD 阶段以依赖锁定文件为准，此处不虚构 [Unverified — requires human review]。
 
-### 2.6 部署架构（运行时视图）
+### 2.5 部署架构（运行时视图）
 
 **单机起步**（符合模块化单体约束，ADR-001）：
 
-![图 2-3 部署架构图](figures/fig-2-3-deployment.svg)
+![图 5 部署架构图（按 HLD v3.8 重绘）](figures/fig-2-3-deployment.svg)
 
 
 
@@ -252,12 +320,12 @@
 ④ **云服务**：MySQL 主从存业务关系数据（**仅 Java 经 JDBC 直连**；Python 不直接连业务库，需访问业务数据时经 REST `/internal/*` 或订阅 MQ 事件，落实 ADR-002 存储层解耦，修正原"Java/Python 共享"表述）、RabbitMQ 承载投递/对账任务与事件队列（AMQP，含延迟与死信）、OSS 存简历导出与证据快照（S3，Python 直连）；本地开发以 MinIO 自托管替代，契约不变。
 ⑤ **演进路径**：用户过万后先拆 Python LLM 编排服务独立集群（AI 可横向扩展），再按热点模块（通知、支付）拆分 Java 侧；**浏览器自动化始终随用户本机 Agent 横向扩展，服务端无浏览器算力瓶颈** [Hypothesis]。
 
-> ⚠ **图待重绘**：`fig-2-3-deployment.svg` 当前在「应用层/Host 内」绘有「Python 服务（Playwright 自动化）+ 浏览器沙箱（Docker）」，与本版 C1 矛盾，需重绘为「浏览器实例池仅存在于用户侧本机 Agent，服务端仅 Java + Python(LLM 网关)」。
+> ✅ **图已重绘 (v1.0, 2026-08-15)**：`fig-2-3-deployment.svg` 已按本版对齐：移除「应用层/Host 内」的「Python 服务（Playwright 自动化）+ 浏览器沙箱（Docker）」，浏览器实例池仅存在于用户侧本机 Agent（每用户 1 Agent 节点），服务端仅 Java + Python(LLM 网关) + 数据层独立 VPC（§2.5 部署架构视图），双验证通过 (lint + geometry)。
 
 **容量模型与浏览器实例池口径（修订说明，落实 §1.3 / 修正 H3）**：
 - 本系统当前定位为**单用户自用 / 极早期小范围**（非多租户 SaaS）。据此，§1.3"500 DAU 容量基线"调整为**架构演进上限目标**（即"模块化单体可平滑支撑到 500 DAU，届时再拆服务"），不作为上线初始承诺。
 - 浏览器实例池"≤3 并发"是**单 Agent 进程（单用户本机/单节点）** 的资源约束（与 PRD 反风控"单账号并发 ≤3 实例"一致），非系统级总量。
-- 扩展方式：用户规模上升时，按"每用户/每节点 1 个浏览器 Agent 实例 + 自有账号 + 住宅/移动代理 IP"横向增节点，投递吞吐随节点数线性扩展；该路径由 §2.6 ⑤ 演进路径承载，无需改单体架构。
+- 扩展方式：用户规模上升时，按"每用户/每节点 1 个浏览器 Agent 实例 + 自有账号 + 住宅/移动代理 IP"横向增节点，投递吞吐随节点数线性扩展；该路径由 §2.5 ⑤ 演进路径承载，无需改单体架构。
 - 结论：3 实例/单节点 与 80-100 份/天/人的目标在"单用户自用"定位下自洽（3 实例 × 全天 ≈ 数百份/天余量充足）；"500 DAU"仅作为未来拆服务的触发线，删除其"起步基线"语义。
 
 ---
@@ -265,6 +333,35 @@
 ## 3. 模块设计
 
 模块按"Java 业务侧（服务端）+ 本机 Agent 执行侧 + 共享契约"三维组织。每个模块给出职责（单句，无"和"）、输入、输出、依赖、边界。其中 AI/LLM 网关仍由服务端 Python 服务承载（§3.8/§3.9），浏览器自动化模块（§3.6/§3.7）归属本机 Agent 执行侧；依赖方向无环：业务模块 → AI 接口；Java ↔ Python(服务端 LLM 网关) 仅经 REST/MQ；本机 Agent 经任务通道与服务端交互，不直连业务库（ADR-001/002 约束）。
+
+## 3.0 模块间接口契约与依赖总览（设计层）
+
+> §3.1–§3.12 每个模块含两部分：**职责表**（输入/输出/依赖/边界，描述"做什么"的信息层）+ **3.x.1 对外接口契约**（关键方法/端点、下游调用契约、前置/后置条件、与 §4 / §3.0 衔接，设计层）。跨模块的"如何交互"由本节（C1–C5 契约 + I1–I6 不变式）与 §4 全量接口承接。三者共同把 §3 从"职责清单"转为"模块设计"。
+
+### 3.0.1 依赖方向（无环）
+- 业务 Java 模块 ⇄ AI Python（内网 REST / MQ，B01–B05）；
+- 服务端 ⇄ 本机 Agent（任务通道长连接，设备级鉴权，B06–B09；**Cookie 不随契约传输**）；
+- 本机 Agent **不直连业务库**；服务端 **不直连招聘平台**（一律经本机 Agent 执行，ADR-003 / §C.1）。
+
+### 3.0.2 关键跨模块调用契约（中心 5 条，全量见 §4）
+
+| # | 交互 | 调用方 → 被调方 | 通道 | 请求数据契约 | 响应 | 前置不变式 | 后置不变式 |
+|---|------|----------------|------|-------------|------|-----------|-----------|
+| C1 | 投递确认入队 | API → 状态机模块 | A09 REST | `{jobIds[1..50], 请求级idempotencyKey(UUID), 业务幂等四元组(user_id,platform,job_id,apply_date), resumeVersionId?}` | `202 + {batchId, accepted, rejected[]}` | 角色日限额 + 启用平台校验通过；业务四元组未冲突 | 生成 `application(pending_confirm)` + 发 `apply.task.created`（两层幂等见 §4.2 注） |
+| C2 | 任务下发 | 状态机 → 本机 Agent | B06 任务通道 | `{taskId, idempotencyKey, platformId, jobId, resumeVersionId, behavioralProfile}`（**不含 Cookie**） | `taskId` 已接收 | 本地适配器健康 | Agent 从**本地**加载 Cookie 执行 |
+| C3 | 结果回写 | 本机 Agent → 状态机 | B07 / 事件 | `{outcome: success\|failed\|captcha\|risk_blocked\|need_login, platformApplyId?, evidence?}` | `ack` | 任务幂等键一致 | 状态机按 `outcome` 推进（见 ADR-008） |
+| C4 | HR 感知轮询 | 状态机 → 本机 Agent | B08 任务通道 | `{checks:[{platformId, applyId}]}` | `{status: viewed\|contacting\|interview_invited\|unknown}` | 超时/异常置 `unknown` | `unknown` **不入**状态机（best-effort） |
+| C5 | 权益切换 | 支付 → 权限模块 | `member.plan.changed` 事件 | `{userId, plan, effectiveAt}` | 权益矩阵实时生效 | 订单已对账 | 权限判定下次调用即时生效 |
+
+### 3.0.3 系统级不变式（Invariants，LLD 与实现必须遵守）
+- **I1** 同一幂等四元组 `(user_id, platform, job_id, apply_date)` 不重复投递（ADR-006）。
+- **I2** Cookie 明文永不出本机、永不进日志（ADR-003 / ADR-005）。
+- **I3** 信令通道不向用户侧泄漏（ADR-007）。
+- **I4** 投递状态机无回退边；Agent 仅推进至 `submitted`，HR 感知态由服务端最终裁决（ADR-008）。
+- **I5** 单用户本机浏览器实例池 ≤3（ADR-003）。
+- **I6** 跨模块故障默认 **fail-closed**（宁可停、不硬推），除非显式标注为降级路径。
+
+---
 
 ### 3.1 用户与权限模块（Java）
 
@@ -275,6 +372,12 @@
 | **输出** | JWT 令牌、用户画像、权益上下文（权限矩阵判定结果） |
 | **依赖** | MySQL（用户表）、Redis（会话/黑名单）、支付模块（会员事件） |
 | **边界** | 不负责支付订单创建；不改写平台 Cookie（仅存取密文） |
+
+#### 3.1.1 对外接口契约（设计层）
+- **关键方法/端点**：`POST /auth/login`、`POST /auth/refresh`、`GET /users/me`、`GET /users/me/permissions`（A03）。
+- **下游调用契约**：订阅支付模块 `member.plan.changed` 事件（C5），收到 `{userId, plan, effectiveAt}` 后权益矩阵实时生效；不主动查询支付订单。
+- **前置/后置条件**：前置=凭据或第三方授权码有效；后置=签发 RS256 无状态 JWT、返回权益上下文（权限矩阵判定结果）。
+- **衔接**：§4.1 A03 字段级权限校验强制执行；§3.0 C5 权益切换；I2（密文存取）约束其 Cookie 处理。
 
 关键点：
 - 登录方式：邮箱/手机验证码/微信扫码，JWT RS256 无状态令牌 [Expert judgment] ADR-017/018。
@@ -309,6 +412,12 @@
 | **依赖** | MySQL（简历表）、OSS（导出文件）、AI 编排（优化/评分） |
 | **边界** | 不做文本润色（交 Python）；不管理模板 CSS 的视觉细节（前端） |
 
+#### 3.2.1 对外接口契约（设计层）
+- **关键方法/端点**：`POST /resumes`、`GET /resumes/{id}/versions`、`POST /resumes/{id}/diff`、`POST /resumes/ats-score`。
+- **下游调用契约**：ATS 评分经 AI 编排 `/internal/ai/ats-score` 同步返回评分报告；导出文件落 OSS 后返回下载 URL。
+- **前置/后置条件**：前置=用户已认证且简历归属本人；后置=版本快照原子落库、结构化 diff、评分报告（LLM 不可用时降级纯规则仍返回）。
+- **衔接**：§4；版本快照写受 I 系列不变式约束（原子写、不可变历史）；不调用适配器/状态机。
+
 关键点：
 - 内容与样式分离存储：内容 JSON 独立，模板仅换 CSS 修饰器 [Data-backed] PRD 模块 1。
 - 快照式版本管理 + 结构化 diff（ADR-012）；冲突以最后保存版本为准 [Data-backed] PRD 模块 8。
@@ -324,6 +433,12 @@
 | **依赖** | MySQL（岗位表）、AI 匹配服务（同步 ≤5s） |
 | **边界** | 不抓取岗位（Python 采集器）；不执行投递（状态机模块） |
 
+#### 3.3.1 对外接口契约（设计层）
+- **关键方法/端点**：`GET /jobs/search`、`GET /jobs/{id}`、`GET /jobs/{id}/match`。
+- **下游调用契约**：匹配度经 AI 匹配服务同步调用（≤5s）返回匹配分+理由；岗位数据由 Python 采集器聚合入库后本模块只读，不直接触达招聘平台。
+- **前置/后置条件**：前置=平台已接入且采集健康；后置=返回岗位列表（含来源平台+匹配度标签）。
+- **衔接**：§4；职责边界明确"只展示不投递"，投递由状态机模块（§3.4）经 C1/C2 承接。
+
 关键点：
 - 岗位来源聚合所有已接入平台，每条标注来源 [Data-backed] PRD 模块 2。
 - 匹配度标签色彩：绿 ≥80 / 蓝 60-79 / 灰 <60 [Data-backed] PRD 模块 2。
@@ -338,6 +453,12 @@
 | **输出** | 投递记录状态变更、投递任务（RabbitMQ）、联动触发事件 |
 | **依赖** | MySQL（投递表/事件日志）、Redis（幂等令牌/分布式锁）、RabbitMQ、Python 适配器 |
 | **边界** | 不执行浏览器操作；不决定平台选择细节（策略模块） |
+
+#### 3.4.1 对外接口契约（设计层）
+- **关键方法/端点**：`POST /apply/batch`（A09）、`GET /applications/{id}`（A11）。
+- **下游调用契约**：经 C2 任务通道下发本机 Agent（载荷不含 Cookie）；经 C3 接收执行结果回写；经 C4 拉取 HR 感知态（超时/异常置 `unknown`，不入状态机）。
+- **前置/后置条件**：前置=角色日限额+启用平台校验通过、业务幂等四元组未冲突（C1 前置）；后置=生成 `application(pending_confirm)` + 发 `apply.task.created`。
+- **衔接**：C1/C2/C3/C4、ADR-008（无回退边、HR 感知态由服务端最终裁决）、§4.2/§4.3；孤儿任务清扫（见关键点）覆盖"在途丢失"而非仅"排队超时"。
 
 关键点：
 - **10 状态机与允许转移矩阵**（落实 ADR-008，修订"单向不可逆"为"无回退边、但有跨阶段直达终态边"，修正 R3）：
@@ -376,6 +497,12 @@
 | **依赖** | MySQL（策略表）、用户权限模块 |
 | **边界** | 不执行调度，不接触浏览器 |
 
+#### 3.5.1 对外接口契约（设计层）
+- **关键方法/端点**：`GET /strategies`、`PUT /strategies`、`GET /strategies/effective`。
+- **下游调用契约**：生效策略快照供投递调度（§3.4）消费；配置变更发 `strategy.updated` 事件，状态机模块重读。
+- **前置/后置条件**：前置=用户已认证（PC 完整/移动端受限，冲突以 PC 为准 LWW）；后置=生效策略快照 + 配置变更事件。
+- **衔接**：§4；字段级读写权限由 §3.1 A03 强制；与 §3.4 调度消费链路衔接。
+
 配置项与 PRD 模块 3 一致：每日投递上限、匹配度阈值、投递时段、启用平台、自动简历选择、投递后自动面试准备、平台扩展入口。移动端仅"查看 + 开关控制"，配置以 PC 端为准（冲突处理 [Data-backed] PRD 模块 8）。
 
 ### 3.6 平台适配器系统（本机 Agent 执行侧 · 服务端编排）
@@ -387,6 +514,12 @@
 | **输出** | 执行结果事件（经 Agent 回写服务端）、平台状态快照、健康状态 |
 | **依赖** | 任务通道（长连接/推送）、Redis（锁）、本机浏览器实例池、各平台 |
 | **边界** | 不定义业务流程状态机（Java 侧）；不做内容 AI 生成；浏览器动作一律在用户本机执行，服务端不代执行（PRD §C.1） |
+
+#### 3.6.1 对外接口契约（设计层）
+- **关键方法/端点（本机 Agent 内）**：`PlatformAdapter.login / checkLoginStatus / logout / searchJobs / getJobDetail / applyJob / checkApplyStatus / getDailyQuota / isAvailable / healthCheck`，及 `getApplicationStatus(applyId)`（落实 HR 感知通道 C4）。
+- **下游调用契约**：服务端经任务通道下发投递任务（C2）、接收结果回写（C3）；浏览器动作一律本机执行，服务端不直接触达招聘平台。
+- **前置/后置条件**：前置=本地 Cookie 健康 + 适配器测试模式验证通过；后置=执行结果事件回写（C3）+ 平台状态快照。
+- **衔接**：C2/C3、§3.7 实例池、§C.1（执行侧本机）；I2（Cookie 不出本机）；健康检查连续 3 次失败自动停用（见关键点）。
 
 关键点：
 - 统一契约 `PlatformAdapter`：`login / checkLoginStatus / logout / searchJobs / getJobDetail / applyJob / checkApplyStatus / getDailyQuota / isAvailable / healthCheck` [Data-backed] PRD 模块 4。契约方法在**本机 Agent 内**调用平台页面，服务端不直接触达招聘平台。
@@ -406,6 +539,12 @@
 | **依赖** | 本机 Playwright、实例租约（本地）、代理 IP 池（用户侧/住宅） |
 | **边界** | 不感知业务语义，仅执行"填充+点击"动作序列；实例与 Cookie 均驻留本机 |
 
+#### 3.7.1 对外接口契约（设计层）
+- **关键方法/端点（本机 Agent 内）**：`acquireLease()` / `releaseLease()` 实例租约管理，供 §3.6 适配器调用。
+- **下游调用契约**：本机 Playwright 执行页面动作序列；实例与 Cookie 均驻留本机，不回传服务端。
+- **前置/后置条件**：前置=本用户本机实例数 < 3（I5）；后置=返回页面执行结果（成功/失败/验证码/风控）。
+- **衔接**：I5（≤3 实例）、§3.6；排队超 30min 过期 + OOM 高水位保护（见关键点）。
+
 关键点：
 - 实例池上限 3（**每用户本机**约束，与 PRD §15.5 一致），独立隔离防单实例崩溃拖垮全部投递 [Data-backed] PRD 模块 3。
 - 防检测五重保障：正态分布随机延迟 3-8s、贝塞尔鼠标轨迹、随机 UA、验证码检测暂停、Cookie 本地加密持久化；叠加代理 IP 池/指纹随机化（ADR-018 三阶段）[Data-backed] PRD 模块 3 / ADR-018。
@@ -421,6 +560,12 @@
 | **输出** | 统一结构 AI 结果（分数/题目/评估/文案/理由） |
 | **依赖** | LLM（DeepSeek）、Redis（配额计数） |
 | **边界** | 不落业务数据（结果回写经 MQ 由 Java 侧负责） |
+
+#### 3.8.1 对外接口契约（设计层）
+- **关键方法/端点（内部网关）**：`POST /internal/ai/match`、`POST /internal/ai/ats-score`、`POST /internal/ai/interview-q`、`POST /internal/ai/interview-eval`（仅 Java/Python 服务间，不对外）。
+- **下游调用契约**：统一路由 LLM（DeepSeek），结果经 MQ 由 Java 侧回写业务表；配额计数走 Redis。
+- **前置/后置条件**：前置=配额未耗尽（耗尽则紧急任务优先、非紧急降级规则引擎）；后置=统一结构 AI 结果（分数/题目/评估/文案/理由）。
+- **衔接**：§4 内部契约 B 层；§7.3 降级链；全实例不可用不影响非 AI 功能（简历编辑/浏览/投递照常）。
 
 关键点：
 - 降级链按场景逐级回退（匹配→规则引擎→随机；面试题→题库→模板；评估→建议→不评分）[Data-backed] PRD §7.3。
@@ -438,6 +583,12 @@
 | **依赖** | AI 编排（LLM）、Redis（会话缓存） |
 | **边界** | 题目/报告的存储由 Java 侧负责 |
 
+#### 3.9.1 对外接口契约（设计层）
+- **关键方法/端点（内部网关）**：`POST /internal/ai/interview-q/gen`、`POST /internal/ai/interview/session`、`POST /internal/ai/interview/eval`。
+- **下游调用契约**：依赖 §3.8 AI 编排路由 LLM；会话上下文走 Redis；题目/报告存储由 Java 侧负责。
+- **前置/后置条件**：前置=JD + 简历片段齐备；后置=题目列表+参考答案+难度、维度评分+建议、评估报告。
+- **衔接**：§4 内部 B 层、§3.8；评估 rubric 透明可申诉（PRD §26.2），维度 1-5。
+
 关键点：
 - 面试题覆盖 JD ≥80% 技术关键词为成功标准 [Data-backed] PRD §7.2；生成上限延迟 30s（异步）[Data-backed] PRD §7.4。
 - 作答评估 ≤3s（对话式交互）[Data-backed] PRD §7.4；维度：完整性/技术准确性/结构化表达/岗位匹配度（1-5）[Data-backed] PRD 模块 6。
@@ -452,6 +603,12 @@
 | **输出** | 支付订单、权益变更事件、对账修正 |
 | **依赖** | MySQL（订单表）、支付渠道、Redis（订单幂等） |
 | **边界** | 权益判定在用户权限模块，本模块只产出权益事件 |
+
+#### 3.10.1 对外接口契约（设计层）
+- **关键方法/端点**：`POST /orders`、`POST /payments/callback`、`GET /orders/{id}`。
+- **下游调用契约**：支付渠道回调经 `payments/callback` 入站；对账后发 `member.plan.changed` 事件（C5）至 §3.1 权限模块激活权益。
+- **前置/后置条件**：前置=订单未超 24h 有效；后置=支付订单 + 权益变更事件（C5）；回调未到账由定时对账（≤15min）兜底。
+- **衔接**：C5、§3.1；I6（对账异常 fail-closed：暂停权益激活并告警，不静默放行）。
 
 关键点：
 - 订单 24h 有效可续付；重复支付直接返回原权益；回调未到账展示"处理中"由对账兜底 [Data-backed] PRD §12。
@@ -468,6 +625,12 @@
 | **依赖** | RabbitMQ、推送渠道、MySQL（通知表） |
 | **边界** | 生成通知内容由各业务模块负责，本模块不做 AI |
 
+#### 3.11.1 对外接口契约（设计层）
+- **关键方法/端点**：订阅 MQ 业务事件（`application.status.changed` / `interview.invited` 等）；`POST /notify`（内部触发）。
+- **下游调用契约**：渲染模板后经 WebSocket/邮件/短信/微信模板消息分发；触达统计回写通知表；失败入 DLQ 重试。
+- **前置/后置条件**：前置=业务事件已发布；后置=多渠道触达 + 触达统计。
+- **衔接**：§4 事件契约 C 层（RabbitMQ）；与信令通道物理隔离（ADR-007 / I3），通知不泄露信令。
+
 关键点：
 - 渠道：WebSocket + 邮件 + 短信 + 微信模板消息 [Expert judgment] ADR-014。
 - 面试邀请通知从服务端触发到触达 ≤10s [Data-backed] PRD §11。
@@ -482,6 +645,12 @@
 | **输出** | 日报推送（移动端）、日报邮件 |
 | **依赖** | MySQL（投递/面试/通知表）、通知推送模块、定时任务框架 |
 | **边界** | 不生成业务数据，纯聚合+格式化；日报内容由各业务模块负责，本模块不做 AI |
+
+#### 3.12.1 对外接口契约（设计层）
+- **关键方法/端点**：Cron 20:00 触发 `GET /daily-report/aggregate`；`POST /notify`（经 §3.11 推送）。
+- **下游调用契约**：查询 MySQL 投递/面试/通知表聚合；调用 §3.11 推送日报。
+- **前置/后置条件**：前置=当日数据已落库；后置=日报推送（移动端）/邮件；当日无活动生成"今日无投递活动"摘要，不发送空日报。
+- **衔接**：§3.11；用户自定义推送时间由策略配置（§3.5）承载。
 
 关键点：
 - 每日 20:00 定时任务触发，查询当日投递/面试数据，聚合生成日报摘要 [Data-backed] PRD 场景十一。
@@ -534,11 +703,13 @@
 | **用途** | 用户确认投递队列，服务端异步执行 |
 | **鉴权** | Bearer；服务端校验角色日限额（免费 30/专业 100）、启用平台数、策略生效 |
 | **请求体** | `{ jobIds: string[](1..50), resumeVersionId?: string, idempotencyKey: string }` |
-| **校验** | `jobIds` 1-50 个；`idempotencyKey` 必填（UUID，前端生成，冲突返回既有任务） |
+| **校验** | `jobIds` 1-50 个；`idempotencyKey` 必填（**请求级** UUID，前端生成，防客户端重试重放；与业务幂等四元组区分，见下注） |
 | **成功响应** | `202 Accepted`；`{ batchId, accepted: 1..50, rejected: [{jobId, reason}] }` |
 | **错误码** | `400 INVALID_JOBS`、`401 UNAUTHORIZED`、`403 QUOTA_EXCEEDED`（超角色限）、`403 PLATFORM_DISABLED`、`409 DUPLICATE_REQUEST`（幂等冲突）、`429 RATE_LIMITED` |
-| **幂等** | `idempotencyKey` Redis SETNX；同一 key 重复请求返回首次结果（200 而非再执行） |
+| **幂等（请求级）** | `idempotencyKey` Redis SETNX；同一 key 重复请求返回首次结果（200 而非再执行） |
 | **约束** | 移动端免费用户仅可查看不可提交（权限矩阵）；提交后任务异步执行不阻塞 [Data-backed] PRD 模块 2/3/8 |
+
+> **两层幂等区分（设计澄清，防 LLD 误用）**：① **请求级幂等** `idempotencyKey`（本契约 UUID）——防客户端网络重试导致"同一提交请求被执行两次"，属接口去重；② **业务级幂等** = `(user_id, platform, job_id, apply_date)` 四元组（ADR-006，数据库唯一索引）——防"同一用户同日对同岗实际重复投递"，是防重投命门。**两者正交**：请求级 key 可相同而业务四元组不同（如用户隔日对同岗重投，属合法补投）；业务四元组相同则无论请求 key 如何都判定重复。LLD 不得用请求级 UUID 替代业务四元组（评审 F-1）。
 
 ### 4.3 核心契约：投递详情与状态（A11）
 
@@ -580,6 +751,18 @@
 | B08 | POST | `/internal/v1/apply/status` | 批量触发 getApplicationStatus 轮询（本机 Agent 执行） | 异步 | 服务端→本机 Agent |
 | B09 | POST | `/internal/v1/adapters/health` | 全适配器健康检查触发（本机 Agent 上报） | 异步 | 服务端→本机 Agent |
 
+**B01–B05 字段契约**（Java → Python(LLM 网关) 内网，超时与同步性见上表；失败统一返回 §4.7 信封，`retryable=true` 走降级路径 `LLM_DEGRADED`）：
+
+| 接口 | 请求体 schema | 响应 schema |
+|------|--------------|-------------|
+| B01 `ai/match` | `{ jd:string, resume:string, weights?:{skill:float,jobtitle:float,exp:float} }` | `{ score:float(0..1), matchedSkills:string[], explanation:string }` |
+| B02 `ai/questions` | `{ jd:string, resume:string, count:int(1..20), lang:enum(zh\|en) }` | `{ questionSetId:string, questions:[{id:string,text:string,type:enum(behavior\|tech\|case)}] }` |
+| B03 `ai/evaluate` | `{ questionId:string, answer:string, rubricDims?:string[] }` | `{ score:float(0..1), rubric:[{dim:string,score:float}], feedback:string }` |
+| B04 `ai/resume/optimize` | `{ resume:string, target:string }` | `{ optimized:string, changes:[{field:string,from:string,to:string}] }` |
+| B05 `ai/ats` | `{ resume:string }` | `{ atsScore:float(0..100), suggestions:[{section:string,hint:string}] }` |
+
+> 注：B01/B03 同步调用含超时熔断；B02/B04/B05 异步，结果经 MQ 回写（§4.6）。所有 LLM 响应须带 `traceId` 以便归因；幻觉硬熔断阈值见 R-10（待 LLD 细化）。
+
 **B06 契约要点**（⚠ 对 PRD 模块 4 适配器契约的落地，执行侧为本机 Agent）：
 
 | 字段 | 值 |
@@ -601,30 +784,137 @@
 
 ### 4.6 事件消息契约（C 层，RabbitMQ）
 
-| 事件 | 生产者 | 消费者 | 载荷要点 | 用途 |
-|------|--------|--------|---------|------|
-| `apply.task.created` | Java 状态机 | 本机 Agent（经任务通道） | taskId, idempotencyKey, platformId… | 投递执行（本机） |
-| `apply.task.result` | 本机 Agent | Java 状态机 | 上述结果事件 | 状态推进 |
-| `apply.status.changed` | Java 状态机 | 通知/AI/推荐 | applicationId, from, to, at | 联动/推送 |
-| `interview.questions.generated` | Java 联动 | 通知 | questionSetId, userId | 静默入备战 |
-| `hr.viewed.detected` | Java 轮询回调 | 通知 | applicationId, platformId | 增强推送 |
-| `member.plan.changed` | 支付模块 | 用户权限 | userId, plan, effectiveAt | 权益切换 |
-| `adapter.health.degraded` | Python 健康检查 | Java 状态机/通知 | platformId, reason | 停用+通知 |
+**事件信封（所有事件统一）**：`{ eventType: string, traceId: string, ts: int64, producer: string, payload: object, dedupKey?: string }`。`dedupKey` 为去重键（缺省时由消费侧按业务键去重）；`ts` 为生产者毫秒时间戳，用于顺序判定与重放窗口。
 
-消息语义：投递结果与联动类事件开启 RabbitMQ 手动 ack + 死信队列，重复消费依靠 `idempotencyKey`/业务表唯一键去重 [Expert judgment] ADR-004。
+| 事件 | 生产者 | 消费者 | 类型化 payload schema | 顺序/去重/重放/DLQ |
+|------|--------|--------|----------------------|---------------------|
+| `apply.task.created` | Java 状态机 | 本机 Agent（经任务通道） | `{ taskId:string, idempotencyKey:string, platformId:string, jobId:string, resumeVersionId:string, behavioralProfile:object }` | 按 `taskId` 去重；无顺序依赖；失败进 DLQ 重试 ≤3 次 |
+| `apply.task.result` | 本机 Agent | Java 状态机 | `{ taskId:string, idempotencyKey:string, outcome:enum(success\|failed\|captcha\|risk_blocked\|need_login), platformApplyId?:string, failReason?:string, evidence?:object }` | 按 `idempotencyKey` 去重；手动 ack + DLQ（ADR-004）；`captcha`/`need_login` 触发协同暂停 |
+| `apply.status.changed` | Java 状态机 | 通知/AI/推荐 | `{ applicationId:string, platformId:string, from:enum, to:enum, at:int64, reason?:string }` | 按 `applicationId+to` 去重；状态单调前向，旧态事件丢弃 |
+| `interview.questions.generated` | Java 联动 | 通知 | `{ questionSetId:string, userId:string, jobId?:string }` | 按 `questionSetId` 去重；可重放（用户重看备战） |
+| `hr.viewed.detected` | Java 轮询回调 | 通知 | `{ applicationId:string, platformId:string, detectedAt:int64, evidence?:{snapshotUrl?:string} }` | 按 `applicationId` 去重（仅首次有效）；允许 Best-Effort 丢失 |
+| `member.plan.changed` | 支付模块 | 用户权限 | `{ userId:string, plan:enum(free\|pro\|team), effectiveAt:int64, orderNo:string }` | 按 `orderNo` 去重；强一致（影响权益），失败阻塞重试 |
+| `adapter.health.degraded` | Python 健康检查 | Java 状态机/通知 | `{ platformId:string, reason:enum(login_expired\|rate_limited\|version_mismatch\|unreachable), severity:enum(warn\|critical) }` | 按 `platformId+reason+窗口(5m)` 去重；`critical` 触发停用+通知 |
 
-### 4.7 错误码总表（业务）
+**全局语义**：投递结果与联动类事件开启 RabbitMQ 手动 ack + 死信队列；重复消费依靠 `dedupKey`/业务表唯一键去重 [Expert judgment] ADR-004。消费失败进 DLQ，按事件级 `retryPolicy`（上表）重试，超限告警人工介入。重放：状态类事件支持时间窗（默认 24h）内重放，幂等键保证重放安全。
 
-| 码段 | 含义 | 代表码 |
-|------|------|--------|
-| 400xx | 参数/状态非法 | `40001 INVALID_PARAM`、`40002 INVALID_STATE_TRANSITION` |
-| 401xx | 未认证/登录失效 | `40101 TOKEN_EXPIRED`、`40102 CREDENTIAL_MISSING` |
-| 403xx | 无权限/超限 | `40301 QUOTA_EXCEEDED`、`40302 PLAN_REQUIRED`、`40303 DATA_ISOLATION_VIOLATION` |
-| 404xx | 不存在 | `40401 RESOURCE_NOT_FOUND` |
-| 409xx | 冲突/幂等 | `40901 DUPLICATE_REQUEST`、`40902 ALREADY_APPLIED` |
-| 429xx | 限流 | `42901 RATE_LIMITED` |
-| 502xx | 依赖降级 | `50201 LLM_DEGRADED`、`50202 ADAPTER_UNAVAILABLE`、`50203 BROWSER_OVERLOADED` |
-| 503xx | 服务维护 | `50301 MAINTENANCE` |
+### 4.7 错误码总表与统一错误信封（业务，权威注册表）
+
+**统一错误信封**（所有 A/B/C 层响应体，HTTP 错误语义 + 业务码）：
+
+```json
+{ "code": "string", "message": "string", "traceId": "string", "retryable": "boolean", "user_action": "string|null" }
+```
+
+- `code`：字符串业务错误码，**本表注册且唯一**。历史数字码（`40001` 等）作为 **deprecated 别名**保留，新接口一律使用字符串码（与 §4.2–§4.4 既有的 `INVALID_JOBS`/`UNAUTHORIZED` 等保持一致，消除"数字码 vs 字符串码"双向失配）。
+- `message`：人类可读，不泄露内部实现细节。
+- `traceId`：全链路追踪 ID，用于排障与对账。
+- `retryable`：**客户端能否安全重试**（结合请求级 `idempotencyKey` 重放）；`false` 时客户端不得盲目重试。
+- `user_action`：可选，面向终端用户的处置建议（如"请重新登录""请升级会员""联系客服"）。
+
+| code | HTTP | 含义 | retryable | user_action | 触发位置 |
+|------|------|------|-----------|-------------|---------|
+| `INVALID_PARAM` | 400 | 请求字段校验失败 | false | 检查输入后重试 | A 层通用 |
+| `INVALID_STATE_TRANSITION` | 409 | 状态机非法跃迁 | false | 刷新后重试 | A11/状态机 |
+| `INVALID_JOBS` | 400 | `jobIds` 非法/超范围 | false | 调整岗位列表 | A09 |
+| `UNAUTHORIZED` | 401 | 未认证/令牌失效 | false | 重新登录 | A 层通用 |
+| `TOKEN_EXPIRED` | 401 | access token 过期 | false（用 refresh） | 调用 refresh | 鉴权 |
+| `CREDENTIAL_MISSING` | 401 | 缺凭证 | false | 重新登录 | 鉴权 |
+| `FORBIDDEN` | 403 | 越权访问他人数据 | false | 无 | A11 |
+| `QUOTA_EXCEEDED` | 403 | 超角色日限额 | false | 升级会员 | A09 |
+| `PLAN_REQUIRED` | 403 | 需专业版功能 | false | 升级会员 | A13/A15 |
+| `DATA_ISOLATION_VIOLATION` | 403 | 跨用户数据访问 | false | 无（已记录） | A 层通用 |
+| `PLATFORM_DISABLED` | 403 | 平台适配器停用 | false | 启用平台或换平台 | A09/A14 |
+| `RESOURCE_NOT_FOUND` | 404 | 资源不存在 | false | 检查 ID | A 层通用 |
+| `NOT_FOUND` | 404 | 兼容别名（= `RESOURCE_NOT_FOUND`） | false | 检查 ID | A11（兼容） |
+| `DUPLICATE_REQUEST` | 409 | 请求级幂等冲突 | false | 无需重试 | A09 |
+| `ALREADY_APPLIED` | 409 | 业务四元组重复投递 | false | 已投过该岗 | A09 |
+| `RATE_LIMITED` | 429 | 触发限流 | true（退避后重试） | 稍后重试 | A 层通用 |
+| `LLM_DEGRADED` | 502 | LLM 降级/超时 | true（走降级路径） | 稍后重试 | B01–B05 |
+| `ADAPTER_UNAVAILABLE` | 502 | 适配器不可用 | true | 稍后重试 | B06/B09 |
+| `BROWSER_OVERLOADED` | 502 | 本机浏览器实例池满 | true（排队） | 稍后重试 | B06 |
+| `MAINTENANCE` | 503 | 服务维护 | true | 稍后重试 | A 层通用 |
+
+**命名空间桥接**：
+- 本机 Agent 内部错误见 LLD `AGENT-1xxx` 系列；经信封 `code` 桥接映射（如 `AGENT-1001 适配器失效`→`ADAPTER_UNAVAILABLE`、`AGENT-1003 浏览器池满`→`BROWSER_OVERLOADED`），`retryable` 沿用上表。
+- 支付渠道回调错误见 §4.10，独立码段 `PAY_*`（`PAY_SIGN_INVALID`/`PAY_DUPLICATE`/`PAY_AMOUNT_MISMATCH`）。
+- 适配器/平台侧错误经 B06 结果事件 `outcome` 枚举承载（`failed`/`captcha`/`risk_blocked`/`need_login`），不进入业务错误码表。
+
+---
+
+### 4.8 接口契约总规范（跨 A/B/C 层基线）
+
+本节为所有接口的统一基线，§4.1–§4.7、§4.9–§4.10 及 LLD 均须遵守。
+
+- **版本化与兼容策略**：外部 API 路径含主版本（`/api/v1`）；**向后兼容变更**（增字段/可选参数）在现版本内发布；**破坏性变更**（改/删字段、改语义）升主版本并保留旧版本 ≥1 个发布周期（并行运行），旧版本标注 `Deprecated` +  sunset 日期。内部 B 层同 `/internal/v1`，契约变更须经 Pact 消费者驱动测试（见 §6.13.4）。
+- **幂等性标准**：所有写操作（POST/PUT/DELETE）请求体必须携带 `idempotencyKey`（请求级 UUID，客户端生成）；服务端以 Redis `SETNX`/DB 唯一索引去重，重复提交返回首次结果（200）而非重复执行。业务级唯一约束按模块独立定义（如投递 `(user_id,platform,job_id,apply_date)` 四元组，ADR-006），与请求级 key 正交（见 §4.2 设计澄清）。
+- **鉴权模型**：A 层 JWT Bearer（access≤15min、refresh≤7d，服务端校验并强制权限判定）；B 层 `X-Internal-Token`（仅内网 Nginx 可达）；本机 Agent 设备级 OAuth2 客户端凭证 + 任务签名（§4.9.2）；支付回调用渠道非对称签名验签（§4.10），不依赖 Bearer。
+- **分页约定**：列表接口支持 `?page=1&size=20&cursor=`；响应统一 `{ items:[] , nextCursor:string|null, total:int|null }`；禁止无界 `offset` 深翻页。
+- **限流/SLA**：A 层默认 20 req/min/IP、突发 50；超阈返回 `429` + `Retry-After`（信封 `retryable=true`，客户端退避重试）。SLA：A 层 p99<800ms；B 层按各自超时（B01≤5s/B02≤30s/B03≤3s/B04≤10s/B05≤10s）。
+- **异步/长任务**：耗时操作返回 `202 Accepted` + `{ taskId }`，结果经事件（§4.6）或回调（§4.9/§4.10）回写；客户端以 `taskId` 轮询或订阅事件。
+
+### 4.9 本机 Agent ↔ 服务端契约（核心边界，补全设计）
+
+> 本边界跨越**不可信用户机器 ↔ 服务端**，是产品核心价值链路，也是原设计唯一"零契约"边界。安全基线见 §C.5 / §6.5 P / §6.13.4。**注意**：LLD 的 `IpcChannel` 仅本机 `supervisor↔worker/gui` 本地 IPC（UDS/NamedPipe），**不构成此跨机边界**，不得相互替代。
+
+#### 4.9.1 传输与帧
+
+- **传输**：任务通道采用 **WSS（WebSocket over TLS）长连接 + 应用层 JSON 帧**；备选 gRPC-Web 待 PoC 评估。双向全双工。
+- **心跳**：Agent 每 **30s** 发 `Heartbeat`（见 4.9.3），服务端 90s 无心跳判定离线，触发任务回收（LLD `reap_orphans`）。
+- **RPC 信封**：每条 RPC 请求 `{ traceId, ts, method, idempotencyKey?, params }`；响应 `{ traceId, ok, result? , error?:{code,message,retryable,user_action} }`。
+
+#### 4.9.2 设备令牌生命周期（HTTPS，非长连接）
+
+| 方法 | 路径 | 用途 | 请求 | 响应 |
+|------|------|------|------|------|
+| POST | `/api/v1/device/register` | 设备首次注册 | `{ deviceFingerprint, os, agentVersion }` | `{ deviceId, deviceSecret(一次性加密下发), contractVersion }` |
+| POST | `/api/v1/device/token` | 换取 access token | `{ deviceId, deviceSecret, grant_type:"client_credentials" }` | `{ accessToken, expiresIn:900, refreshToken? }` |
+| POST | `/api/v1/device/token/revoke` | 设备吊销（丢失/卸载） | `{ deviceId, reason }` | `204` |
+
+设备级鉴权 = OAuth2 客户端凭证 + 短期 access token（≤15min）；**任务签名** = HMAC-SHA256 over `taskId+idempotencyKey+nonce`，密钥为设备会话密钥；Cookie 永不随契约上传（见 §C.5）。
+
+#### 4.9.3 RPC 方法清单（长连接上双向）
+
+**服务端 → Agent（下发/触发）**：
+
+| method | params | 返回 | 说明 |
+|--------|--------|------|------|
+| `ApplyTask.Deliver` | `{ taskId, idempotencyKey, platformId, jobId, resumeVersionId, behavioralProfile }` | `{ taskId, accepted:bool }` | 投递执行（不含 Cookie，Agent 本地加载） |
+| `Status.Poll` | `{ checks:[{platformId, applyId}] }` | `PollResult[]`（见 B08） | HR 感知轮询 |
+| `Adapter.HealthCheck` | `{}` | `HealthReport[]` | 全适配器健康 |
+| `Config.Push` | `{ policyDelta }` | `{ ok }` | 策略热推 |
+| `Adapter.LoginGuidance` | `{ platformId }` | `{ loginUrl, qr? }` | `need_login` 时引导本地重登 |
+
+**Agent → 服务端（回写/上报）**：
+
+| method | params | 返回 | 说明 |
+|--------|--------|------|------|
+| `Result.Report` | `{ taskId, idempotencyKey, outcome, platformApplyId?, failReason?, evidence? }` | `{ ok }` | 投递结果（映射 §4.6 `apply.task.result`） |
+| `Status.Observed` | `{ applicationId, platformId, status, evidence? }` | `{ ok }` | HR 状态观测 |
+| `Health.Report` | `{ platformId, ok, error? }` | `{ ok }` | 健康上报（映射 `adapter.health.degraded`） |
+| `Heartbeat` | `{ ts, metrics }` | `{ ok }` | 30s 心跳 |
+| `Event.Publish` | `{ eventType, payload }` | `{ ok }` | 包装 §4.6 事件上送 |
+
+#### 4.9.4 握手与版本协商端点
+
+| POST | `/api/v1/device/handshake` | 连接前能力协商 | `{ clientVersion, contractVersion, capabilities[] }` | `{ negotiatedCapabilities[], serverContractVersion, enforceAfter }` |
+|------|------|------|------|------|
+
+契约不匹配：服务端返回 `426 Upgrade Required` + 最低兼容 `contractVersion`；Agent 须升级后重连。契约测试以 Pact 消费者驱动契约纳入 CI（见 §6.13.4），`contracts/` 仓库落地 OpenAPI/JSON Schema。
+
+### 4.10 支付渠道回调契约（服务端接收，资损高危）
+
+支付回调（A21）由微信/支付宝等渠道主动 POST 至服务端，**不经过本机 Agent**。
+
+| 字段 | 值 |
+|------|-----|
+| **操作** | `POST /api/v1/payments/callback` |
+| **鉴权** | 渠道非对称签名验签（微信 `Wechatpay-Signature`/支付宝 `sign` + 平台公钥），**不**用 Bearer；验签失败返回 `400` 且不上状态 |
+| **请求体** | `{ channel:enum(wechat\|alipay), outTradeNo:string(order_no), transactionId:string, tradeStatus:enum(SUCCESS\|CLOSED\|REFUND), amount:int(分), sign:string, timestamp:int64 }` |
+| **幂等** | 以 `outTradeNo`（= `order_no`）为唯一键；重复回调返回 `200` 已处理，不重复发货/改权益 |
+| **成功响应** | `200 OK`；状态映射 `SUCCESS→member.plan.changed` 事件（§4.6） |
+| **错误码** | `PAY_SIGN_INVALID`（验签失败, retryable=false）、`PAY_DUPLICATE`（已处理, retryable=false）、`PAY_AMOUNT_MISMATCH`（金额不符, retryable=false, 告警人工） |
+| **对账** | 服务端每日拉渠道对账单与 `orders` 表核对，差异 ≤15min 内告警（见 §3.10）；退款走原路，状态机独立 |
 
 ---
 
@@ -633,6 +923,8 @@
 ### 5.1 ER 图（核心实体）
 
 ![图 5-1 核心实体关系图](figures/fig-5-1-er.svg)
+
+> ✅ **图已重绘 (v1.1, 2026-08-15)**：`fig-5-1-er.svg` 已按本版 §5.1 重绘完成：14 个核心实体、4 域分列（用户域 / 平台域 / 投递域枢纽 / 面试域）、主链路绿色加粗（①→②→③→⑨→⑩/⑪/⑫→⑭）、Cookie 密文仅本机 Agent 的 §C.5 合规标注，双验证通过 (lint 0W/0E + geometry 29/29)。
 
 **图 5-1 核心实体关系图 · 依次说明**（表结构细化留待数据库设计文档）
 
@@ -649,8 +941,9 @@
 11. 实体 ⑪ `APPLICATION_EVENT` 投递事件：每次状态流转（from→to）追加一条事件流水，构成幂等与审计的时间线依据。
 12. 实体 ⑫ `INTERVIEW_QUESTION_SET` 面试题集：投递成功后由 AI 联动生成，绑定 `application_id`，驱动面试模拟模块。
 13. 实体 ⑬ `DAILY_REPORT` 日报记录：每日定时聚合生成，记录用户当日投递/面试统计数据，`user_id + report_date` 唯一约束，每日一条。
+14. 实体 ⑭ `INTERVIEW_SESSION` 面试会话：一次完整 AI 面试模拟运行实例，由 `A17` 创建，绑定 `interview_question_set_id` 与可选 `application_id`，承载问答轮次与当前态（状态机见 §6.16 G7-1），是 AI 面试模拟模块的主领域对象 [v3.8 新增]。
 
-关系组依次说明：用户域（①→②③④⑤⑧⑫⑬）为 1:N 拥有/配置关系；投递主线汇聚于 ⑨ 投递单：③ 简历版本供投递引用、⑥ 岗位为投递对象、④ 账号提供投递身份、⑦ 适配器执行投递动作；投递单派生 ⑩ 任务（1:1）、沉淀 ⑪ 事件（1:N）、触发 ⑫ 题集（1:N）。主链路（①→⑨）以绿色加粗标识，全链路靠 `idempotency_key` 保证不重不漏 [Expert judgment]。
+关系组依次说明：用户域（①→②③④⑤⑧⑫⑬⑭）为 1:N 拥有/配置关系；投递主线汇聚于 ⑨ 投递单：③ 简历版本供投递引用、⑥ 岗位为投递对象、④ 账号提供投递身份、⑦ 适配器执行投递动作；投递单派生 ⑩ 任务（1:1）、沉淀 ⑪ 事件（1:N）、触发 ⑫ 题集（1:N）；题集 ⑫ 驱动会话 ⑭（1:N，会话生命周期见 §6.16 G7-1）。主链路（①→⑨）以绿色加粗标识，全链路靠 `idempotency_key` 保证不重不漏 [Expert judgment]。
 
 ### 5.2 核心表与关键字段（概要）
 
@@ -665,6 +958,7 @@
 | `application_event` | application_id, from→to, reason | idx(application_id) | 事件溯源/审计 |
 | `strategy_config` | user_id, daily_limit, match_threshold… | uk(user_id) | 策略快照 |
 | `interview_question_set` | application_id, state, questions JSON | idx(user_id) | 状态：generating→ready |
+| `interview_session` | id, user_id, question_set_id, application_id, state, current_turn, started_at, ended_at | uk(id), idx(user_id) | 面试会话状态机承载表（§6.16 G7-1） |
 | `member_order` | order_no, plan, status, paid_at | uk(order_no) | 支付对账 |
 | `adapter_registry` | platform_id, version, status | uk(platform_id) | 适配器元数据 |
 | `daily_report` | id, user_id, report_date, total_applications, successful, failed, hr_views, interview_invitations, new_questions, platform_breakdown JSON, sent_at | uk(user_id, report_date) | 日报快照，每日一条 |
@@ -681,6 +975,7 @@
 | 本机 Agent ↔ 服务端一致 | 投递任务状态以服务端为权威（10 状态机）；本机 Agent 执行结果经任务通道回写，断网/崩溃由服务端孤儿任务清扫（§3.4）+ Agent 上线补拉收敛；Cookie 仅本地、不参与跨端一致（§C.5）[Expert judgment] 对齐 PRD §15 / §23.4 |
 | 离线冲突 | 简历冲突以最后保存为准；投递操作冲突后发者提示"已在投递中" [Data-backed] PRD 模块 8 |
 | 保留期限 | 简历/面试记录：注销后 30 天；Cookie：登出清除 [Data-backed] PRD §8.2 |
+| 分片键预留 | 高增/用户维度表首列含 `user_id`，时序表按月分区，预留后期 `user_id` 哈希分片零迁移 | [Data-backed] PRD §31.6 / §6.15 |
 
 ---
 
@@ -734,7 +1029,7 @@
 
 ### 6.5 韧性、兼容与安全体系（重导出自 PRD §23 / §28 / §29 / §30 / §31.3 / §31.4 / §31.9）
 
-> 本节将 PRD 的「五层生产事故防线」（§23 韧性 · §24 响应 · §28 预防 · §29 本机 · §30 最小化）落成 HLD 设计决策。本产品最强约束即「先保证不出现生产事故」，故可靠性设计权重高于常规 HLD。
+> 本节将 PRD 的「五层生产事故防线」（§23 韧性 · §24 响应 · §28 预防 · §29 本机 · §30 最小化）落成 HLD 设计决策。本产品最强约束即「先保证不出现生产事故」，故可靠性设计权重高于常规 HLD。**（PRD §23 / §28 / §29 / §30 已于 v3.12 前移瘦身，仅保留需求要点与验收标准，设计以本节为准，二者不再重复。）**
 
 **A. 三端版本兼容与契约管理（PRD §23.1 + §30.2）**
 | 项 | 设计决策 | 证据 |
@@ -860,11 +1155,29 @@
 | 正式 Beta / v0.9 验证计划（§35.2）🔴 | 招募 [N] 名代表性用户（应届/社招×Win/macOS×首期 5 平台）；准入/退出标准（关键假设回填：HR 查看率/面试邀请率首样、错投率≤10%、误报加白完成、崩溃率<[X]%）；假设回填清单映射 §2.1/§3/§16；缺陷分级 triage 接工单 | [Data-backed] PRD §35.2 |
 | 运营/品牌/增长类（§35.3–§35.6 / §35.8） | VoC 闭环、分析数据管道与 BI、定价弹性实验、危机公关预案、竞品监测飞轮属**产品运营职责**，不在本技术设计档范围，由产品/运营另行闭环（见 §1.2 标注） | [Out-of-scope] PRD §35 |
 
-> 说明：§6.5–§6.10 为 v3.0 基于 PRD v4.5 重导出新增，将 PRD §17–§35（原 v2.0 HLD 整体遗漏的事故预防/可靠性/本机 Agent 安全/发布治理机制）补为 HLD 设计决策，并经 `check_prd_hld_traceability.py` 门禁校验全覆盖。SVG 架构图按用户决策暂不动（图待重绘见 §2.2/§2.6）。
+> 说明：§6.5–§6.10 为 v3.0 基于 PRD v4.5 重导出新增，将 PRD §17–§35（原 v2.0 HLD 整体遗漏的事故预防/可靠性/本机 Agent 安全/发布治理机制）补为 HLD 设计决策，并经 `check_prd_hld_traceability.py` 门禁校验全覆盖。**SVG 架构图 v3.3 Batch 3+4 (2026-08-15) 已全部重绘完成，图待重绘清单清空**（详见 §2.2 顶部"图状态"）。**自 v3.12 起，PRD §15 / §20 / §21 / §22 / §23 / §28 / §29 / §30 / §31 已前移瘦身（仅保留决策摘要 + 验收标准），§6.5–§6.10（及 §5 / §2 / §6.14）为上述章节的唯一权威设计载体，二者不再重复——PRD 越界设计内容已收回 HLD。**
+
+### 6.0 横向设计组织（按工程关切索引，非按审计轮次）
+
+> **组织说明（重要）：** §6.11–§6.16 在 v3.3–v3.8 各轮审计中以"缺口补强"形式逐轮追加，标签为 `B1–B7 / G1–G4 / T1–T5 / TIER1·3 / S1–S7 / A2 / G7`。这些内容是**已拍板的设计决策**，并非待办清单；但其"按审计轮次堆叠"的呈现方式不符合设计文档"按工程关切组织"的惯例，也割裂了设计逻辑。
+>
+> 现统一归并为**按关切组织的视图**（内容不搬移，仅重新索引；原小节锚点保留，以兼容 LLD 的 `§6.14.x` 引用）。每个决策的设计理由与契约见原小节。
+
+| 工程关切 | 归并的设计决策（原小节） | 关联 ADR |
+|----------|------------------------|----------|
+| 安全与密钥工程（加密套件 / 设备派生 / 签名 / 可验证删除） | §6.14.2 信封加密与设备密钥派生、§6.14.5 SelectorBundle 签名、§6.14.6 可验证删除、§6.14.8 Cookie 设备密钥派生 | ADR-005 |
+| 反封禁与韧性（pacing / 验证码闭环 / 进程监督 / MQ 拓扑） | §6.14.1 进程监督模型、§6.14.3 速率整形引擎、§6.14.4 验证码人机协同、§6.14.7 RabbitMQ 拓扑 | ADR-010 |
+| 数据治理与扩展性（分片键 / 双通道隔离 / 幂等 / 同步 / 采集 / 缓存 / 审计 / 保留） | §6.13.1 双通道隔离、§6.13.2 幂等四元组、§6.13.3 选择器配置化、§6.13.4 契约握手、§6.13.5 数值收敛、§6.15 分片键预留、§6.11 B7 离线同步、§6.12 G1–G4 采集/缓存/审计、§6.14.6 保留 | ADR-006 / ADR-007 / ADR-009 |
+| 领域模型与算法（匹配度 / 嵌入 / 内容安全 / 面试会话 / ASR） | §6.11 B1 语义检索、B5 匹配度模型、B6 内容安全、§6.16 G7 面试会话与评估 | — |
+| 运维与合规（环境隔离 / 容量成本 / 供应链 / Feature Flag / 演练 / 测试保真） | §6.11 B3 环境隔离、B4 权益矩阵、§6.12 T1–T5、§6.13.5.1 LLM failover、§6.13.5.3 隐私 k=50 | — |
+
+> 原小节标题仍保留 `v3.x 补强` 字样以追溯修订来源；其**内容性质是设计决策**，阅读时应按上表"关切"理解，而非按"第几轮审计"。
+
+---
 
 ### 6.11 设计深度补强（v3.3 基于 PRD 缺口审计 B1–B7 落成）
 
-> 本节将上一轮「PRD × HLD 逐章缺口审计」识别的 7 项 HLD 级缺口（B1–B7）落成设计决策。这些项 PRD 已给出要求，但 v3.2 HLD 仅引用章节号、未落设计，故在进 LLD 前于本版拍板，避免下游模块缺乏统一架构约束。「本机优先 / 单用户自用」的产品形态是本版决策的总基调（见 §1.3 / §2.6）。
+> 本节将上一轮「PRD × HLD 逐章缺口审计」识别的 7 项 HLD 级缺口（B1–B7）落成设计决策。这些项 PRD 已给出要求，但 v3.2 HLD 仅引用章节号、未落设计，故在进 LLD 前于本版拍板，避免下游模块缺乏统一架构约束。「本机优先 / 单用户自用」的产品形态是本版决策的总基调（见 §1.3 / §2.5）。
 
 **B1. 语义检索 / embedding 架构决策（PRD §7.5 / §16.4 / §20 / §27.2）**
 
@@ -874,7 +1187,7 @@
 | 本地检索预算 | 若启用向量检索，单用户岗位—简历匹配检索 ≤500ms（PRD §27.2）；v1.0 不走向量，此预算留作后续扩展验收基线 |
 | embedding 成本 | 计入 §16.4 LLM/推理项（单用户日解析 ~100 份，约 ¥0.5–2/月）；v1.0 主路径不依赖 embedding，该项成本为 0 |
 | 增量更新 | 简历/岗位变更触发增量重算，避免全量（与 §21.1 采集节奏一致） |
-| 扩展点 | §2.5 技术选型预留「本地向量扩展」接口位，LLD 阶段按实际规模决策是否落地 |
+| 扩展点 | §2.4 技术选型预留「本地向量扩展」接口位，LLD 阶段按实际规模决策是否落地 |
 
 依据：[Data-backed] PRD §27.2 / §7.5 / §16.4
 
@@ -936,7 +1249,7 @@ v3.2 §6.4 仅述「埋点事件保持两端一致」，本版落事件名 + 字
 | 过滤层 | AI 输出（面试题 / 评估 / 话术）经内容安全审核，拦截政治敏感 / 违法 / 歧视 / 骚扰；不鼓励造假夸大（呼应 §17.4 伦理） |
 | 价值观可测口径 | 不输出歧视性（性别 / 年龄 / 地域）表述；以 §26.1 golden set「歧视性表述抽检命中率 = 0」为验收；「中立 / 专业 / 鼓励性」为取向非硬指标 |
 | 审核失败处理 | 触发内容不展示，提示「内容不可用，请换种问法」，记审计（§22.3） |
-| 衔接 | 在 §8.4 脱敏 / 授权框架内执行；LLM 主备切换（§2.5 / §34.2）不影响安全层 |
+| 衔接 | 在 §8.4 脱敏 / 授权框架内执行；LLM 主备切换（§2.4 / §34.2）不影响安全层 |
 
 依据：[Data-backed] PRD §26.4
 
@@ -952,7 +1265,7 @@ v3.2 §6.4 仅述「埋点事件保持两端一致」，本版落事件名 + 字
 
 依据：[Data-backed] PRD §31.2
 
-> 说明：B1–B7 为 v3.3 新增设计决策，补全 v3.2「仅引用未设计」的 HLD 级缺口；§C 五大约束与 §1.2 矩阵不受影响。SVG 架构图仍按用户决策暂不动（图待重绘见 §2.2/§2.6），其中 B6 内容安全层、B3 环境 tag、B7 同步队列可作后续图补充点。
+> 说明：B1–B7 为 v3.3 新增设计决策，补全 v3.2「仅引用未设计」的 HLD 级缺口；§C 五大约束与 §1.2 矩阵不受影响。**核心 6 张架构图 v3.3 Batch 3+4 (2026-08-15) 已全部重绘完成**（详见 §2.2 顶部"图状态"），其中 B6 内容安全层、B3 环境 tag、B7 同步队列可作后续图补充点（非本批范围）。
 
 ### 6.12 设计深度二次补强（v3.4 基于 PRD 缺口审计 G1–G4 + T1–T5 落成）
 
@@ -969,7 +1282,7 @@ v3.2 §6.4 仅述「埋点事件保持两端一致」，本版落事件名 + 字
 
 - **缓存对象**：① 岗位详情/匹配候选（读多写少，TTL 30min，源为采集库）；② 简历解析结果（解析昂贵，TTL 24h 或 resume 版本变更即失效）；③ 用户策略/权益快照（TTL 5min，写时主动失效）；④ LLM 匹配结果（短期 TTL 10min 防重复打分，受 §6.5 L 成本双闸约束）。
 - **一致性**：缓存为**性能层、非权威源**；写操作（投递/状态变更/权益变更）走"写 DB + 删缓存/短 TTL"策略，不引入写穿透；DB 为权威（§5.3 状态机一致性）。
-- **防护**：缓存击穿/雪崩/穿透防护见 §6.5 S9（互斥重建 + 随机 TTL 抖动 + 空值短缓存）；Redis 仅存可重建数据（§2.6 ③）。
+- **防护**：缓存击穿/雪崩/穿透防护见 §6.5 S9（互斥重建 + 随机 TTL 抖动 + 空值短缓存）；Redis 仅存可重建数据（§2.5 ③）。
 
 #### G3 操作审计日志字段 schema（PRD §22.3）
 
@@ -991,7 +1304,7 @@ v3.2 §6.4 仅述「埋点事件保持两端一致」，本版落事件名 + 字
 
 #### T2 容量-成本联动触发器（PRD §31.9 深化）
 
-- **拆服务信号**：§1.3 定义 500 DAU 为演进触发线；具体触发器——① Python LLM 编排服务 CPU/成本超阈值且横向扩展收益明显 → 先独立 LLM 集群（§2.6 ⑤）；② 通知/支付成热点 → 再拆 Java 侧。
+- **拆服务信号**：§1.3 定义 500 DAU 为演进触发线；具体触发器——① Python LLM 编排服务 CPU/成本超阈值且横向扩展收益明显 → 先独立 LLM 集群（§2.5 ⑤）；② 通知/支付成热点 → 再拆 Java 侧。
 - **成本联动**：扩缩容与 §6.5 L 成本双闸联动——单用户 LLM 月成本超预算（¥0.5–2/月基线）自动降级规则引擎（§6.11 B1/B5）；容量扩展前先做单位经济校验（§1.3/§16），避免"为扩而扩"击穿单位经济。
 - **自动化程度**：v1.0 **手动评估 + 脚本扩缩**（单用户自用定位），预留指标驱动自动扩缩接口位（不实现）。
 
@@ -1094,6 +1407,153 @@ PRD/HLD 散落约 30 个具体数值，统一收敛如下（标 ⚠ 者为待 v0
 | 单平台日安全线 | 平台限制 70% | §6.2/§6.13.5.4 |
 | SEV1 MTTR | ≤1h（§24.1） | §24.1 |
 | 备份 RPO/RTO | DB RPO≤30min/24h、切换 RTO≤30min | §6.5 D |
+
+---
+
+## 6.14 具体机制设计补强（v3.6 资深架构师四次审计：PRD 已隐含机制、HLD 仅点到未落成的具体实现点）
+
+> 说明：前三次审计（B/G/T、TIER1/TIER3）已把"章节覆盖"与"设计深度/关键数值"基本补齐。第四次审计换**实现工程师视角**过 PRD，挑出一类 **"PRD 描述了目标/风险、HLD 写了原则但没给可落地的具体机制"** 的实现细节因子（S1–S7）。这些点不影响章节追溯（校验器仍绿），但**直接决定 LLD 工程师会不会各自拍脑袋、以及系统是否真的抗封号 / 可恢复 / 可审计**。本节约落成具体设计决策，全部标注 PRD 锚点；不涉及新 PRD 章节，无需增矩阵行。
+
+### 6.14.1 本机 Agent 进程与监督模型（PRD §29.1 / §21.3 / §23.2）
+
+HLD §3.6/§3.7 把适配器与浏览器池描述为"本机 Agent 执行侧"模块，但**没定义 Agent 自身的进程/线程架构**。PRD §29.1（看门狗强制终止）、§21.3（本地队列持久化 SQLite WAL、corruption 快照）给了约束但没落成进程拓扑。落成如下：
+
+- **三层进程模型**：① `agent-supervisor`（守护进程，唯一常驻，负责拉起/监控/自愈子进程、向 OS 注册看门狗）；② `agent-worker`（每浏览器实例 1 个隔离子进程，崩溃不影响其他实例，承 §3.7"独立隔离防单实例拖垮"）；③ `agent-gui`（桌面 UI 壳，与 supervisor 经本地 IPC 通信，崩溃不波及执行）。
+- **监督与自愈**：supervisor 对 worker 做**进程级心跳（每 10s）**；worker 卡死（无心跳 >30s 或 CPU 持续 100% >60s）由 supervisor **强制 kill + 孤儿进程级联回收**（呼应 §29.1 防变砖），该实例上任务携幂等键转"执行中断"由服务端清扫（§3.4 孤儿清扫）。
+- **本地状态持久化**：投递任务队列/去重 key/配置缓存落**本地 SQLite（WAL 模式 + 原子事务）**，非内存；每 30min `PRAGMA integrity_check` + 每日轻量快照（结构 + 任务态 + 去重 key，不含 Cookie/简历原文）；corruption 且快照不可用 → 进入 §23.2 受限安全模式 + 显式弹窗，**绝不静默放行**（承 §21.3）。
+- **IPC 与升级**：supervisor↔worker/gui 经本地 Unix Domain Socket / Named Pipe（不监听网络端口，缩小攻击面）；自更新（§29.3）由 supervisor 拉起新版 worker 并做**灰度切换 + 回滚兜底**，更新失败回退旧版且轮换签名密钥 CRL（§6.8）。
+
+### 6.14.2 信封加密算法套件与密钥派生（PRD §20.5 / §31.7 / §C.5）
+
+HLD §6.8 只说"KMS 信封加密 + 轮换"与"Cookie 本地隔离"，**没给具体算法套件与本地密钥派生方案**。落成如下（算法套件 + 设备密钥派生方案均已拍板，呼应原 §9.4 TIER2，已于 §6.14.8 销账）：
+
+- **服务端信封加密（DEK + KEK）**：业务敏感字段（简历原文等）以 **AES-256-GCM**（AEAD 认证标签，防篡改）加密，DEK 由 KMS 用 KEK 包裹存储；KEK 90 天自动轮换 + 版本化（旧版可解密历史密文，轮换不重写历史数据），泄露时吊销该 DEK 版本并重加密（承 §6.8）。
+- **本机 Cookie 本地加密（不上云）**：Cookie 在用户设备以 **AES-256-GCM** 本地加密，密钥由**设备绑定密钥派生**生成——随机 `device_master_key` 存 OS 安全区（Windows CNG/TPM、macOS Keychain，非漫游）+ 用户在场因子（Windows Hello / Touch ID / 口令经 Argon2id `m=64MB/t=3/p=1/128-bit salt` 派生），HKDF 合成 KEK 再派生每平台 DEK（派生链路与抗提取性质详见 §6.14.8）。**明文 Cookie 永不出本机、永不进日志**（§C.5）。
+- **SelectorBundle 签名**（见 §6.14.5）：热推的配置以 **Ed25519** 私钥签名，Agent 内置公钥验签后才加载，防中间人篡改自动化规则（与 §6.13.3 防反爬升级事故同源）。
+- **密钥防打印**：所有密钥经 KMS/设备安全区存取，代码层禁止 `log`/打印；CI 密钥扫描门禁（§6.9）拦截硬编码。
+
+### 6.14.3 投递速率整形引擎（anti-ban pacing）（PRD §6.2 / §6.13.5.4 / §28.2）
+
+HLD §6.2/§6.13.5.4 给了时段窗口与日/单次上限，但**没设计"两次操作之间到底怎么 pacing、如何不像机器人"的具体引擎**——这是反封号命门。落成如下：
+
+- **per-platform Token Bucket + 人因抖动**：每个平台独立令牌桶，令牌补充速率按 §6.13.5.4 窗口计算（如 09:30–11:30 窗口内匀速注入 30–40 枚/天）；每次实际投递前取令牌，取令牌后施加 **随机人因延迟（正态分布 μ=5.5s σ=1.5s，叠加 2–8s 贝塞尔轨迹/随机滚动）**，杜绝等间隔机械节奏（承 §3.7 防检测五重保障）。
+- **新账号 warm-up**：首次在某平台投递的账号前 N 份（⚠ 建议 5–10 份）降速至正常 30–50%，逐步爬升，规避"新号瞬间高频"风控特征。
+- **错误熔断冷却**：单平台连续出现验证码/风控 → 立即熔断（§28.2）并进入**指数退避冷却（base 15min ×2ⁿ，上限 6h）**，冷却中该平台令牌桶暂停注入；同账号全平台 `risk_blocked` 即停（§4.5 B06）。
+- **与日限额协同**：令牌桶容量 = 当日剩余配额（角色上限 100/免费 30 × 单平台 70% 安全线）；超额不注入令牌，顺延次日（呼应 §6.13.5.4）。
+
+### 6.14.4 验证码人机协同闭环（PRD §3.7 / §6.2 / §4.5 B06）
+
+HLD §3.7/§4.5 对验证码仅写"暂停所有任务 + 通知用户"，**没给具体的人机协同闭环**——用户到底怎么解、解不了怎么办。落成如下：
+
+- **触发与暂停**：Agent 执行中命中验证码（`outcome=captcha`）→ 该平台实例**立即挂起**，经信令通道（§6.13.1）推 `L0 实时` 通知（移动端推送 + PC 桌面 modal 双触达）。
+- **协同入口**：通知携带**深链/桌面弹窗**直开 Agent 验证码处理页；用户在自有浏览器上下文内人工完成验证（**绝不代填、绝不截屏上传**，凭证留本机）；完成后 Agent 用既有本地登录态续跑该实例。
+- **超时与重试上限**：单验证码 **等待窗口 ⚠ 建议 30min**，超时未处理 → 该平台转"暂停待人工"，不再阻塞其他平台；同一平台 **24h 内验证码触发 ≥3 次** → 自动降级该平台为"暂停自动投递待适配"（呼应 §6.13.3 健康分降级），避免反复撞风控。
+- **恢复**：用户处理后平台恢复 `ok`，实例重新入池；期间产生的待投递任务按幂等键（§6.13.2）续跑，不重复投递。
+
+### 6.14.5 SelectorBundle 配置格式与热更签名（PRD §31.3 / §23.5 / §6.13.3）
+
+HLD §6.13.3 把 DOM 选择器外置为 `SelectorBundle` 配置热更定为硬约束，但**没给格式/校验/签名**。落成如下：
+
+- **格式与结构**：`SelectorBundle` 以 **YAML** 描述（人可读、易 diff、CI 可校验），最小结构 `{ platform, version, schema_version, selectors: { login, searchBox, applyBtn, ... }, dynamic_rules: [...], checksum }`；每个选择器支持 `xpath|css|text-match` 多候选 + 优先级，适配多版页面。
+- **版本与校验**：`version` 单调递增、`schema_version` 标识结构兼容性；加载前 **JSON Schema 校验**，非法 bundle 拒绝加载并告警（fail-closed，承 §30.1）。
+- **签名防篡改**（呼应 §6.14.2）：bundle 经 **Ed25519** 服务端私钥签名，Agent 内置公钥验签通过才加载；防配置中心/传输被篡改注入恶意自动化（与 §20.5 密钥工程同源）。
+- **热更通道**：经配置中心（§23.5）下发，支持灰度（按平台/用户群）+ 回滚上一 `version`；变更须过 §31.8 录制/回放"选择器回归"比对真实 DOM fixtures。
+
+### 6.14.6 数据保留与可验证删除机制（PRD §8.2 / §31.11 / §8.3）
+
+HLD §5/§8 给了保留期（24mo 归档、36mo 删除）但**没给具体 purge 机制与"删除可验证"的落地**。落成如下：
+
+- **分层保留与匿名化**：投递记录保留 ≤24 个月 → 到期**自动匿名化归档**（置空身份证/手机号等 PII 字段、保留聚合所需的岗位/平台/结果维度）；满 36 个月**物理删除**；用户主动删除（PIPL 删除权）即时触发同链路。
+- **Purge 作业**：独立定时任务（每日低峰），以 `retention_date` 游标分批删除/归档，批大小 ⚠ 建议 ≤1000/批避免长事务；删除操作写**不可变审计日志**（谁/何时/删了哪类数据）。
+- **可验证删除凭证**（呼应 §31.11）：每次删除/匿名化生成**签名删除凭证** `{ scope, count, at, signature(Ed25519) }`，用户可在「数据携带权/删除记录」入口查看"已于 X 时刻删除 N 条"的**可验证回执**，满足 PIPL 删除权可举证。
+
+### 6.14.7 RabbitMQ 拓扑具体化（PRD §4.6 / ADR-004）
+
+HLD §4.6 只说"manual ack + 死信队列"，**没给 exchange/队列/路由的具体拓扑**，LLD 工程师会各写各的。落成如下：
+
+- **Exchange 类型**：投递执行类用 **direct exchange**（`apply.task` 按 platformId 路由到平台专属队列，便于单平台熔断隔离）；事件类（状态变更/通知/联动）用 **topic exchange**（`apply.status.changed`、`hr.viewed.detected` 等按 routing key 订阅）。
+- **重试与延迟**：失败消费进 **延迟重试队列**（RabbitMQ 延迟插件或 TTL + DLX 实现指数退避，base 30s ×2ⁿ 上限 30min），超过最大重试（投递类 ≤3 次，承 §6.2）转 **死信队列（DLQ）** 供人工/告警，不阻塞主队列。
+- **隔离与背压**：每平台独立队列 + **prefetch=1**（单 worker 串行确认，防消息积压丢状态）；`apply.task.created` 与 `apply.task.result` 解耦，Agent 离线时任务在队列堆积、上线后消费（呼应 §23.6 离线队列）。
+- **幂等去重**：消费端以 `idempotency_key`/业务唯一键（§6.13.2）去重，DLQ 重放不产生重复投递。
+
+---
+
+### 6.14.8 Cookie 设备密钥派生方案（TIER2 已拍板，PRD §20.5 / §C.5）
+
+> 本项原登记为 §9.4 TIER2 开放项（R-03，最高严重度：派生不当 → 本机凭证可被提取 → 账号劫持）。经资深架构师决策**已拍板**，销 §9.4 待决登记。设计哲学：**"设备持有（OS 安全区）" + "用户在场（平台认证器/口令）"双因子绑定根密钥，而非依赖脆弱的硬件指纹作为唯一根**。
+
+**派生链路（T1–T5）**
+- **T1 首次运行生成随机主密钥**：Agent 首次启动生成 256-bit `device_master_key`（CSPRNG），作为密钥体系唯一随机源。
+- **T2 主密钥存入 OS 安全区（非漫游）**：
+  - Windows：`NCryptCreatePersistedKey` 经 CNG 持久化，**优先 TPM 2.0 后端**（密钥不可导出、硬件绑定）；无 TPM 时回退 DPAPI（`CryptProtectData`，绑定当前用户 + 机器，`CRYPTPROTECT_LOCAL_MACHINE` 关闭以禁止域漫游）。
+  - macOS：Security.framework 存入 **Keychain**（`kSecAttrAccessibleWhenUnlockedThisDeviceOnly`，禁 iCloud 同步/漫游）。
+  - 关键：主密钥**永不落明文文件**，OS 安全区负责"设备持有"因子。
+- **T3 用户在场因子（解锁 KEK）**：解锁 Cookie 金库需通过**平台认证器**——Windows Hello（人脸/PIN/指纹，底层即 TPM 用户验证）/ macOS Touch ID；不支持时回退**用户口令**，口令经 **Argon2id** 派生 `passphrase_key`（参数**已拍板**：`m=64MB / t=3 / p=1 / salt=128-bit CSPRNG`；LLD 可随硬件微调但**不得低于此下限**）。
+- **T4 KEK 合成**：`kek = HKDF-SHA256(device_master_key ‖ passphrase_key, info="cookie-kek-v1")`。KEK 同时绑定"设备持有 + 用户在场"两因子，单独泄露任一均无法重构。
+- **T5 信封加密落地**：每平台 Cookie 以 **AES-256-GCM** 用 `kek`（或每平台 HKDF 派生 DEK）加密，密文包以 **Ed25519** 签名（§6.14.5 同源）防篡改；明文 Cookie 永不出本机、永不进日志（§C.5）。
+
+**抗提取性质**
+- 无 OS 安全区访问（需登录用户上下文）+ 无用户在场因子 → KEK 不可重构；TPM 后端使"从磁盘提取主密钥"在计算上不可行。
+- 不把硬件指纹作为唯一根：硬件指纹（磁盘序列号/CPU ID 混合）仅作 Argon2id salt 的**辅助熵源**，避免硬件变更致金库不可用 + 规避指纹收集隐私风险（呼应 §C.5 最小化）。
+
+**变更/恢复（fail-closed 友好）**
+- 硬件变更 / 重装系统 → OS 安全区清空 → 用户重新走 Hello/口令引导，`device_master_key` 重新生成；旧 Cookie 因 KEK 失配自动失效（Cookie 本就短生命周期，重新授权获取即可，无历史数据损失）。
+- 口令遗忘 → 同"重装"路径：重置金库、重新授权平台账号，**不提供主密钥找回**（避免找回通道成新攻击面）。
+
+**决策状态**：TIER2 已拍板，销 §9.4；LLD 加密模块按本链路落地，Argon2id 下限参数不得弱化。
+
+---
+
+## 6.15 存储扩展与分片键预留约束（v3.7 资深架构师六审：PRD §31.6 存储扩展/分片键/冷热分离，HLD 此前仅演进路径提方向、未拍板为当前架构约束）
+
+> 说明：前四轮审计（B/G/T、TIER1/3、S1–S7）与 §6.5 A–Q 已覆盖 PRD §17–§35 绝大部分事故防线，但 **PRD §31.6「存储扩展与归档/冷热分离」要求的「在 §20 schema 预留分片键 user_id，否则后期迁移成本高」这一架构约束，HLD 此前仅在 §2.5⑤/§6.5 Q 以「未来按 user_id 哈希分片」方向提及，未把它拍板为当前 §5 数据模型的强制约束**。本条补为 HLD 级架构约束，避免后期水平扩展时对 `application`/`application_event` 等高增表做大改迁移。
+
+- **起步形态**：单主 + 只读副本（读写分离，§5.3 已落）；时序/大表按时间分区；不提前分库分表（模块化单体约束，ADR-001）。
+- **分片键预留（关键约束）**：所有用户维度的时序/高增核心表——`application`、`application_task`、`application_event`、`daily_report`、`resume_version`、`interview_question_set`、`interview_session`——**主键或首列分区键必须包含 `user_id`**（如 `PRIMARY KEY(user_id, id)` 或复合索引首项），即便起步单库也以此物理排布；使后期按 `user_id` 哈希分片时**零 schema 迁移**（直接按 user_id 路由，无需回填分片键）。
+- **时间分区**：`application_event`（事件流水，写入极高）、`daily_report` 按 `created_at`/`report_date` 月度分区；分区在线滚动，旧分区转冷。
+- **冷热分离**：>24 月数据按 §8.2 匿名化后转对象存储冷层（COS/S3 Glacier），在线仅留索引；归档不阻塞主表性能 [Data-backed] PRD §31.6。
+- **分片触发线**：用户过万（§2.5⑤ 演进路径）时，对高增表按 `user_id` 哈希分片；因分片键已预留，仅需路由层改造 + 数据按 user_id 重新分布，无应用层 schema 变更。
+- **备份演练**：季度备份恢复演练（RTO/RPO 实测，§6.5 D），非仅 DR 切换；演练纳入复盘。
+
+依据：[Data-backed] PRD §31.6。
+
+---
+
+## 6.16 领域模型补强：面试模拟会话与评估（v3.8 资深架构师七审：PRD §689 面试流程 / §691 评估维度 / §26.2 rubric 透明可申诉 / §26.3 ASR 降级）
+
+> 说明：前六轮审计覆盖了匹配度模型（B5）、投递 10 状态机（§3.4）、13 个核心实体（§5）。但换「领域建模与业务逻辑」视角再审，AI 面试模拟模块存在一个**核心领域实体缺失**：HLD 在 §4.1 定义了 `A17 创建 AI 面试会话` 接口、§3.9 描述了模块职责，但 §5 ER **没有 INTERVIEW_SESSION 实体、无会话生命周期状态机**——而 PRD §689 明确定义了「开场白+题目 → 用户作答（文本/语音）→ AI 实时评估+追问 → 综合评估报告」的会话流，这是模块的主领域对象。同时评估 rubric 仅 §3.9 列了 4 个维度名，未建「维度→加权聚合综合分」模型、未落 §26.2 透明可申诉；ASR 供应商降级（§26.3）仅登记 LLD 待细化、HLD 未锚定端云决策。本条补全三者（G7-1/2/3），均不引入新 PRD 章节、不影响矩阵追溯。
+
+**G7-1. INTERVIEW_SESSION 实体与生命周期状态机**
+
+- 新增核心实体 ⑭ `INTERVIEW_SESSION`（详见 §5.1/§5.2）：一次完整 AI 面试模拟运行实例，由 `A17` 创建，绑定 `interview_question_set_id`（与可选 `application_id`，备战场景可无 application），承载问答轮次、当前态、评估报告引用。
+- 状态机（服务端 Java 持有状态，每轮由 §3.9 Python LLM 编排经内部契约驱动）：
+
+  | 当前态 | 允许转移到 | 触发 |
+  |--------|-----------|------|
+  | `created` | `active` | 用户点击开始（A17 返回 sessionId 后首个动作） |
+  | `active` | `in_progress` | 首题下发、用户首次作答 |
+  | `in_progress` | `paused` / `completed` / `abandoned` | 用户主动暂停（断点续聊）/ 所有轮次结束或用户主动结束 / 超时未应答（默认单轮 30min 静默关） |
+  | `paused` | `in_progress` | 用户恢复续聊（§7.3 断点续聊，上下文保留，非状态回退） |
+  | `completed` | `scored` / `abandoned` | 评估完成生成报告（A19）/ 用户放弃评分 |
+  | `scored` | `archived` | 超过保留期归档（§5.3 保留期限） |
+  | `abandoned` | （无） | 终态 |
+
+  - 规则：无回退边；`in_progress` 经 `paused` 往返为断点续聊（保留上下文）；单轮调用受 §28.1 LLM 成本双闸「单会话最大调用轮次」约束；摄像头仅本地画中画、不进会话状态（PRD §683）；语音经 ASR 转写为文本入轮次，ASR 失败降级文本输入（G7-3）。
+  - 每态变更写 `interview_session_event`（类比 `application_event`）供审计与「重跑/申诉」溯源（G7-2）。
+
+**G7-2. 评估 rubric 模型与透明可申诉（PRD §691 / §26.2）**
+
+- 维度集（按 PRD §691，每维 1–5 分）：回答完整性 / 技术准确性 / 结构化表达 / 与岗位匹配度（以 PRD §691 完整维度集为准，LLD 可补第 5 维）。
+- 聚合：各维原始分 → **加权综合分 0–100**（权重 HLD 不拍板，标 ⚠ 由 LLD 按 PRD §691 口径定；默认等权或产品默认权重）；综合分 + 每维分数 + 每维自然语言理由 一并返回 `A19` 报告。
+- 透明可申诉（§26.2）：报告**逐维度展示分数与理由**，用户可见「为何得此分」；提供「重跑本场」（换模型/清上下文重评）与「申诉/反馈」入口，反馈回流为评分模型训练信号（呼应 B5 反馈回流）。评估降级时（LLM 不可用→规则建议）明确标注「本次为降级评估，仅供参考」[Data-backed] PRD §26.2 / §7.3。
+
+**G7-3. ASR 供应商抽象与降级（PRD §26.3）**
+
+- 抽象：语音作答经 ASR 转写为文本再入评估；ASR 经 `AsrProvider` 接口抽象（主供应商 + 备用），供应商差异由适配层归一。
+- 决策（⚠ 供应商选型留 LLD）：**优先云端合规 ASR（境内）**为主、端侧/离线 ASR 为降级备选；主供应商不可用或质量回归超阈值 → 切备用；均不可用 → 降级为**文本输入**（PRD 模块 5/6 既有边界，麦克风拒绝即文本）[Data-backed] PRD §26.3 / §643。
+- 与 §6.5 P 鉴权、§6.11 B6 内容安全对齐：ASR 文本同样过内容安全层。
+
+依据：[Data-backed] PRD §689 / §691 / §26.2 / §26.3 / §643 / §683；[Expert judgment] 类比 application_event 审计。
 
 ---
 
@@ -1254,8 +1714,8 @@ PRD/HLD 散落约 30 个具体数值，统一收敛如下（标 ⚠ 者为待 v0
 | §25.4 退款 / 试用 / 退订工作流 | LLD（支付模块） | 待 LLD 细化 |
 | §25.5 本机 Agent 本地存储膨胀与清理 | LLD（本机 Agent） | 待 LLD 细化 |
 | §25.6 数据携带权主动入口（PIPL §45） | LLD（数据导出） | 待 LLD 细化（法务协同） |
-| §26.2 面试评估 rubric 透明性与可申诉 | LLD（AI 面试） | 待 LLD 细化 |
-| §26.3 语音 ASR 供应商与降级 | LLD（AI 面试） | 待 LLD 细化 [Expert judgment] |
+| §26.2 面试评估 rubric 透明性与可申诉 | HLD 已锚定（v3.8 G7-2：维度集 / 加权综合分 0–100 / 逐维分数+理由 / 重跑+申诉入口） | LLD 细化维度权重与第 5 维（§6.16 G7-2） |
+| §26.3 语音 ASR 供应商与降级 | HLD 已锚定（v3.8 G7-3：`AsrProvider` 抽象 + 云端合规为主 / 端侧备选 / 文本兜底降级链） | LLD 细化供应商选型（§6.16 G7-3） |
 | §27.1 多设备同账号 Agent 任务调度冲突 | LLD（调度） | 待 LLD 细化（§5.3/§6.5 J 已给原则） |
 | §27.3 限流提示可解释性 | LLD（前端） | 待 LLD 细化 |
 | §27.4 激活 / 留存 / 付费转化漏斗埋点 | LLD（埋点） | 待 LLD 细化（§6.11 B2 已给事件 schema） |
@@ -1265,7 +1725,20 @@ PRD/HLD 散落约 30 个具体数值，统一收敛如下（标 ⚠ 者为待 v0
 | §34.5 用户端自助帮助中心与错误可解释 | LLD（前端/客服） | 待 LLD 细化 |
 | §34.6 流失预警与挽回闭环 | LLD（增长） | 待 LLD 细化（§33 北极星协同） |
 | §34.7 AI 产出内容版权与归属声明 | LLD（AI/法务） | 待 LLD 细化（法务协同） |
-| **TIER2 开放项：Cookie 设备绑定密钥派生方案** | 需技术侧拍板（先于 LLD 加密模块） | 待定 — PRD §20.5/HLD §6.8 均只写"密钥与设备绑定"，未定义派生方式（TPM / OS keychain / 硬件指纹+口令派生？）；属加密方案真空洞，需拍板后 LLD 落地，本次未强行落成 |
+| **TIER2 开放项：Cookie 设备绑定密钥派生方案** | **已拍板（v3.9 §6.14.8）** | 资深架构师决策：OS 安全区持有随机主密钥（Windows CNG/TPM、macOS Keychain，非漫游）+ 平台认证器/口令 Argon2id 派生用户在场因子，HKDF 合成 KEK；详见 §6.14.8，LLD 加密模块按此落地，Argon2id 下限（m=64MB/t=3/p=1）不得弱化 |
+
+**接口完整性补全残余（v3.14 登记，[LLD 细化 / 持续]）**
+
+| 项 | 状态 | 说明 |
+|----|------|------|
+| 22/25 外部 API 补详细契约（A01–A08/A10/A12/A13/A15/A16–A19/A22–A25） | 待 LLD 细化 | 仅路径表，无请求/响应字段 schema；模板仿 §4.2–§4.4 |
+| B07 查询结果 / B09 健康检查 补字段 schema | 待 LLD 细化 | §4.5 仅方法名 |
+| 适配器 `searchJobs`/`getJobDetail` 服务端触发路径入 B 系列 | 待 LLD 细化 | 采集路径未契约化（见 §3.6） |
+| 契约测试基础设施（R-04）：`contracts/` + Pact CI | 待建 | §6.13.4 计划项未落地 |
+| 错误码 ↔ LLD `AGENT-1xxx` 逐码桥接明细 | 待补 | §4.7 已给原则与示例 |
+| 新风险 R-15（接口契约覆盖率） | 已登记 | 见风险登记表复评 |
+
+> 以上不阻塞首选模块（本机 Agent）编码，但为集成期返工源，登记为 [LLD 细化] 排期；核心链路（投递/状态/适配器/事件/错误/本机Agent↔服务端/支付回调/AI编排）已完成契约化。
 
 ### 9.5 本版评审修订记录（v1.0 → v1.1，源自架构评审 distill-004）
 
@@ -1288,7 +1761,7 @@ v2.0 解决 HLD v1.1 与 PRD §15（本机 Agent 执行模型）之间的**唯�
 |----|--------|---------|------|
 | **C1 执行模型** | 浏览器自动化归属服务端 Python 引擎（§2.1「AI/自动化…Playwright 投递独立为 Python 服务」、§2.2 C2「Python 自动化引擎承载浏览器自动化」、§2.2 时序 2-2「Python 调度中心从队列消费并执行」、§2.6「Python 服务（AI/Playwright 自动化）同机双进程 + 浏览器沙箱 Docker」、§3.6/§3.7「Python 引擎侧」） | 浏览器自动化下沉**用户本机 Agent**（桌面守护进程）：服务端仅保留 Java 业务 + Python(LLM 网关)；投递任务经任务通道下发本机 Agent，本地实例池 + 本地 Cookie 执行后回写 | §2.1、§2.2 ③、§2.2 时序 2-2、§2.5、§2.6 ②/⑤、§3.6、§3.7、§4.5(B06–B09) |
 | **C2 Cookie 存储** | Cookie 密文存服务端（`PLATFORM_ACCOUNT.cookie_ciphertext`、§5.2「AES-256-GCM 密文，密钥独立」、§6.2「Cookie AES-256-GCM…服务端加密」） | Cookie **仅本机 Agent 本地加密（信封加密），不上传、不备份云端**；服务端 `platform_account` 仅存账号元信息与登录态（ok/need_login/disabled） | §5.1 ④、§5.2、§5.3、§6.2、§4.5 B06（去除 credentialRef） |
-| 图一致性 | fig-c2-container / fig-2-3-deployment / fig-2-2-apply-flow 绘有服务端浏览器沙箱 | 已在本版正文标注 `⚠ 图待重绘`；三图需按新文本重绘为「本机 Agent 层承载浏览器实例池」 | §2.2、§2.6、§2.2 时序 2-2 |
+| 图一致性 | fig-c2-container / fig-2-3-deployment / fig-2-2-apply-flow 绘有服务端浏览器沙箱 | **已重绘 (Batch 4, 2026-08-15)**：三图 SVG 已按新文本更新为「本机 Agent 层承载浏览器实例池」；fig-c1-system-context.svg 同步移除 HR→系统 反模式 + 补齐首期 5 平台；双验证全过 | §2.2、§2.6、§2.2 时序 2-2 |
 | 上游文档引用 | 头部/§10 引用「PRD v3.0」 | 更新为「PRD v4.5 最终版」 | 头部、§10 |
 | 容量口径（已部分一致，本版固化） | 原 §2.6 容量说明已用「单用户本机/单节点」表述，但主架构仍服务端，二者漂移 | 本版将「单用户本机 Agent + 自有账号 + 住宅/移动代理 IP」固化为唯一执行形态，与服务端无浏览器算力瓶颈自洽 | §1.3、§2.6 ⑤、§15（PRD） |
 
@@ -1318,9 +1791,9 @@ v3.1 不改动架构与 SVG，仅将 C1/C2 的**文字说明**对齐 PRD v4.5（
 | C1 招聘平台列表 | 仅 BOSS/猎聘/智联 | 补全首期 5 平台（BOSS/猎聘/智联招聘/前程无忧/拉勾，见 §6.2），并标注后续扩展高校/国聘（§4.2） | §2.2 C1 说明③ |
 | C1 HR→系统 调用 | 误列"HR→系统"为 5 条同步调用之一 | 按 PRD §7.3 删除该箭头（HR 状态为系统→招聘平台 轮询的尽力感知，非 HR 主动回推）；同步调用改为 4 条 | §2.2 C1 说明④ |
 | C2 编号碰撞 | "基础设施层"与"配色说明"同号 4 | 配色说明改为 5，消除重号 | §2.2 C2 说明⑤ |
-| 图待重绘登记 | 仅 c2/2-3/2-2 三张 | 新增 `fig-c1-system-context.svg`（HR→系统 箭头 + 平台列）入待重绘清单 | §2.2 头部、C1 说明④下方 ⚠ 注 |
+| 图待重绘登记（v3.1 → v3.3 历史轨迹） | 仅 c2/2-3/2-2 三张 → 新增 c1（HR→系统 + 平台列）→ 收口 | v3.3 全部清空：6 张图均已重绘完成（见 §2.2 顶部"图状态"） | §2.2 顶部、各章节 ✅ 注 |
 
-> 说明：本版仅修订图注文字。所有 SVG 仍按用户决策暂不动；`fig-c1/fig-c2/fig-2-3/fig-2-2` 四张图的视觉内容需在后续按本版文字重绘（已全程标注 `⚠ 图待重绘`）。
+> 说明：v3.2 仅修订图注文字。**v3.3 (2026-08-15) Batch 3+4 已完成 6 张 SVG 视觉内容重绘**：`fig-c1/c2/2-2/2-3/2-4/2-5` 全部按本版文字更新，双验证（lint + geometry）全过；本说明同步更新。
 
 ### 9.9 图文字描述对齐修订记录（v3.1 → v3.2，仅改图注文字，不动 SVG）
 
@@ -1331,11 +1804,11 @@ v3.2 承接 v3.1 的「图注对齐 PRD」工作，将其余时序图/流程图�
 | 2-4 HR 感知执行归属 | "Java 状态机…调用 Python 适配器 `getApplicationStatus`" 隐含服务端执行 | 改为"经内部契约下发至本机 Agent，由本机 Agent 适配器加载本地 Cookie 查询平台页面"；明确规避"HR→系统"反模式（PRD §7.3 / C1） | 图 2-4 说明①–②、④ |
 | 2-4 轮询触发频率 | "默认 6h/次" 未提高频平台 | 补"高频平台可配置 2–4h，见 §4.5 B08" | 图 2-4 说明① |
 | 2-5 LLM 可用性 failover | 仅"主 LLM → 规则引擎"两级降级，缺主备切换 | 新增"主不可达自动切备用 LLM（1 主 + 1–2 备用）+ golden set 质量回归（κ 容差）"一级（PRD §34.2）；`model` 枚举扩为 deepseek / backup / rule | 图 2-5 说明③–④、⑥、⑧ |
-| 图待重绘登记 | 四张（c1/c2/2-3/2-2） | 新增 `fig-2-4-hr-status.svg`、`fig-2-5-ai-match.svg` 入待重绘清单 | §2.2 头部、图 2-4/2-5 ⚠ 注 |
+| 图重绘完成登记 (Batch 3+4+ER, 2026-08-15) | — | 7 张图全部按本版文字重绘完成：<br>① `fig-c1-system-context.svg` v1.0 (移除 HR→系统 + 5 平台)<br>② `fig-c2-container.svg` v1.1 (本机 Agent 层独立 + Python 不含浏览器)<br>③ `fig-2-2-apply-flow.svg` v1.0 (本机 Agent 拉取 + 本地执行)<br>④ `fig-2-3-deployment.svg` v1.0 (服务端无浏览器沙箱)<br>⑤ `fig-2-4-hr-status.svg` v1.0 (B08 下发 + 本机 Agent 适配器)<br>⑥ `fig-2-5-ai-match.svg` v1.0 (主备 LLM failover + 规则引擎二级降级)<br>⑦ `fig-5-1-er.svg` v1.1 (14 实体 / 4 域, 主链路绿色加粗, §C.5 Cookie 合规)<br>双验证：lint 0W/0E，geometry 全过 | §2.2 各章节 + §5.1 ✅ 注 |
 
-> 说明：图 2-2 / 2-3 / 5-1 的图注已在 v2.0/v3.0 对齐（本机 Agent 执行、Cookie 本地化、实体④服务端不存 Cookie 密文），本次回溯核验确认无错位，未改动。所有 SVG 仍按用户决策暂不动。
+> 说明：图 2-2 / 2-3 / 5-1 的图注已在 v2.0/v3.0 对齐（本机 Agent 执行、Cookie 本地化、实体④服务端不存 Cookie 密文）。**v3.3 Batch 3+4+ER (2026-08-15) 已完成 7 张 SVG 视觉内容重绘**（含 fig-5-1-er.svg v1.1），本说明同步更新。
 
-> 本版对齐经 `check_prd_hld_traceability.py` 校验：全部 MUST_TRACE 章节已追溯、版本一致（绿灯）。SVG 架构图按用户决策暂不动，图待重绘见 §2.2/§2.6。
+> 本版对齐经 `check_prd_hld_traceability.py` 校验：全部 MUST_TRACE 章节已追溯、版本一致（绿灯）。**v3.3 Batch 3+4+ER (2026-08-15) 已完成 7 张 SVG 重绘 + 双验证全过**（含 fig-5-1-er.svg v1.1），图待重绘清单全部清空（详见 §2.2 顶部"图状态"）。
 
 ### 9.10 设计深度补强修订记录（v3.2 → v3.3，基于 PRD 缺口审计 B1–B7 + D 类卫生）
 
@@ -1401,16 +1874,127 @@ v3.4 完成后，以资深架构师视角对 PRD 全文做第三次审计，聚�
 
 ---
 
+### 9.13 四次缺口收口修订记录（v3.5 → v3.6，资深架构师视角 PRD 实现细节因子审计 S1–S7）
+
+v3.5 完成后，以**实现工程师视角**对 PRD 全文做第四次审计，聚焦"PRD 描述了目标/风险、HLD 写了原则但未落成具体机制"的实现细节因子，落成 S1–S7 七项具体机制设计。审计确认状态机/鉴权/对账/RTO-RPO/retention/SBOM 等前序已覆盖，本次为机制级补强；章节追溯与版本耦合仍一致（校验器绿灯），无新 PRD 章节、无矩阵漏登。
+
+| 项 | 类别 | v3.5 状态 | 修订后（v3.6） | 位置 |
+|----|------|----------|---------------|------|
+| 本机 Agent 进程与监督模型 | S 实现细节 | §3.6/§3.7 未定义 Agent 自身进程架构 | 新增 §6.14.1：supervisor/worker/gui 三层 + 进程心跳 + SQLite WAL 持久化 + 本地 IPC | §6.14.1 |
+| 信封加密算法套件 | S 实现细节 | §6.8 仅"KMS 信封+轮换"原则 | 新增 §6.14.2：AES-256-GCM + Argon2id 设备派生 + Ed25519 签名（设备 KDF 参数 ⚠ 待拍板） | §6.14.2 |
+| 投递速率整形引擎 | S 实现细节 | §6.2/§6.13.5.4 仅窗口/上限 | 新增 §6.14.3：per-platform token bucket + 人因抖动 + warm-up + 错误冷却 | §6.14.3 |
+| 验证码人机协同闭环 | S 实现细节 | §3.7/§4.5 仅"暂停+通知" | 新增 §6.14.4：触发挂起 + 深链/弹窗协同 + 超时窗口 + 重试上限降级 | §6.14.4 |
+| SelectorBundle 格式/签名 | S 实现细节 | §6.13.3 仅硬约束 | 新增 §6.14.5：YAML 结构 + JSON Schema 校验 + Ed25519 验签 + 热更灰度 | §6.14.5 |
+| 数据保留与可验证删除 | S 实现细节 | §5/§8 仅保留期 | 新增 §6.14.6：分层匿名化 + purge 批处理 + 签名删除凭证 | §6.14.6 |
+| RabbitMQ 拓扑具体化 | S 实现细节 | §4.6 仅"manual ack+DLQ" | 新增 §6.14.7：direct/topic 交换 + 延迟重试 + prefetch=1 背压 + 幂等去重 | §6.14.7 |
+| D8 文档版本戳 | 文档卫生 | v3.5 | v3.6 / 2026-08-15 | 头部、页脚、§10 |
+
+> 对齐结论：HLD v3.6 与 PRD v4.5 在章节追溯与版本耦合上仍一致（校验器绿灯）。本次为机制级补强，无新章节引入、无矩阵漏登；TIER2 开放项（Cookie 设备密钥派生 Argon2id 参数）仍标 ⚠ 待技术侧拍板，登记于 §9.4 待决项，未强行落成。
+
+### 9.14 五次缺口收口修订记录（v3.6 → v3.7，资深架构师视角 PRD §31.6 存储扩展/分片键审计 A2）
+
+v3.6 完成后，以资深架构师视角对 PRD §16–§35 全章节做第六轮系统扫描，逐条对照 HLD §6.5 A–Q + §6.6–§6.14 实际落点。结论：**HLD v3.6 对 PRD §17–§35 事故防线的覆盖已极深**（§6.5 A–Q 已落 S1–S13 / P1–P11 / Q1–Q12 / R 类 / §31.4 信令凭证 / §31.9 容量弹性；§6.7 落功耗硬预算与兼容矩阵；§6.11 B7 落离线同步；§6.14 S1–S7 落具体机制）。原评审报告 P2-2「Agent↔服务端信令凭证未落」经核实为误判（§6.5 P 已完整落地 §31.4），已撤销（见评审报告 v1 更正说明）。唯一确认真缺口为 **A2：存储扩展与分片键预留约束（PRD §31.6）**——HLD 此前仅演进路径提方向、未拍板为 §5 数据模型强制约束。
+
+| 项 | 类别 | v3.6 状态 | 修订后（v3.7） | 位置 |
+|----|------|----------|---------------|------|
+| 存储扩展与分片键预留（A2） | A 真缺口 | §2.6⑤/§6.5 Q 仅提「未来按 user_id 分片」方向，未拍板为 §5 强制约束 | 新增 §6.15：高增/用户维度表首列含 `user_id`、时序表按月分区、>24月冷归档、分片触发线零迁移；§5.3 加「分片键预留」行 | §6.15 / §5.3 |
+| D9 文档版本戳 | 文档卫生 | v3.6 | v3.7 / 2026-08-15 | 头部、页脚、§10 |
+
+> 对齐结论：HLD v3.7 与 PRD v4.5 在章节追溯与版本耦合上仍一致（校验器绿灯）。本次仅补 A2 一项架构约束，无新 PRD 章节、无矩阵漏登；TIER2 开放项（Cookie 设备密钥派生 Argon2id 参数）仍标 ⚠ 待技术侧拍板，登记于 §9.4 待决项。
+
+### 9.15 六/七审缺口收口修订记录（v3.7 → v3.8，资深架构师视角「领域建模与业务逻辑」审计 G7-1/2/3）
+
+v3.7 完成后，第七轮以「领域建模与业务逻辑」视角再审 PRD §689/§691/§26.2/§26.3：先核实匹配度模型（B5 已落）、投递 10 状态机（§3.4 已完整枚举 10 态与转移矩阵）、13 实体（§5 已落）——**确认这些非缺口**。唯一确认真缺口为 AI 面试模拟模块的核心领域实体缺失：HLD 有 `A17 创建 AI 面试会话` 接口与 §3.9 模块职责，但 §5 ER 无 `INTERVIEW_SESSION` 实体、无会话生命周期状态机；评估 rubric 仅列维度名未建聚合模型、未落 §26.2 透明可申诉；ASR 降级（§26.3）仅登记 LLD 待细化未锚定端云决策。
+
+| 项 | 类别 | v3.7 状态 | 修订后（v3.8） | 位置 |
+|----|------|----------|---------------|------|
+| INTERVIEW_SESSION 实体 + 会话生命周期状态机（G7-1） | A 真缺口 | §5 ER 仅 `INTERVIEW_QUESTION_SET`，无会话实体/状态机 | 新增实体 ⑭ `INTERVIEW_SESSION`（§5.1/§5.2）；补 7 态状态机（created→active→in_progress⇄paused→completed→scored→archived/abandoned）+ `interview_session_event` 审计 | §6.16 G7-1 / §5.1 / §5.2 |
+| 评估 rubric 模型 + 透明可申诉（G7-2） | B 设计深度 | §3.9 仅列 4 维度名，无聚合模型、未落 §26.2 | 补维度集→加权综合分 0–100、逐维分数+理由、`A19` 返回、重跑/申诉入口（反馈回流） | §6.16 G7-2 |
+| ASR 供应商抽象 + 降级（G7-3） | B 设计深度 | §9.4 仅登记 LLD 待细化 | 补 `AsrProvider` 抽象、云端合规为主+端侧备选+文本兜底降级链 | §6.16 G7-3 |
+| D10 文档版本戳 | 文档卫生 | v3.7 | v3.8 / 2026-08-15 | 头部、页脚、§10 |
+
+> 对齐结论：HLD v3.8 与 PRD v4.5 在章节追溯与版本耦合上仍一致（校验器绿灯）。本次补 G7-1/2/3 三项领域模型/设计深度，无新 PRD 章节、无矩阵漏登；TIER2 开放项（Cookie 设备密钥派生 Argon2id 参数）仍标 ⚠ 待技术侧拍板，登记于 §9.4 待决项。
+
+---
+
+### 9.16 八审 R-03 密钥派生方案拍板修订记录（v3.8 → v3.9，资深架构师决策：销 TIER2 开放项）
+
+| 项 | 类别 | v3.8 状态 | 修订后（v3.9） | 位置 |
+|----|------|-----------|----------------|------|
+| Cookie 设备密钥派生方案 | B 设计深度 / 安全 | §9.4 TIER2 待拍板（⚠，R-03 最高严重度） | 已拍板：OS 安全区持有随机主密钥 + 平台认证器/口令 Argon2id 派生用户在场因子，HKDF 合成 KEK；派生链路 T1–T5、抗提取性质、变更/恢复路径全落 | §6.14.8（新增）、§6.14.2（⚠ 销） |
+| §9.4 TIER2 待决登记 | 文档卫生 | 待定（真空洞） | 标记「已拍板（v3.9 §6.14.8）」 | §9.4 |
+| R-03 风险登记表联动 | 质量双闸门 | 高（15） | 处置更新为「已拍板/已销」，严重度维持、状态降级 | 风险登记表 v1 §R-03 |
+| D11 文档版本戳 | 文档卫生 | v3.8 | v3.9 / 2026-08-15 | 头部、页脚、§10 |
+
+> 对齐结论：HLD v3.9 与 PRD v4.5 在章节追溯与版本耦合上仍一致（校验器绿灯）。本次仅销一项 TIER2 开放项（R-03 最高严重度），无新 PRD 章节、无矩阵漏登；TIER2 原真空洞已填，加密模块 LLD 可按 §6.14.8 链路落地。
+
+---
+
+### 9.17 九审 R-02 §2 章节跳号与结构债修复修订记录（v3.9 → v3.10，资深架构师决策：清 LLD 启动前最后一项文档债）
+
+| 项 | 类别 | v3.9 状态 | 修订后（v3.10） | 位置 |
+|----|------|-----------|----------------|------|
+| §2 章节跳号（2.2→2.5 缺 2.3/2.4） | 文档结构 | §2.2 之后直接 §2.5，缺 2.3/2.4 | 连续化：2.1 架构风格 / 2.2 系统上下文与容器图（C4）/ 2.3 关键流程时序图 / 2.4 技术选型 / 2.5 部署架构 | §2 全节 |
+| 时序图错置于 C4 标题下 | 文档结构 | 三张时序图（图 2-2/2-4/2-5）挤在「系统架构图（C4 分层）」标题内 | 新增 §2.3 收容三张时序图，§2.2 仅保留 C1/C2 两张 C4 静态图 | §2.2、§2.3 |
+| 重编号遗留断链 | 文档卫生 | 正文 11 处引用旧 §2.5/§2.6 | 旧 §2.6（部署架构）→ §2.5、旧 §2.5（技术选型）→ §2.4，逐条订正，无活体断链 | 全文 11 处 |
+| R-02 风险登记表联动 | 质量双闸门 | 中（6），[闭环-启动前] | 处置更新为「已修复」，LLD 启动前文档债清零；§C/§9 历史红线表保留旧编号（审计链完整） | 风险登记表 v1 §R-02 |
+| D12 文档版本戳 | 文档卫生 | v3.9 | v3.10 / 2026-08-15 | 头部、页脚、§10 |
+
+> 对齐结论：HLD v3.10 与 PRD v4.5 在章节追溯与版本耦合上仍一致（校验器绿灯）。本次为纯文档结构修复，无新 PRD 章节、无矩阵漏登、无设计内容变更；R-01/R-02 两项文档债均已闭环，HLD 已无 LLD 启动前阻断项。残余非阻塞观察：§1 映射表 line 39「§2.5 多端架构」为预存引用（与本次重编号无关——§2 无「多端架构」子节，属更早的独立小问题，建议后续修正或删除）。
+
+---
+
+### 9.18 设计逻辑重构修订记录（v3.10 → v3.11，资深架构师决策：从"信息文档"补为"设计文档"）
+
+> 背景：原 HLD 经多轮审计后内容完备，但组织方式偏"需求覆盖 / 缺口补强清单"，缺少软件工程设计文档必备的两层——**决策层（为什么选 A 而非 B）**与**模块间契约 / 不变式层（组件如何交互）**；且 §6.11–§6.16 以"v3.x 审计轮次"堆叠，割裂设计逻辑。
+>
+> 本版修订（不改变任何已拍板决策，仅补结构与重索引）：
+> - 新增 **§1.5 架构决策记录（ADR）**：将散落的 `ADR-00x` 标签与补强决策正式落为 10 条决策记录（背景/候选/决策/理由/后果），覆盖部署形态、执行侧归属、反封禁、密钥派生、幂等、双通道、状态机、分片键等。
+> - 新增 **§3.0 模块间接口契约与依赖总览**：补依赖方向、中心 5 条跨模块调用契约（C1–C5，含请求/响应/前后置不变式）、系统级不变式 I1–I6，使 §3 从"职责清单"转为"设计"。
+> - 新增 **§6.0 横向设计组织**：将 §6.11–§6.16 的 `B/G/T/TIER/S/A2/G7` 归并为"按工程关切"索引，去除"审计轮次"框架，保留原锚点兼容 LLD 引用。
+> - 所有已拍板数值与约束（§6.13.5.5 阈值总目录、§6.14.x 机制）保持不变。
+
+---
+
+### 9.19 §3 模块契约化修订记录（v3.11 → v3.12，资深架构师决策：§3 从职责清单升级为模块设计）
+
+- 在 §3.1–§3.12 每个模块"职责表"后新增 **3.x.1 对外接口契约（设计层）** 小节，统一给出：关键方法/端点、下游调用契约（请求/响应要点与通道）、前置/后置条件、与 §4 / §3.0 C1–C5 衔接。
+- 目的：消除"§3 只是职责清单"的遗留短板，使 §3 与 §3.0（跨模块契约总览）、§4（全量接口）构成完整的模块设计层；每个模块的"做什么"（职责表）与"怎么交互"（接口契约）分离且互补。
+- 未改动任何职责表内容与关键点（设计事实不变），仅增量补充接口契约。
+
+### 9.20 PRD 越界设计前移 + §6 去重修订记录（v3.12，资深架构师决策：PRD 各归其位）
+
+- **问题**：PRD（需求文档）中 §15 / §20 / §21 / §22 / §23 / §28 / §29 / §30 / §31 为"纯设计内容"，且以"机制清单"口吻书写；HLD §6.5–§6.10 已"重导出"这些章节并落成决策表，形成 PRD↔HLD 双向重复，且 PRD 因越界膨胀（约 1300 行）偏离需求文档本职。
+- **动作（T3 A 类前移瘦身）**：上述 9 章删除机制细节，改为"决策/需求摘要 + 指向 HLD 对应节（§5 / §6.5–§6.10 / §6.14 / §2）+ 验收标准"，保留 `## N.` 标题与子标题、关键约束与验收口径（需求文档本职）。机制细节唯一权威载体回收到 HLD。
+- **动作（T5 §6 去重标注）**：在 §6.5 引言与 §6.10 末尾说明中标注"PRD 对应章节已于 v3.12 前移瘦身，本节为唯一权威设计载体，二者不再重复"。
+- **校验**：`check_prd_hld_traceability.py` 复验 —— PRD↔HLD 引用、§1.2 矩阵、版本 4.5 一致，全绿（未因瘦身丢失任何 MUST_TRACE 章节追溯）。
+- **待续（T4 B 类口吻改写）**：§17 / §18 / §24 / §25 / §26 / §27 / §34 / §35 按"需求/约束/验收"口吻改写，不展开设计细节，本版未执行。
+
+### 9.21 alt 分支透明背景 + 自我学习机制修订记录（v3.12 → v3.13）
+
+- **问题**：时序图中 alt 组合片段 `fill="#F0F0F0"` 实色背景叠加覆盖激活条，违反 UML 组合片段透明背景惯例。
+- **修复**：fig-2-4-hr-status.svg / fig-2-5-ai-match.svg 的 alt rect 改为 `fill="none"`（透明背景）+ 新增 UML 标准五边形 namebox；更新 作图-04-UML时序图.md §3.3.8.1 规范。
+- **沉淀**：将 `none` 加入色板（作图-01-通用规范.md v1.9），lint-svg 色板同步更新，消除误报警告。
+- **新增自我学习机制**：14 个文件 ± 3 层架构（Hook Layer → Trigger Chain → Distillation Engine），位于 `scripts/self-learning/`，支持 lint/geometry 事件自动录入-分类-提取-规范更新闭环。
+
+### 9.22 接口完整性补全修订记录（v3.13 → v3.14，架构师自主推进：用户要求"接口是否考虑全面"）
+
+- **问题**：接口设计章（§4）仅为"叙述性覆盖"，契约级缺失严重——统一错误信封缺 `retryable`/`user_action` 且数字码/字符串码双向失配；事件无类型化 payload；本机 Agent↔服务端 零契约（无 RPC 方法清单/设备令牌端点/长连接协议）；22/25 外部 API 与 B01–B05 无字段 schema；支付回调无签名/幂等契约（资损风险）。审计估计契约级覆盖率 ~30%。
+- **修复**：① §4.7 升级为权威错误注册表（统一信封 + `retryable`/`user_action` + 字符串码为主、数字码 deprecated 别名 + 双向对账 + 命名空间桥接）；② §4.6 事件逐类型化 payload + 顺序/去重/重放/DLQ 策略表；③ 新增 §4.8 接口契约总规范（版本化/幂等/鉴权/分页/限流/SLA/异步基线）；④ 新增 §4.9 本机 Agent↔服务端 RPC 契约（WSS 传输 + 设备令牌生命周期端点 + 双向 RPC 方法清单 + 握手协商）；⑤ 新增 §4.10 支付渠道回调契约（签名验签 + `outTradeNo` 幂等 + 对账 + `PAY_*` 错误码）；⑥ B01–B05 补字段 schema。
+- **残余**：见 §9.4「接口完整性补全残余」6 项，登记 [LLD 细化]；新风险 R-15 同步登记。
+- **文档卫生**：版本戳统一为 v3.14（原头部 v3.11 / 页脚 v3.10 / 内容 v3.13 不一致，本次一并修正）。
+- **图验证透明记录**：本节及 §2.2 各图"双验证（lint + geometry）全过"陈述准确；曾有的 `fig-c2`/`fig-2-3` ST-14 短暂 FAIL 为 `lint-svg.cjs` 检查器假阳性（盒内文字误判），已修复（见 §2.2 图验证说明），非 SVG 缺陷。
+
 ## 10. 关联文档与后续交付
 
 | 文档 | 状态 |
 |------|------|
 | PRD v4.5 最终版 | 已完成（上游，本版重导出依据） |
 | ADR-001 ~ 023 | 已完成（决策依据） |
-| **本文档 HLD v3.5** | **本次交付（三次缺口收口：TIER1 四细节点 + TIER3 收敛 + 关键阈值总目录）** |
+| **本文档 HLD v3.14** | **本次交付（接口完整性补全：§4 全面契约化——§4.7 权威错误注册表 / §4.6 事件类型化 / §4.8 契约基线 / §4.9 本机 Agent↔服务端 RPC / §4.10 支付回调 / B01–B05 字段 schema；契约级覆盖率 ~30%→核心链路全覆盖）** |
 | 数据库设计（ER + 表结构 + 索引） | 下一步 |
-| API 契约文档（含 Mock） | 下一步 |
+| API 契约文档（含 Mock） | 进行中（§4 已契约化，待导出 OpenAPI/Mock） |
 | LLD 详细设计（类图/时序/算法） | 待排期 |
 | 测试计划 / 部署运维手册 | P2 后续 |
 
-> 文档版本：2026-08-15 · v3.5（三次缺口收口：TIER1 四细节点 + TIER3 收敛 + 关键阈值总目录）· 编写依据 software-design-document 规范（设计评审导向）
+> 文档版本：2026-08-15 · v3.14（接口完整性补全：§4 全面契约化——§4.7 权威错误注册表、§4.6 事件类型化、§4.8 契约基线、§4.9 本机 Agent↔服务端 RPC、§4.10 支付回调）· 编写依据 software-design-document 规范（设计评审导向）

@@ -1,0 +1,24 @@
+{
+  "name": "标签规则",
+  "description": "白底矩形宽度、标签位置、不遮挡箭头标记等约束",
+  "rules": [
+    {
+      "id": "LBL-001",
+      "name": "标签白底不遮挡箭头",
+      "severity": "error",
+      "detect": "function(eventType, payload) { return (eventType === 'lint-fail' || eventType === 'review') && payload.error && payload.error.includes('label'); }",
+      "analyze": "function(payload) { return { rootCause: '白底矩形宽度过大，覆盖了箭头标记', impact: '箭头不可见，违反 §2.4.6 ST-16', suggestedFix: '缩窄白底至刚好包住文字，矩形右边界 ≤ 箭头尖 x - 8px', severity: 'high' }; }",
+      "specSection": "作图-01-通用规范.md §2.4.6",
+      "checklist": "Q12.4"
+    },
+    {
+      "id": "LBL-002",
+      "name": "标签位置偏移",
+      "severity": "warning",
+      "detect": "function(eventType, payload) { return eventType === 'lint-fail' && payload.error && payload.error.includes('position'); }",
+      "analyze": "function(payload) { return { rootCause: '标签位置偏移，不在水平段中央', impact: '不美观，阅读困难', suggestedFix: '将标签 x 坐标移至水平段中央', severity: 'low' }; }",
+      "specSection": "作图-01-通用规范.md §2.3.3",
+      "checklist": "Q5.5"
+    }
+  ]
+}

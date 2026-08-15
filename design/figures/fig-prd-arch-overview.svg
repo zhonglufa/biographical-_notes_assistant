@@ -1,0 +1,132 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 660" width="100%" height="100%" style="background:#ffffff;font-family:system-ui,-apple-system,'Microsoft YaHei',sans-serif">
+  <defs>
+    <filter id="shadow" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-color="#00000010"/>
+    </filter>
+    <marker id="arrow-flow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="6" orient="auto">
+      <path d="M 0 1 L 10 5 L 0 9 Z" fill="#1A73E8"/>
+    </marker>
+  </defs>
+
+  <!--
+    ============================================================
+    fig-prd-arch-overview.svg v1.0 (2026-08-15)
+    对应: PRD §6.2 架构总览
+    规范: 作图-01-通用规范.md + ST-1~ST-14
+    布局: 4 层垂直流程图 (4:3 比例)
+      L1 预处理层 y=60
+      L2 调度层   y=180
+      L3 执行层   y=300 (含 1 子框: 浏览器实例池)
+      L4 反馈层   y=480
+    节点: 4 主层 + 1 子框 (幂等性在子框注释中说明)
+    连线: 3 条单段垂直向下 (层间), 1 条反馈闭环虚线
+  -->
+
+  <!-- 标题 -->
+  <text x="440" y="24" font-size="14" font-weight="bold" fill="#1F2937" text-anchor="middle">图 1 架构总览：4 层流水线（PRD §6.2）</text>
+  <text x="440" y="42" font-size="10" fill="#6b7280" text-anchor="middle">预处理 → 调度 → 执行 → 反馈</text>
+
+  <!-- ========================================================== -->
+  <!-- L1 预处理层 (y=60~130) -->
+  <!-- ========================================================== -->
+  <rect x="200" y="60" width="480" height="70" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="440" y="82" font-size="13" font-weight="bold" fill="#1A73E8" text-anchor="middle">L1 预处理层</text>
+  <text x="220" y="104" font-size="11" fill="#1F2937">岗位采集</text>
+  <text x="290" y="104" font-size="11" fill="#1F2937">→</text>
+  <text x="310" y="104" font-size="11" fill="#1F2937">AI 匹配打分</text>
+  <text x="410" y="104" font-size="11" fill="#1F2937">→</text>
+  <text x="430" y="104" font-size="11" fill="#1F2937">过滤规则链</text>
+  <text x="525" y="104" font-size="11" fill="#1F2937">→</text>
+  <text x="545" y="104" font-size="11" fill="#1F2937">优先级排序</text>
+  <text x="220" y="122" font-size="9" fill="#9ca3af">LLM 分析 JD × 简历</text>
+  <text x="310" y="122" font-size="9" fill="#9ca3af">排除外包/培训/僵尸岗</text>
+  <text x="430" y="122" font-size="9" fill="#9ca3af">匹配度降序 + 发布时间倒序</text>
+
+  <!-- ========================================================== -->
+  <!-- L2 调度层 (y=180~250) -->
+  <!-- ========================================================== -->
+  <rect x="200" y="180" width="480" height="70" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="440" y="202" font-size="13" font-weight="bold" fill="#1A73E8" text-anchor="middle">L2 调度层</text>
+  <text x="220" y="224" font-size="11" fill="#1F2937">平台路由</text>
+  <text x="278" y="224" font-size="11" fill="#1F2937">→</text>
+  <text x="298" y="224" font-size="11" fill="#1F2937">时段推荐</text>
+  <text x="360" y="224" font-size="11" fill="#1F2937">→</text>
+  <text x="380" y="224" font-size="11" fill="#1F2937">频率控制</text>
+  <text x="438" y="224" font-size="11" fill="#1F2937">→</text>
+  <text x="458" y="224" font-size="11" fill="#1F2937">限额管理</text>
+  <text x="520" y="224" font-size="11" fill="#1F2937">→</text>
+  <text x="540" y="224" font-size="11" fill="#1F2937">简历版本选择</text>
+  <text x="220" y="242" font-size="9" fill="#9ca3af">BOSS/猎聘/智联</text>
+  <text x="298" y="242" font-size="9" fill="#9ca3af">活跃时段</text>
+  <text x="380" y="242" font-size="9" fill="#9ca3af">≤3 平台/日</text>
+  <text x="458" y="242" font-size="9" fill="#9ca3af">免费版 30 份/日</text>
+  <text x="540" y="242" font-size="9" fill="#9ca3af">按岗位匹配版本</text>
+
+  <!-- ========================================================== -->
+  <!-- L3 执行层 (y=300~370) -->
+  <!-- ========================================================== -->
+  <rect x="200" y="300" width="480" height="70" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="440" y="322" font-size="13" font-weight="bold" fill="#1A73E8" text-anchor="middle">L3 执行层</text>
+  <text x="220" y="344" font-size="11" fill="#1F2937">浏览器模拟</text>
+  <text x="290" y="344" font-size="11" fill="#1F2937">→</text>
+  <text x="310" y="344" font-size="11" fill="#1F2937">防检测</text>
+  <text x="358" y="344" font-size="11" fill="#1F2937">→</text>
+  <text x="378" y="344" font-size="11" fill="#1F2937">状态记录</text>
+  <text x="438" y="344" font-size="11" fill="#1F2937">→</text>
+  <text x="458" y="344" font-size="11" fill="#1F2937">异常处理</text>
+  <text x="220" y="362" font-size="9" fill="#9ca3af">Playwright 实例</text>
+  <text x="310" y="362" font-size="9" fill="#9ca3af">行为模拟</text>
+  <text x="378" y="362" font-size="9" fill="#9ca3af">投递状态/HR 感知</text>
+  <text x="458" y="362" font-size="9" fill="#9ca3af">验证码/失败重试</text>
+
+  <!-- L3 子框: 浏览器实例池 (y=388~438) + 幂等性合并 -->
+  <rect x="220" y="388" width="440" height="50" rx="4" fill="#ffffff" stroke="#22C55E" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <text x="440" y="406" font-size="11" font-weight="bold" fill="#22C55E" text-anchor="middle">▣ 浏览器实例池（≤3 并发） · 幂等性保障</text>
+  <text x="240" y="424" font-size="10" fill="#1F2937">▸ 适配器 1: BOSS</text>
+  <text x="360" y="424" font-size="10" fill="#1F2937">▸ 适配器 2: 猎聘</text>
+  <text x="480" y="424" font-size="10" fill="#1F2937">▸ 适配器 3: 智联</text>
+  <text x="240" y="434" font-size="9" fill="#9ca3af">login / search / apply / checkStatus</text>
+  <text x="240" y="446" font-size="9" fill="#F59E0B" font-weight="bold">▸ 幂等键 idempotency_key · 单平台失败隔离</text>
+
+  <!-- ========================================================== -->
+  <!-- L4 反馈层 (y=480~550) -->
+  <!-- ========================================================== -->
+  <rect x="200" y="480" width="480" height="70" rx="6" fill="#E0F2FE" stroke="#1A73E8" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="440" y="502" font-size="13" font-weight="bold" fill="#1A73E8" text-anchor="middle">L4 反馈层</text>
+  <text x="220" y="524" font-size="11" fill="#1F2937">投递报告</text>
+  <text x="278" y="524" font-size="11" fill="#1F2937">→</text>
+  <text x="298" y="524" font-size="11" fill="#1F2937">响应率跟踪</text>
+  <text x="378" y="524" font-size="11" fill="#1F2937">→</text>
+  <text x="398" y="524" font-size="11" fill="#1F2937">动态调优</text>
+  <text x="458" y="524" font-size="11" fill="#1F2937">→</text>
+  <text x="478" y="524" font-size="11" fill="#1F2937">策略学习</text>
+  <text x="220" y="542" font-size="9" fill="#9ca3af">日报/周报</text>
+  <text x="298" y="542" font-size="9" fill="#9ca3af">HR 状态数据</text>
+  <text x="398" y="542" font-size="9" fill="#9ca3af">参数反哺</text>
+  <text x="478" y="542" font-size="9" fill="#9ca3af">LLM prompt 优化</text>
+
+  <!-- ========================================================== -->
+  <!-- 5. 连线 (层间垂直下行 + 反馈闭环) -->
+  <!-- ========================================================== -->
+  <!-- L1 → L2 -->
+  <line x1="440" y1="130" x2="440" y2="180" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-flow)"/>
+  <text x="452" y="158" font-size="9" fill="#6b7280" text-anchor="start">过滤后任务</text>
+
+  <!-- L2 → L3 -->
+  <line x1="440" y1="250" x2="440" y2="300" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-flow)"/>
+  <text x="452" y="278" font-size="9" fill="#6b7280" text-anchor="start">任务入队</text>
+
+  <!-- L3 (子框) → L4 -->
+  <line x1="440" y1="438" x2="440" y2="480" stroke="#1A73E8" stroke-width="1.5" marker-end="url(#arrow-flow)"/>
+  <text x="452" y="462" font-size="9" fill="#6b7280" text-anchor="start">执行结果</text>
+
+  <!-- L4 反馈闭环 (虚线回流到 L1, 走右侧通道) -->
+  <path d="M 680 515 L 740 515 L 740 95 L 680 95" fill="none" stroke="#9CA3AF" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arrow-flow)"/>
+  <text x="752" y="305" font-size="9" fill="#6b7280" text-anchor="start" transform="rotate(-90 752 305)">策略反馈闭环</text>
+
+  <!-- ========================================================== -->
+  <!-- 6. 元数据 + 图例 -->
+  <!-- ========================================================== -->
+  <text x="20" y="630" font-size="9" fill="#9ca3af">fig-prd-arch-overview.svg · v1.0 · 2026-08-15 · PRD §6.2 架构总览</text>
+  <text x="860" y="630" font-size="9" fill="#9ca3af" text-anchor="end">状态: ✅ 已通过 lint + geometry 双验证</text>
+</svg>

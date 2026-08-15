@@ -1,215 +1,117 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 780" font-family="system-ui, -apple-system, 'Microsoft YaHei', 'PingFang SC', sans-serif" width="100%" height="auto">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 780" style="background:#ffffff;font-family:system-ui,-apple-system,'Microsoft YaHei',sans-serif">
   <defs>
-    <!-- 阴影滤镜 -->
-    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="1" stdDeviation="2" flood-opacity="0.12"/>
-    </filter>
-    <!-- 同步消息箭头（实心三角形） -->
-    <marker id="arrow-sync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-      <path d="M0,0 L10,5 L0,10 z" fill="#475569"/>
+    <marker id="arrow-sync" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#333333"/>
     </marker>
-    <!-- 异步消息箭头（开放轮廓） -->
-    <marker id="arrow-async" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-      <path d="M0,0 L10,5 L0,10 z" fill="none" stroke="#475569" stroke-width="1.5"/>
+    <marker id="arrow-return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 1 0 L 9 5 L 1 10" fill="none" stroke="#999999" stroke-width="1.5"/>
     </marker>
-    <!-- 返回消息箭头（开放轮廓，虚线用） -->
-    <marker id="arrow-return" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
-      <path d="M0,0 L10,5 L0,10 z" fill="none" stroke="#94a3b8" stroke-width="1.5"/>
+    <marker id="arrow-async" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 1 0 L 9 5 L 1 10" fill="none" stroke="#666666" stroke-width="1.5"/>
     </marker>
-    <!-- 半透明标签底纹 -->
-    <filter id="label-bg" x="-5%" y="-5%" width="110%" height="110%">
-      <feDropShadow dx="0" dy="0.5" stdDeviation="0.5" flood-opacity="0.06"/>
-    </filter>
   </defs>
 
-  <!-- ==================== 背景 ==================== -->
-  <rect width="1050" height="780" fill="#ffffff"/>
+  <!-- 标题 -->
+  <text x="590" y="32" text-anchor="middle" font-size="16" font-weight="bold" fill="#1f2937">图 2-5  AI 匹配与降级（LLM 主备切换）时序图</text>
+  <text x="590" y="50" text-anchor="middle" font-size="10" fill="#6B7280">发起 → 预检 → 主 LLM → 备用 LLM（golden set 回归）→ 失败降级规则引擎 → 统一响应</text>
 
-  <!-- ==================== 标题 ==================== -->
-  <text x="20" y="30" fill="#1e293b" font-size="14" font-weight="700">图 2-5 AI 匹配与降级时序图</text>
-  <line x1="20" y1="36" x2="290" y2="36" stroke="#1a73e8" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- 参与者头部：系统 #1A73E8 · 外部系统 #9CA3AF -->
+  <rect x="70" y="64" width="140" height="42" rx="6" fill="#1A73E8"/>
+  <text x="140" y="88" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Java 业务</text>
+  <text x="140" y="103" text-anchor="middle" font-size="10" fill="#FFFFFF">岗位模块</text>
 
-  <!-- ==================== 参与者头部 ==================== -->
+  <rect x="270" y="64" width="140" height="42" rx="6" fill="#1A73E8"/>
+  <text x="340" y="88" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">Python 编排</text>
+  <text x="340" y="103" text-anchor="middle" font-size="10" fill="#FFFFFF">LLM 网关</text>
 
-  <!-- P1: 投递管理（Java 后端） -->
-  <rect x="40" y="60" width="140" height="38" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
-  <text x="110" y="80" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="600">投递管理</text>
-  <text x="110" y="93" text-anchor="middle" fill="#64748b" font-size="8">Java 后端</text>
+  <rect x="540" y="64" width="120" height="42" rx="6" fill="#9CA3AF"/>
+  <text x="600" y="88" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">主 LLM</text>
+  <text x="600" y="103" text-anchor="middle" font-size="10" fill="#FFFFFF">DeepSeek</text>
 
-  <!-- P2: AI 匹配引擎（Python） -->
-  <rect x="240" y="60" width="140" height="38" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
-  <text x="310" y="80" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="600">AI 匹配引擎</text>
-  <text x="310" y="93" text-anchor="middle" fill="#64748b" font-size="8">Python</text>
+  <rect x="720" y="64" width="120" height="42" rx="6" fill="#9CA3AF"/>
+  <text x="780" y="88" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">备用 LLM</text>
+  <text x="780" y="103" text-anchor="middle" font-size="10" fill="#FFFFFF">境内合规</text>
 
-  <!-- P3: AI 大模型服务（外部系统，灰色边框） -->
-  <rect x="440" y="60" width="140" height="38" rx="6" fill="#ffffff" stroke="#9ca3af" stroke-width="1.5" filter="url(#shadow)"/>
-  <text x="510" y="80" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="600">AI 大模型服务</text>
-  <text x="510" y="93" text-anchor="middle" fill="#64748b" font-size="8">外部服务</text>
-  
+  <rect x="920" y="64" width="120" height="42" rx="6" fill="#9CA3AF"/>
+  <text x="980" y="88" text-anchor="middle" font-size="12" font-weight="bold" fill="#FFFFFF">规则引擎</text>
+  <text x="980" y="103" text-anchor="middle" font-size="10" fill="#FFFFFF">关键词匹配</text>
 
-  <!-- P4: 消息队列（RabbitMQ） -->
-  <rect x="640" y="60" width="140" height="38" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
-  <text x="710" y="80" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="600">消息队列</text>
-  <text x="710" y="93" text-anchor="middle" fill="#64748b" font-size="8">RabbitMQ</text>
+  <!-- 生命线 -->
+  <line x1="140" y1="106" x2="140" y2="672" stroke="#999999" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <line x1="340" y1="106" x2="340" y2="672" stroke="#999999" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <line x1="600" y1="106" x2="600" y2="672" stroke="#999999" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <line x1="780" y1="106" x2="780" y2="672" stroke="#999999" stroke-width="1.5" stroke-dasharray="8,4"/>
+  <line x1="980" y1="106" x2="980" y2="672" stroke="#999999" stroke-width="1.5" stroke-dasharray="8,4"/>
 
-  <!-- P5: 求职者（Actor） -->
-  <rect x="840" y="60" width="140" height="38" rx="6" fill="#ffffff" stroke="#1a73e8" stroke-width="1.5" filter="url(#shadow)"/>
-  <!-- 人物图标 -->
-  <circle cx="862" cy="72" r="5.5" fill="none" stroke="#1a73e8" stroke-width="1.5"/>
-  <line x1="862" y1="77.5" x2="862" y2="89" stroke="#1a73e8" stroke-width="1.5"/>
-  <line x1="855" y1="81.5" x2="869" y2="81.5" stroke="#1a73e8" stroke-width="1.5"/>
-  <line x1="862" y1="89" x2="856" y2="96" stroke="#1a73e8" stroke-width="1.5"/>
-  <line x1="862" y1="89" x2="868" y2="96" stroke="#1a73e8" stroke-width="1.5"/>
-  <text x="915" y="80" text-anchor="middle" fill="#1e293b" font-size="12" font-weight="600">求职者</text>
-  <text x="915" y="93" text-anchor="middle" fill="#64748b" font-size="8">Actor</text>
+  <!-- alt 组合片段（极细实线边框 + 圆角矩形 namebox） -->
+  <rect x="80" y="388" width="960" height="252" fill="none" stroke="#AAAAAA" stroke-width="0.5"/>
 
-  <!-- ==================== 生命线（虚线） ==================== -->
-  <line x1="110" y1="105" x2="110" y2="700" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
-  <line x1="310" y1="105" x2="310" y2="700" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
-  <line x1="510" y1="105" x2="510" y2="700" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
-  <line x1="710" y1="105" x2="710" y2="700" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
-  <line x1="910" y1="105" x2="910" y2="700" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <!-- 激活条（在 namebox 之前绘制，namebox 背景覆盖重叠区域） -->
+  <rect x="138" y="148" width="4" height="530" fill="#DBEAFE"/>
+  <rect x="338" y="148" width="4" height="530" fill="#DBEAFE"/>
+  <rect x="598" y="246" width="4" height="44" fill="#DBEAFE"/>
+  <rect x="778" y="326" width="4" height="44" fill="#DBEAFE"/>
+  <rect x="978" y="578" width="4" height="44" fill="#DBEAFE"/>
 
-  <!-- ==================== 组合片段 ==================== -->
+  <!-- namebox（圆角矩形背景覆盖下方激活条，确保文字不被遮挡） -->
+  <rect x="80" y="388" width="124" height="22" rx="4" fill="#F5F5F5" stroke="#AAAAAA" stroke-width="0.5"/>
+  <text x="142" y="401" text-anchor="middle" font-size="11" font-weight="bold" fill="#333333">alt [备用 LLM 结果]</text>
 
-  <!-- alt 片段（匹配分 ≥ 60 / < 60） -->
-  <rect x="78" y="338" width="874" height="180" rx="4" fill="#eef2ff" fill-opacity="0.35" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="5,3"/>
-  <rect x="78" y="338" width="46" height="20" rx="3" fill="#6366f1"/>
-  <text x="101" y="352" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700">alt</text>
-  <text x="132" y="352" fill="#475569" font-size="10" font-weight="600">[匹配分 ≥ 60]</text>
-  <!-- alt 分隔线（两个备选分支之间） -->
-  <line x1="78" y1="450" x2="952" y2="450" stroke="#6366f1" stroke-width="1" stroke-dasharray="4,3"/>
-  <text x="88" y="465" fill="#475569" font-size="10" font-weight="600">[else 匹配分 &lt; 60]</text>
+  <!-- ① 发起匹配（同步） -->
+  <path d="M 142 168 L 336 168" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="240" y="164" text-anchor="middle" font-size="11" fill="#333333">发起 AI 匹配请求（≤5s 预算）</text>
 
-  <!-- opt 片段（AI 服务超时或异常） -->
-  <rect x="78" y="538" width="874" height="150" rx="4" fill="#eef2ff" fill-opacity="0.35" stroke="#6366f1" stroke-width="1.5" stroke-dasharray="5,3"/>
-  <rect x="78" y="538" width="46" height="20" rx="3" fill="#6366f1"/>
-  <text x="101" y="552" text-anchor="middle" fill="#ffffff" font-size="10" font-weight="700">opt</text>
-  <text x="132" y="552" fill="#475569" font-size="10" font-weight="600">[AI 服务超时或异常]</text>
+  <!-- ② 配额 / 超时预检（自调用） -->
+  <path d="M 342 208 H 390 V 226 H 342" fill="none" stroke="#333333" stroke-width="1.5"/>
+  <text x="398" y="216" font-size="11" fill="#333333">配额 / 超时预检（供应商探测）</text>
 
-  <!-- ==================== 激活条 ==================== -->
+  <!-- ③ 调用主 LLM（同步） -->
+  <path d="M 342 248 L 596 248" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="470" y="244" text-anchor="middle" font-size="11" fill="#333333">调用主 LLM（HTTPS）</text>
 
-  <!-- P1 投递管理：主流程（步骤 1~4） -->
-  <rect x="106" y="145" width="8" height="160" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
-  <!-- P1 alt ≥60 分支（步骤 5~6） -->
-  <rect x="106" y="375" width="8" height="55" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
-  <!-- P1 alt <60 分支（步骤 7） -->
-  <rect x="106" y="478" width="8" height="14" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
-  <!-- P1 opt 分支（步骤 8~10） -->
-  <rect x="106" y="572" width="8" height="88" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <!-- ④ 主不可达（返回 / 异常） -->
+  <path d="M 602 288 L 338 288" fill="none" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
+  <text x="470" y="284" text-anchor="middle" font-size="11" fill="#333333">主不可达：超时 / 5xx 超阈值</text>
 
-  <!-- P2 AI 匹配引擎：主流程（步骤 1~4） -->
-  <rect x="306" y="150" width="8" height="155" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
-  <!-- P2 opt 分支（步骤 8 返回降级标记） -->
-  <rect x="306" y="568" width="8" height="14" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <!-- ⑤ 切换备用 LLM（同步） -->
+  <path d="M 342 328 L 776 328" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="560" y="324" text-anchor="middle" font-size="11" fill="#333333">切备用 LLM + golden set 回归（κ 容差）</text>
 
-  <!-- P3 AI 大模型服务（步骤 2~3） -->
-  <rect x="506" y="200" width="8" height="55" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <!-- 分支一：备用成功 -->
+  <path d="M 780 448 L 338 448" fill="none" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
+  <text x="560" y="444" text-anchor="middle" font-size="11" fill="#333333">备用成功：分数 + 理由</text>
 
-  <!-- P4 消息队列：接收点 -->
-  <rect x="706" y="378" width="8" height="16" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
-  <rect x="706" y="613" width="8" height="16" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <!-- 分隔线 -->
+  <line x1="88" y1="505" x2="1032" y2="505" stroke="#D0D0D0" stroke-width="0.5" stroke-dasharray="3,3"/>
 
-  <!-- P5 求职者：接收点 -->
-  <rect x="906" y="418" width="8" height="16" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
-  <rect x="906" y="483" width="8" height="16" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
-  <rect x="906" y="653" width="8" height="16" rx="3" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
+  <!-- 分支二：主备均不可用 → 降级规则引擎 -->
+  <path d="M 780 540 L 338 540" fill="none" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
+  <text x="560" y="536" text-anchor="middle" font-size="11" fill="#333333">等待超时：主备均不可用</text>
 
-  <!-- ==================== 步骤编号（左侧统一） ==================== -->
-  <circle cx="22" cy="150" r="9" fill="#1a73e8"/><text x="22" y="153" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">1</text>
-  <circle cx="22" cy="200" r="9" fill="#1a73e8"/><text x="22" y="203" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">2</text>
-  <circle cx="22" cy="250" r="9" fill="#1a73e8"/><text x="22" y="253" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">3</text>
-  <circle cx="22" cy="300" r="9" fill="#1a73e8"/><text x="22" y="303" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">4</text>
-  <circle cx="22" cy="380" r="9" fill="#1a73e8"/><text x="22" y="383" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">5</text>
-  <circle cx="22" cy="420" r="9" fill="#1a73e8"/><text x="22" y="423" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">6</text>
-  <circle cx="22" cy="485" r="9" fill="#1a73e8"/><text x="22" y="488" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">7</text>
-  <circle cx="22" cy="575" r="9" fill="#1a73e8"/><text x="22" y="578" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">8</text>
-  <circle cx="22" cy="615" r="9" fill="#1a73e8"/><text x="22" y="618" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">9</text>
-  <circle cx="22" cy="655" r="9" fill="#1a73e8"/><text x="22" y="658" text-anchor="middle" fill="#ffffff" font-size="9" font-weight="700">10</text>
+  <path d="M 342 580 L 976 580" fill="none" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="660" y="576" text-anchor="middle" font-size="11" fill="#333333">降级：规则引擎关键词匹配</text>
 
-  <!-- ==================== 消息箭头与标签 ==================== -->
+  <path d="M 982 620 L 342 620" fill="none" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
+  <text x="660" y="616" text-anchor="middle" font-size="11" fill="#333333">规则结果：分数 + 理由</text>
 
-  <!-- ===== 步骤 1: 投递管理 → AI 匹配引擎（同步，≤5s 超时） ===== -->
-  <line x1="114" y1="150" x2="306" y2="150" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
-  <rect x="110" y="133" width="200" height="34" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="210" y="147" text-anchor="middle" fill="#1e293b" font-size="10">发起匹配请求</text>
-  <text x="210" y="160" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">岗位信息+简历摘要 · ≤5s 超时</text>
+  <!-- ⑥ 统一响应（返回） -->
+  <path d="M 338 676 L 142 676" fill="none" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
+  <text x="240" y="672" text-anchor="middle" font-size="11" fill="#333333">统一响应：分数 / 理由 / 模型名 / 耗时</text>
 
-  <!-- ===== 步骤 2: AI 匹配引擎 → AI 大模型服务（同步） ===== -->
-  <line x1="314" y1="200" x2="506" y2="200" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
-  <rect x="330" y="191" width="160" height="18" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="410" y="204" text-anchor="middle" fill="#1e293b" font-size="10">调用匹配分析接口</text>
+  <!-- 图例（与上方最后一条消息保持 20px 间距） -->
+  <rect x="160" y="698" width="860" height="60" rx="6" fill="#F9FAFB" stroke="#D1D5DB"/>
+  <text x="175" y="717" font-size="11" font-weight="bold" fill="#1f2937">图例</text>
 
-  <!-- ===== 步骤 3: AI 大模型服务 → AI 匹配引擎（同步返回） ===== -->
-  <line x1="506" y1="250" x2="314" y2="250" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
-  <rect x="320" y="241" width="180" height="18" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="410" y="254" text-anchor="middle" fill="#64748b" font-size="10">返回匹配分 + 理由 + 模型名</text>
+  <line x1="270" y1="717" x2="320" y2="717" stroke="#333333" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
+  <text x="326" y="720" font-size="10" fill="#333333">同步调用</text>
+  <line x1="450" y1="717" x2="500" y2="717" stroke="#666666" stroke-width="1.5" marker-end="url(#arrow-async)"/>
+  <text x="506" y="720" font-size="10" fill="#333333">异步消息</text>
+  <line x1="630" y1="717" x2="680" y2="717" stroke="#999999" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
+  <text x="686" y="720" font-size="10" fill="#333333">返回 / 异常</text>
 
-  <!-- ===== 步骤 4: AI 匹配引擎 → 投递管理（同步返回） ===== -->
-  <line x1="306" y1="300" x2="114" y2="300" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
-  <rect x="150" y="291" width="120" height="18" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="210" y="304" text-anchor="middle" fill="#64748b" font-size="10">返回匹配结果</text>
+  <rect x="800" y="709" width="30" height="16" rx="3" fill="#F5F5F5" stroke="#AAAAAA" stroke-width="0.5"/>
+  <text x="836" y="720" font-size="10" fill="#333333">alt 条件分支</text>
 
-  <!-- ===== 步骤 5: 投递管理 → 消息队列（异步，高优先级）[alt ≥60] ===== -->
-  <line x1="114" y1="380" x2="706" y2="380" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-async)"/>
-  <rect x="320" y="363" width="180" height="34" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="410" y="377" text-anchor="middle" fill="#1e293b" font-size="10">发布投递任务（高优先级）</text>
-  <text x="410" y="390" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">apply.task.high</text>
-
-  <!-- ===== 步骤 6: 投递管理 → 求职者（异步）[alt ≥60] ===== -->
-  <line x1="114" y1="420" x2="906" y2="420" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-async)"/>
-  <rect x="445" y="411" width="130" height="18" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="510" y="424" text-anchor="middle" fill="#1e293b" font-size="10">推送匹配成功通知</text>
-
-  <!-- ===== 步骤 7: 投递管理 → 求职者（异步）[alt <60] ===== -->
-  <line x1="114" y1="485" x2="906" y2="485" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-async)"/>
-  <rect x="440" y="476" width="140" height="18" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="510" y="489" text-anchor="middle" fill="#1e293b" font-size="10">推送匹配度不足建议</text>
-
-  <!-- ===== 步骤 8: AI 匹配引擎 → 投递管理（同步返回，降级标记）[opt] ===== -->
-  <line x1="306" y1="575" x2="114" y2="575" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
-  <rect x="155" y="566" width="110" height="18" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="210" y="579" text-anchor="middle" fill="#64748b" font-size="10">返回降级标记</text>
-
-  <!-- ===== 步骤 9: 投递管理 → 消息队列（异步，普通优先级·人工审核）[opt] ===== -->
-  <line x1="114" y1="615" x2="706" y2="615" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-async)"/>
-  <rect x="300" y="598" width="220" height="34" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="410" y="612" text-anchor="middle" fill="#1e293b" font-size="10">发布投递任务（普通·人工审核）</text>
-  <text x="410" y="625" text-anchor="middle" fill="#64748b" font-size="9" font-family="monospace">apply.task.normal</text>
-
-  <!-- ===== 步骤 10: 投递管理 → 求职者（异步）[opt] ===== -->
-  <line x1="114" y1="655" x2="906" y2="655" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-async)"/>
-  <rect x="440" y="646" width="140" height="18" rx="4" fill="rgba(255,255,255,0.92)" filter="url(#label-bg)"/>
-  <text x="510" y="659" text-anchor="middle" fill="#1e293b" font-size="10">推送人工审核通知</text>
-
-  <!-- ==================== 底部图例 ==================== -->
-  <line x1="40" y1="715" x2="1010" y2="715" stroke="#e2e8f0" stroke-width="1"/>
-
-  <!-- 图例标题 -->
-  <text x="40" y="738" fill="#64748b" font-size="11" font-weight="600">图例：</text>
-
-  <!-- 同步消息 -->
-  <line x1="92" y1="734" x2="132" y2="734" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-sync)"/>
-  <text x="140" y="738" fill="#64748b" font-size="10">同步消息</text>
-
-  <!-- 异步消息 -->
-  <line x1="222" y1="734" x2="262" y2="734" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow-async)"/>
-  <text x="270" y="738" fill="#64748b" font-size="10">异步消息</text>
-
-  <!-- 返回消息 -->
-  <line x1="352" y1="734" x2="392" y2="734" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4" marker-end="url(#arrow-return)"/>
-  <text x="400" y="738" fill="#64748b" font-size="10">返回消息</text>
-
-  <!-- alt/opt 片段 -->
-  <rect x="486" y="727" width="16" height="14" rx="2" fill="#eef2ff" fill-opacity="0.5" stroke="#6366f1" stroke-width="1.2" stroke-dasharray="3,2"/>
-  <text x="508" y="738" fill="#64748b" font-size="10">alt/opt 组合片段</text>
-
-  <!-- 激活条 -->
-  <rect x="630" y="727" width="8" height="14" rx="2" fill="#dbeafe" stroke="#1a73e8" stroke-width="1"/>
-  <text x="646" y="738" fill="#64748b" font-size="10">激活条（生命线）</text>
-
-  <!-- 步骤编号 -->
-  <circle cx="772" cy="734" r="7" fill="#1a73e8"/>
-  <text x="772" y="737" text-anchor="middle" fill="#ffffff" font-size="8" font-weight="700">N</text>
-  <text x="785" y="738" fill="#64748b" font-size="10">步骤编号</text>
+  <rect x="270" y="740" width="4" height="14" fill="#DBEAFE"/>
+  <text x="280" y="748" font-size="10" fill="#333333">激活条（生命线活跃期）</text>
 </svg>

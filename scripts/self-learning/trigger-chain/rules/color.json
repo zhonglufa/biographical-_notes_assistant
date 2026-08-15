@@ -1,0 +1,24 @@
+{
+  "name": "颜色规则",
+  "description": "色板合规、颜色语义、填充/描边约束",
+  "rules": [
+    {
+      "id": "COL-001",
+      "name": "色板合规",
+      "severity": "error",
+      "detect": "function(eventType, payload) { return eventType === 'lint-fail' && payload.error && payload.error.includes('color-palette'); }",
+      "analyze": "function(payload) { return { rootCause: '使用了规范色板之外的颜色', impact: '颜色不一致，不符合 §2.1.1', suggestedFix: '将颜色替换为规范色板中的颜色，或确认后加入色板', severity: 'high' }; }",
+      "specSection": "作图-01-通用规范.md §2.1.1",
+      "checklist": "Q2.1"
+    },
+    {
+      "id": "COL-002",
+      "name": "颜色语义正确性",
+      "severity": "error",
+      "detect": "function(eventType, payload) { return eventType === 'lint-fail' && payload.error && payload.error.includes('semantic'); }",
+      "analyze": "function(payload) { return { rootCause: '颜色语义错误（如用蓝表示数据库）', impact: '违反颜色编码约定', suggestedFix: '按 §2.1.2 颜色语义映射修正', severity: 'high' }; }",
+      "specSection": "作图-01-通用规范.md §2.1.2",
+      "checklist": "Q2.2"
+    }
+  ]
+}
