@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "b04-optimize-request",
+  "title": "B04 简历优化 - 请求",
+  "description": "POST /internal/v1/ai/resume/optimize 请求体（异步≤10s，结果经 ai.task.result 回写）。",
+  "type": "object",
+  "properties": {
+    "resume": { "type": "string", "minLength": 1 },
+    "target": { "type": "string", "minLength": 1, "description": "优化目标（如目标岗位/行业/亮点方向）" }
+  },
+  "required": ["resume", "target"],
+  "additionalProperties": false
+}

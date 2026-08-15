@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "b01-match-response",
+  "title": "B01 AI 匹配 - 响应",
+  "description": "B01 统一响应结构（含降级链路来源 model 字段，调用方不感知降级路径）。",
+  "type": "object",
+  "properties": {
+    "score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "matchedSkills": { "type": "array", "items": { "type": "string" } },
+    "explanation": { "type": "string" },
+    "model": { "type": "string", "enum": ["deepseek", "backup", "rule"] },
+    "elapsedMs": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["score", "matchedSkills", "explanation", "model", "elapsedMs"],
+  "additionalProperties": false
+}

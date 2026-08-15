@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "b03-evaluate-request",
+  "title": "B03 作答评估 - 请求",
+  "description": "POST /internal/v1/ai/evaluate 请求体（同步≤3s，对话式交互）。",
+  "type": "object",
+  "properties": {
+    "questionId": { "type": "string", "minLength": 1 },
+    "answer": { "type": "string", "minLength": 1 },
+    "rubricDims": {
+      "type": "array",
+      "items": { "type": "string" },
+      "nullable": true,
+      "description": "可选评估维度约束；缺省用 HLD §6.16 G7-2 默认维度集（完整性/技术准确性/结构化表达/岗位匹配度）+ 第5维"
+    }
+  },
+  "required": ["questionId", "answer"],
+  "additionalProperties": false
+}

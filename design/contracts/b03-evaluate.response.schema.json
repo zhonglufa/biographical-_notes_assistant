@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "b03-evaluate-response",
+  "title": "B03 作答评估 - 响应",
+  "description": "B03 响应：综合分 + 逐维 rubric 分数 + 反馈（rubric 透明可申诉，见 HLD §6.16 G7-2）。",
+  "type": "object",
+  "properties": {
+    "score": { "type": "number", "minimum": 0, "maximum": 1 },
+    "rubric": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dim": { "type": "string", "minLength": 1 },
+          "score": { "type": "number", "minimum": 0, "maximum": 1 }
+        },
+        "required": ["dim", "score"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    },
+    "feedback": { "type": "string" }
+  },
+  "required": ["score", "rubric", "feedback"],
+  "additionalProperties": false
+}

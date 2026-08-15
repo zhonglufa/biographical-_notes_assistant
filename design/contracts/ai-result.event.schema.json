@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ai-result-event",
+  "title": "AI 异步任务结果回写事件（C 层 RabbitMQ）",
+  "description": "B02/B04/B05 异步调用的结果经 MQ 回写 Java 侧的事件 payload（HLD §4.5：异步结果经 MQ 回写）。仅承载 result 与状态，不含业务落库（由 Java 侧负责）。",
+  "type": "object",
+  "properties": {
+    "eventType": { "type": "string", "const": "ai.task.result" },
+    "traceId": { "type": "string", "minLength": 1 },
+    "taskId": { "type": "string", "minLength": 1 },
+    "method": { "type": "string", "enum": ["b02", "b04", "b05"] },
+    "status": { "type": "string", "enum": ["ok", "degraded"] },
+    "result": { "type": "object", "description": "对应方法的响应体（见 b02/b04/b05 response schema）" },
+    "degradeTo": { "type": "string", "nullable": true, "description": "status=degraded 时记录实际降级目标" },
+    "producedAt": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["eventType", "traceId", "taskId", "method", "status", "result", "producedAt"],
+  "additionalProperties": false
+}

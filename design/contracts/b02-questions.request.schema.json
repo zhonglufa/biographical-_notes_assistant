@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "b02-questions-request",
+  "title": "B02 面试题生成 - 请求",
+  "description": "POST /internal/v1/ai/questions 请求体（异步≤30s，结果经 ai.task.result 回写）。",
+  "type": "object",
+  "properties": {
+    "jd": { "type": "string", "minLength": 1 },
+    "resume": { "type": "string", "minLength": 1 },
+    "count": { "type": "integer", "minimum": 1, "maximum": 20 },
+    "lang": { "type": "string", "enum": ["zh", "en"] }
+  },
+  "required": ["jd", "resume", "count", "lang"],
+  "additionalProperties": false
+}

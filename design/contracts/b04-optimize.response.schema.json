@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "b04-optimize-response",
+  "title": "B04 简历优化 - 响应",
+  "description": "B04 响应：优化后全文 + 变更差异列表（字段级 from→to，便于用户审阅确认，呼应半自动产品定位）。",
+  "type": "object",
+  "properties": {
+    "optimized": { "type": "string", "minLength": 1 },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": { "type": "string", "minLength": 1 },
+          "from": { "type": "string" },
+          "to": { "type": "string" }
+        },
+        "required": ["field", "from", "to"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["optimized", "changes"],
+  "additionalProperties": false
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "b02-questions-response",
+  "title": "B02 面试题生成 - 响应",
+  "description": "B02 响应：题集与逐题类型（behavior=行为/tech=技术/case=案例）。",
+  "type": "object",
+  "properties": {
+    "questionSetId": { "type": "string", "minLength": 1 },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "text": { "type": "string", "minLength": 1 },
+          "type": { "type": "string", "enum": ["behavior", "tech", "case"] }
+        },
+        "required": ["id", "text", "type"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["questionSetId", "questions"],
+  "additionalProperties": false
+}

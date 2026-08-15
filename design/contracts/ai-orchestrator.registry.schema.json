@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ai-orchestrator-registry",
+  "title": "AI 编排服务（服务端 Python LLM 网关）内部契约注册表自洽 schema",
+  "description": "校验 ai-orchestrator.methods.json 的自洽性：contractVersion / transport / auth / basePath / methods(b01..b05)。request/response 在 methods.json 中以人类可读字段大纲（string[]）呈现，机器可读权威 schema 见各 b0X-*.schema.json，两层一致性由 LLD 与提交评审保证。",
+  "type": "object",
+  "properties": {
+    "contractVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "transport": { "type": "string", "enum": ["INTERNAL_REST"] },
+    "auth": { "type": "string", "enum": ["X_INTERNAL_TOKEN"] },
+    "basePath": { "type": "string" },
+    "methods": {
+      "type": "object",
+      "properties": {
+        "b01": { "$ref": "#/$defs/method" },
+        "b02": { "$ref": "#/$defs/method" },
+        "b03": { "$ref": "#/$defs/method" },
+        "b04": { "$ref": "#/$defs/method" },
+        "b05": { "$ref": "#/$defs/method" }
+      },
+      "required": ["b01", "b02", "b03", "b04", "b05"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["contractVersion", "transport", "auth", "basePath", "methods"],
+  "additionalProperties": false,
+  "$defs": {
+    "method": {
+      "type": "object",
+      "properties": {
+        "sync": { "type": "boolean", "description": "true=同步调用（含超时熔断），false=异步（结果经 MQ 回写 ai.task.result 事件）" },
+        "timeoutMs": { "type": "integer", "minimum": 1, "description": "端到端调用预算（毫秒）" },
+        "degradeTo": {
+          "type": "string",
+          "enum": ["rule_engine", "question_bank", "template", "advise", "score_skip", "none"],
+          "description": "降级目标：rule_engine=规则引擎；question_bank=题库；template=模板；advise=给建议不评分；score_skip=不评分；none=无降级（直接失败并返回 LLM_DEGRADED）"
+        },
+        "request": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "请求字段大纲（人类可读，与 b0X-*.request.schema.json 对齐）" },
+        "response": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "响应字段大纲（人类可读，与 b0X-*.response.schema.json 对齐）" }
+      },
+      "required": ["sync", "timeoutMs", "degradeTo", "request", "response"],
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,5 +1,6 @@
 # 概要设计文档（HLD）：AI 简历助手 — 自动投递与面试模拟
 
+> 2026-08-16 · **v3.17（AI 编排服务 LLD v1.0：B01–B05 机器可读契约闭环）**：AI 编排服务（服务端 Python LLM 网关）模块 LLD 落地，闭合 HLD §9.4 残余「B01–B05 AI 编排内部契约补机器可读 schema」。新增机器可读契约 `b01-match`/`b02-questions`/`b03-evaluate`/`b04-optimize`/`b05-ats`（各 request/response 独立 schema）+ `ai-result.event.schema.json`（`ai.task.result` 异步回写事件）+ `ai-orchestrator.registry`（五个方法注册表，contractVersion 1.0.0）；全部纳入 `design/contracts/` 校验器（schema 24 / 注册表 5 全绿）。LLD 详述三级降级链/模型路由 golden set κ 回归/内容安全/匹配度模型/配额超时/R-10 幻觉硬熔断默认阈值（显式登记待决项）。
 > 2026-08-16 · **v3.16（接口完整性收口：#110/#111）**：适配器模块 LLD v1.0 落地，闭合 HLD §9.4 残余「B07/B09 字段 schema」「searchJobs/getJobDetail 采集路径入 B 系列」(#111) 与「22/25 外部 API 补详细契约」(#110)。新增机器可读契约 `b07-task-result`/`b09-health`/`b10-search-jobs`/`b11-get-job-detail`/`crawler-result` schema + `adapter-facade.registry`（统一 PlatformAdapter 门面）+ `external-api.registry`（A 层 25 端点全枚举，A09/A11/A14/A21 全详 + 其余字段大纲）；新增 B10/B11 采集触发端点与事件 `crawler.job.discovered`；全部纳入 `design/contracts/` 校验器（双闸门）。R-15 覆盖率长尾收窄，剩余 [LLD 细化] 为业务子域（解析/退款/PIPL 等）。
 > 2026-08-15 · **v3.15（契约测试基础设施落地）**：接口契约从"纸面"升级为"机器可校验"——新增 `design/contracts/`：统一错误信封 / 事件信封 / RPC 信封 JSON Schema、错误码注册表、本机 Agent↔服务端 RPC 注册表，以及零依赖校验器 `validate_contracts.py`（正向样本通过 + 反向样本证伪 + 注册表自洽 + 错误码唯一）；并接入 GitHub Actions CI 与 pre-commit 双闸门，使核心链路契约可机器校验（支撑 R-15 缓解；R-15 覆盖率长尾仍 [LLD 细化]）。
 > 2026-08-15 · **v3.14（接口完整性补全）**：接口设计章（§4）全面契约化——§4.7 升级为权威错误注册表（统一信封 + retryable/user_action + 双向对账）、§4.6 事件逐类型化 payload + 顺序/去重/重放/DLQ、新增 §4.8 接口契约总规范（基线：版本化/幂等/鉴权/分页/限流/SLA/异步）、§4.9 本机 Agent↔服务端 RPC 契约（传输/设备令牌生命周期/双向 RPC 方法清单/握手协商）、§4.10 支付渠道回调契约（签名验签+幂等+对账）、B01–B05 字段 schema。契约级覆盖率由 ~30% 提升至核心链路全覆盖。
@@ -773,7 +774,9 @@
 | B04 `ai/resume/optimize` | `{ resume:string, target:string }` | `{ optimized:string, changes:[{field:string,from:string,to:string}] }` |
 | B05 `ai/ats` | `{ resume:string }` | `{ atsScore:float(0..100), suggestions:[{section:string,hint:string}] }` |
 
-> 注：B01/B03 同步调用含超时熔断；B02/B04/B05 异步，结果经 MQ 回写（§4.6）。所有 LLM 响应须带 `traceId` 以便归因；幻觉硬熔断阈值见 R-10（待 LLD 细化）。
+> 注：B01/B03 同步调用含超时熔断；B02/B04/B05 异步，结果经 MQ 回写（§4.6）。所有 LLM 响应须带 `traceId` 以便归因；幻觉硬熔断阈值见 R-10（待 LLD 细化，LLD-AI编排服务 §9 已给默认档并登记为待决项）。
+
+**机器可读契约（v3.17 已落地）**：B01–B05 请求/响应与异步回写事件已沉淀为 JSON Schema，见 `design/contracts/`：`b01-match.request`/`b01-match.response`、`b02-questions.*`、`b03-evaluate.*`、`b04-optimize.*`、`b05-ats.*`（各 request/response 独立 schema，正向必过/反向必败证伪）+ `ai-result.event.schema.json`（`ai.task.result` 异步回写事件，§4.6 已登记）；注册表 `ai-orchestrator.methods.json`（contractVersion 1.0.0，五个方法含 sync/timeoutMs/degradeTo）。三级降级链/模型路由/内容安全/匹配度模型/配额超时/R-10 默认阈值详见 `LLD-AI编排服务-模块设计.md`。
 
 **B06 契约要点**（⚠ 对 PRD 模块 4 适配器契约的落地，执行侧为本机 Agent）：
 
@@ -833,6 +836,7 @@
 | `member.plan.changed` | 支付模块 | 用户权限 | `{ userId:string, plan:enum(free\|pro\|team), effectiveAt:int64, orderNo:string }` | 按 `orderNo` 去重；强一致（影响权益），失败阻塞重试 |
 | `adapter.health.degraded` | Python 健康检查 | Java 状态机/通知 | `{ platformId:string, reason:enum(login_expired\|rate_limited\|version_mismatch\|unreachable), severity:enum(warn\|critical) }` | 按 `platformId+reason+窗口(5m)` 去重；`critical` 触发停用+通知 |
 | `crawler.job.discovered` | 本机 Agent | 岗位浏览/匹配/推荐 | `{ jobId:string, platformId:string, externalJobId:string, title:string, company:string, collectedAt:int64, source:enum(search\|detail) }` | 按 `externalJobId+platformId` 去重；可重放（重采集）；Best-Effort 丢失可接受 |
+| `ai.task.result` | AI 编排服务（Python） | Java 业务服务 | `{ taskId:string, method:enum(b02\|b04\|b05), status:enum(ok\|degraded), result:object, degradeTo?:string, traceId:string, producedAt:int64 }`（机器可读：`ai-result.event.schema.json`） | 按 `taskId` 幂等（重复覆盖首次结果）；异步 B02/B04/B05 结果回写；失败进 DLQ 重试 ≤3 次（见 `LLD-AI编排服务-模块设计.md` §7） |
 
 **全局语义**：投递结果与联动类事件开启 RabbitMQ 手动 ack + 死信队列；重复消费依靠 `dedupKey`/业务表唯一键去重 [Expert judgment] ADR-004。消费失败进 DLQ，按事件级 `retryPolicy`（上表）重试，超限告警人工介入。重放：状态类事件支持时间窗（默认 24h）内重放，幂等键保证重放安全。
 
@@ -1793,6 +1797,7 @@ HLD §4.6 只说"manual ack + 死信队列"，**没给 exchange/队列/路由的
 | 高校模板 80% 覆盖率 | 标注估算值，接入时逐平台验证 [Hypothesis] |
 | R1 幂等键前端 UUID 反模式 | 已登记追踪（源自 distill-004）：LLD 阶段改由服务端生成 `idempotency_key` 或前端生成但服务端校验去重，消除"前端 UUID 必填"隐含假设；不阻塞本版 |
 | R5 "事件溯源"措辞 | 已登记追踪（源自 distill-004）：LLD/术语统一阶段将 `application_event` 表述统一为"事件流水 / 审计日志"，避免与事件溯源（event sourcing）架构模式混淆；不阻塞本版 |
+| R-10 幻觉硬熔断阈值（实体越界/自我矛盾/连续超长/安全词命中） | 已给 LLD 默认档（实体越界=优化文案实体不在 resume 集合内→重生成；自我矛盾=结论与评分相悖→标记 degraded；连续超长 >1200 token 无分段→截断降级；安全词命中→拒答），fail-closed 缺失配置时启用最严档；**具体数值非已拍板最终值**，由编码期配置中心确定（见 `LLD-AI编排服务-模块设计.md` §9） |
 
 **LLD 阶段收口项（v3.4 二次审计登记，源自 PRD 子项映射但此前未在待决项显式登记，防丢失）**
 
@@ -1825,6 +1830,7 @@ HLD §4.6 只说"manual ack + 死信队列"，**没给 exchange/队列/路由的
 | 契约测试基础设施（契约可验证基线；支撑 R-15 缓解）：`contracts/` + 零依赖校验器 + CI 双闸门 | **[闭环]** | 见 `design/contracts/` 与 §9.23；Pact 消费方测试留待编码期嵌入；R-15 覆盖率长尾仍 [LLD 细化] |
 | 错误码 ↔ LLD `AGENT-1xxx` 逐码桥接明细 | **[闭环]** | 见 §4.7.1 逐码桥接表（正向统一码→AGENT-1xxx + 反向 AGENT-1xxx→统一码；含桥接纪律）；同步修复 §4.7 叙述表与 `error-codes.json` 注册表漂移（补 `PAY_*`、加 `MAINTENANCE`、更正 `AGENT-1003` 误例） |
 | 新风险 R-15（接口契约覆盖率） | 已收窄（采集/适配器/外部 API 轮廓已契约化；剩余业务子域 [LLD 细化]） | 见风险登记表复评 |
+| B01–B05 AI 编排内部契约补机器可读 schema（请求/响应 + 异步回写事件） | **[闭环]** | 见 §4.5 B01–B05 机器可读指针 + `design/contracts/` `b01-match`/`b02-questions`/`b03-evaluate`/`b04-optimize`/`b05-ats`（各 request/response）+ `ai-result.event.schema.json` + `ai-orchestrator.registry`（五方法，contractVersion 1.0.0）；详述见 `LLD-AI编排服务-模块设计.md`（v3.17） |
 
 > 以上不阻塞首选模块（本机 Agent）编码，但为集成期返工源，登记为 [LLD 细化] 排期；核心链路（投递/状态/适配器/事件/错误/本机Agent↔服务端/支付回调/AI编排）已完成契约化。
 
@@ -2093,16 +2099,25 @@ v3.7 完成后，第七轮以「领域建模与业务逻辑」视角再审 PRD �
   - 全部新契约纳入 `design/contracts/validate_contracts.py`（schema 12 / 注册表 4 全绿），与 PRD-HLD 防漂移校验器构成双闸门。
 - **效果**：R-15 覆盖率长尾由「外部 API + B07/B09 + 采集路径」三项收窄为仅业务子域（解析质量/退款/PIPL 等，见 §9.4 其余 [LLD 细化]）；核心链路 + 适配器 + 采集 + 外部 API 轮廓均已机器可校验。
 
+### 9.25 AI 编排服务 LLD 收口修订记录（v3.16 → v3.17，架构师自主推进 B01–B05 契约化）
+
+- **动机**：HLD §9.4 残余「B01–B05 AI 编排内部契约补机器可读 schema」未闭环——§4.5 仅有叙述级字段契约，且 B02/B04/B05 异步结果"经 MQ 回写"在 §4.6 无对应事件契约，属接口完整性残缺口。AI 编排是产品核心差异化（AI 匹配后用户确认投递），且属合规红线区，LLD 直接服务核心链路。
+- **动作**：
+  - AI 编排服务 LLD v1.0（`LLD-AI编排服务-模块设计.md`）落地：统一 AIOrchestrator 门面（B01–B05）、三级降级链（规则引擎/题库/模板/建议/不评分）、模型路由（主 DeepSeek + 备用 + golden set κ 回归）、内容安全层（B6）、匹配度模型（B5 规则层权重 技能40/行业20/城市20/经验20 + κ≥0.6）、配额与超时（SLA）、异步结果 `ai.task.result` 事件回写、R-10 幻觉硬熔断默认阈值（显式登记待决项）。
+  - `design/contracts/` 新增 12 schema + 1 注册表：`b01-match`/`b02-questions`/`b03-evaluate`/`b04-optimize`/`b05-ats`（各 request/response）+ `ai-result.event.schema.json` + `ai-orchestrator.registry.schema.json`/`ai-orchestrator.methods.json`。校验器升至 **schema 24 / 注册表 5 全绿**，与 PRD-HLD 防漂移校验器构成双闸门。
+  - §4.5 B01–B05 补机器可读指针；§4.6 补 `ai.task.result` 事件（收口异步回写契约空白）；§9.4 残余表收口 + R-10 待决登记。
+- **效果**：内部服务契约 B01–B05 全部机器可校验，AI 编排这条核心链路契约完整性闭合；R-15 剩余 [LLD 细化] 仅业务子域（解析/退款/PIPL/ASR 选型等），与接口契约覆盖率无关。
+
 ## 10. 关联文档与后续交付
 
 | 文档 | 状态 |
 |------|------|
 | PRD v4.5 最终版 | 已完成（上游，本版重导出依据） |
 | ADR-001 ~ 023 | 已完成（决策依据） |
-| **本文档 HLD v3.16** | **本次交付（v3.14 接口契约化 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面；`design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线；契约级覆盖率 ~30%→核心链路全覆盖→可机器校验→适配器/采集/外部 API 轮廓全覆盖）** |
+| **本文档 HLD v3.17** | **本次交付（v3.14 接口契约化 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面 + v3.17 AI 编排服务 LLD v1.0：B01–B05 机器可读 request/response schema + `ai.task.result` 异步回写事件 + `ai-orchestrator.registry` 五方法注册表；`design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线；契约级覆盖率 ~30%→核心链路全覆盖→可机器校验→适配器/采集/外部 API/AI 编排轮廓全覆盖）** |
 | 数据库设计（ER + 表结构 + 索引） | 下一步 |
 | API 契约文档（含 Mock） | 进行中（§4 已契约化，`design/contracts/` 机器可读契约已落地并经校验器闭环，OpenAPI / Mock 导出顺延） |
 | LLD 详细设计（类图/时序/算法） | 待排期 |
 | 测试计划 / 部署运维手册 | P2 后续 |
 
-> 文档版本：2026-08-16 · v3.16（v3.14 接口完整性补全 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面；`design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线）· 编写依据 software-design-document 规范（设计评审导向）
+> 文档版本：2026-08-16 · v3.17（v3.14 接口完整性补全 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面 + v3.17 AI 编排服务 LLD v1.0：B01–B05 机器可读 request/response schema + `ai.task.result` 异步回写事件 + `ai-orchestrator.registry` 五方法注册表；`design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线）· 编写依据 software-design-document 规范（设计评审导向）

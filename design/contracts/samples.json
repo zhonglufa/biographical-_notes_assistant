@@ -87,12 +87,116 @@
         { "payload": { "taskId": "T1", "kind": "unknown", "jobs": [] }, "reason": "kind 不在 enum" },
         { "payload": { "taskId": "T1", "kind": "searchJobs", "jobs": [], "x": 1 }, "reason": "存在未声明额外字段" }
       ]
+    },
+    "b01-match.request.schema.json": {
+      "valid": [
+        { "jd": "JD 文本", "resume": "简历文本" },
+        { "jd": "JD", "resume": "R", "weights": { "skill": 0.4, "jobtitle": 0.2, "exp": 0.4 } }
+      ],
+      "invalid": [
+        { "payload": { "jd": "JD" }, "reason": "缺必需字段 resume" },
+        { "payload": { "jd": "JD", "resume": "R", "weights": { "skill": 2 }, "extra": 1 }, "reason": "weights.skill>1 且存在未声明额外字段" }
+      ]
+    },
+    "b01-match.response.schema.json": {
+      "valid": [
+        { "score": 0.85, "matchedSkills": ["Java"], "explanation": "匹配度较高", "model": "deepseek", "elapsedMs": 1200 },
+        { "score": 0.5, "matchedSkills": [], "explanation": "x", "model": "rule", "elapsedMs": 300 }
+      ],
+      "invalid": [
+        { "payload": { "score": 0.85, "matchedSkills": [], "explanation": "x", "model": "deepseek" }, "reason": "缺必需字段 elapsedMs" },
+        { "payload": { "score": 1.5, "matchedSkills": [], "explanation": "x", "model": "deepseek", "elapsedMs": 1 }, "reason": "score > 1" }
+      ]
+    },
+    "b02-questions.request.schema.json": {
+      "valid": [
+        { "jd": "JD", "resume": "R", "count": 5, "lang": "zh" }
+      ],
+      "invalid": [
+        { "payload": { "jd": "JD", "resume": "R", "count": 0, "lang": "zh" }, "reason": "count < 1" },
+        { "payload": { "jd": "JD", "resume": "R", "count": 5, "lang": "xx" }, "reason": "lang 不在 enum" }
+      ]
+    },
+    "b02-questions.response.schema.json": {
+      "valid": [
+        { "questionSetId": "Q1", "questions": [ { "id": "q1", "text": "介绍项目", "type": "behavior" } ] }
+      ],
+      "invalid": [
+        { "payload": { "questionSetId": "Q1", "questions": [ { "id": "q1", "text": "x", "type": "unknown" } ] }, "reason": "type 不在 enum" },
+        { "payload": { "questionSetId": "Q1" }, "reason": "缺必需字段 questions" }
+      ]
+    },
+    "b03-evaluate.request.schema.json": {
+      "valid": [
+        { "questionId": "q1", "answer": "回答内容" },
+        { "questionId": "q1", "answer": "回答", "rubricDims": ["完整性"] }
+      ],
+      "invalid": [
+        { "payload": { "answer": "回答" }, "reason": "缺必需字段 questionId" },
+        { "payload": { "questionId": "q1", "answer": "回答", "x": 1 }, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "b03-evaluate.response.schema.json": {
+      "valid": [
+        { "score": 0.8, "rubric": [ { "dim": "完整性", "score": 0.9 } ], "feedback": "好" }
+      ],
+      "invalid": [
+        { "payload": { "score": 0.8, "rubric": [ { "dim": "完整性", "score": 1.5 } ], "feedback": "好" }, "reason": "rubric.score > 1" },
+        { "payload": { "score": 0.8, "feedback": "好" }, "reason": "缺必需字段 rubric" }
+      ]
+    },
+    "b04-optimize.request.schema.json": {
+      "valid": [
+        { "resume": "简历原文", "target": "后端开发" }
+      ],
+      "invalid": [
+        { "payload": { "resume": "简历" }, "reason": "缺必需字段 target" },
+        { "payload": { "resume": "简历", "target": "x", "y": 1 }, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "b04-optimize.response.schema.json": {
+      "valid": [
+        { "optimized": "优化后全文", "changes": [ { "field": "技能", "from": "a", "to": "b" } ] }
+      ],
+      "invalid": [
+        { "payload": { "optimized": "优化后全文", "changes": [ { "field": "技能", "from": "a" } ] }, "reason": "change 缺 to" },
+        { "payload": { "optimized": "优化后全文" }, "reason": "缺必需字段 changes" }
+      ]
+    },
+    "b05-ats.request.schema.json": {
+      "valid": [
+        { "resume": "简历原文" }
+      ],
+      "invalid": [
+        { "payload": { }, "reason": "缺必需字段 resume" },
+        { "payload": { "resume": "R", "x": 1 }, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "b05-ats.response.schema.json": {
+      "valid": [
+        { "atsScore": 82, "suggestions": [ { "section": "教育", "hint": "补充实习" } ] }
+      ],
+      "invalid": [
+        { "payload": { "atsScore": 150, "suggestions": [ { "section": "教育", "hint": "x" } ] }, "reason": "atsScore > 100" },
+        { "payload": { "atsScore": 80 }, "reason": "缺必需字段 suggestions" }
+      ]
+    },
+    "ai-result.event.schema.json": {
+      "valid": [
+        { "eventType": "ai.task.result", "traceId": "t1", "taskId": "T1", "method": "b02", "status": "ok", "result": { "questionSetId": "Q1", "questions": [] }, "producedAt": 1700000000000 },
+        { "eventType": "ai.task.result", "traceId": "t2", "taskId": "T2", "method": "b05", "status": "degraded", "result": {}, "degradeTo": "score_skip", "producedAt": 1700000000001 }
+      ],
+      "invalid": [
+        { "payload": { "eventType": "ai.task.result", "traceId": "t1", "taskId": "T1", "method": "b02", "status": "ok", "result": {}, "producedAt": "now" }, "reason": "producedAt 非整数" },
+        { "payload": { "eventType": "ai.task.result", "traceId": "t1", "taskId": "T1", "method": "b01", "status": "ok", "result": {}, "producedAt": 1 }, "reason": "method 不在 enum(b02/b04/b05)" }
+      ]
     }
   },
   "registryFiles": {
     "error-codes.json": "error-codes.schema.json",
     "agent-server-rpc.methods.json": "agent-server-rpc.registry.schema.json",
     "adapter-facade.methods.json": "adapter-facade.registry.schema.json",
-    "external-api.registry.json": "external-api.registry.schema.json"
+    "external-api.registry.json": "external-api.registry.schema.json",
+    "ai-orchestrator.methods.json": "ai-orchestrator.registry.schema.json"
   }
 }

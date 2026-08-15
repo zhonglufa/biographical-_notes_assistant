@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "b05-ats-response",
+  "title": "B05 ATS 评分 - 响应",
+  "description": "B05 响应：ATS 综合分（0..100）+ 分章节优化建议。",
+  "type": "object",
+  "properties": {
+    "atsScore": { "type": "number", "minimum": 0, "maximum": 100 },
+    "suggestions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "section": { "type": "string", "minLength": 1 },
+          "hint": { "type": "string", "minLength": 1 }
+        },
+        "required": ["section", "hint"],
+        "additionalProperties": false
+      },
+      "minItems": 1
+    }
+  },
+  "required": ["atsScore", "suggestions"],
+  "additionalProperties": false
+}

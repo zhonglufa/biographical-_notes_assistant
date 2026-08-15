@@ -1,0 +1,43 @@
+{
+  "contractVersion": "1.0.0",
+  "transport": "INTERNAL_REST",
+  "auth": "X_INTERNAL_TOKEN",
+  "basePath": "/internal/v1/ai",
+  "methods": {
+    "b01": {
+      "sync": true,
+      "timeoutMs": 5000,
+      "degradeTo": "rule_engine",
+      "request": ["jd:string", "resume:string", "weights?:{skill,jobtitle,exp}"],
+      "response": ["score:float(0..1)", "matchedSkills:string[]", "explanation:string", "model:enum(deepseek|backup|rule)", "elapsedMs:int"]
+    },
+    "b02": {
+      "sync": false,
+      "timeoutMs": 30000,
+      "degradeTo": "question_bank",
+      "request": ["jd:string", "resume:string", "count:int(1..20)", "lang:enum(zh|en)"],
+      "response": ["questionSetId:string", "questions:[{id,text,type:enum(behavior|tech|case)}]"]
+    },
+    "b03": {
+      "sync": true,
+      "timeoutMs": 3000,
+      "degradeTo": "advise",
+      "request": ["questionId:string", "answer:string", "rubricDims?:string[]"],
+      "response": ["score:float(0..1)", "rubric:[{dim,score}]", "feedback:string"]
+    },
+    "b04": {
+      "sync": false,
+      "timeoutMs": 10000,
+      "degradeTo": "template",
+      "request": ["resume:string", "target:string"],
+      "response": ["optimized:string", "changes:[{field,from,to}]"]
+    },
+    "b05": {
+      "sync": false,
+      "timeoutMs": 10000,
+      "degradeTo": "score_skip",
+      "request": ["resume:string"],
+      "response": ["atsScore:float(0..100)", "suggestions:[{section,hint}]"]
+    }
+  }
+}

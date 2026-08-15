@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "b01-match-request",
+  "title": "B01 AI 匹配 - 请求",
+  "description": "POST /internal/v1/ai/match 请求体（Java→Python LLM 网关，同步≤5s）。",
+  "type": "object",
+  "properties": {
+    "jd": { "type": "string", "minLength": 1 },
+    "resume": { "type": "string", "minLength": 1 },
+    "weights": {
+      "type": "object",
+      "properties": {
+        "skill": { "type": "number", "minimum": 0, "maximum": 1 },
+        "jobtitle": { "type": "number", "minimum": 0, "maximum": 1 },
+        "exp": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "additionalProperties": false,
+      "nullable": true,
+      "description": "维度权重（可选，缺省用 HLD §6.11 B5 规则层：技能40/行业20/城市20/经验20）"
+    }
+  },
+  "required": ["jd", "resume"],
+  "additionalProperties": false
+}
