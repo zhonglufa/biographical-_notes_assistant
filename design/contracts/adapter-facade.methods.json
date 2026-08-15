@@ -1,0 +1,28 @@
+{
+  "contractVersion": "1.0.0",
+  "facade": "PlatformAdapter",
+  "platformBinding": {
+    "deployedAt": "local-agent",
+    "executedAt": "local-agent",
+    "cookieScope": "local-only"
+  },
+  "methods": [
+    { "name": "login", "kind": "lifecycle", "params": ["platformId", "credentialRef"], "returns": "loginState" },
+    { "name": "checkLoginStatus", "kind": "query", "params": ["platformId"], "returns": "loginState" },
+    { "name": "logout", "kind": "lifecycle", "params": ["platformId"], "returns": "void" },
+    { "name": "searchJobs", "kind": "trigger", "params": ["query", "filters", "geo", "page"], "returns": "jobStub[]" },
+    { "name": "getJobDetail", "kind": "trigger", "params": ["externalJobId"], "returns": "job" },
+    { "name": "applyJob", "kind": "action", "params": ["jobId", "resumeVersionId", "behavioralProfile"], "returns": "applyResult" },
+    { "name": "checkApplyStatus", "kind": "query", "params": ["applyId"], "returns": "hrStatus" },
+    { "name": "getDailyQuota", "kind": "query", "params": ["platformId"], "returns": "quota" },
+    { "name": "isAvailable", "kind": "query", "params": ["platformId"], "returns": "bool" },
+    { "name": "healthCheck", "kind": "query", "params": ["platformId"], "returns": "healthReport" }
+  ],
+  "lifecycleStates": ["installed", "test_mode", "enabled", "disabled", "degraded", "login_expired"],
+  "antiBot": {
+    "humanLikeDelaySec": [3, 8],
+    "mouseTrajectory": "bezier",
+    "captchaPause": true,
+    "cookieLocalEncrypt": true
+  }
+}

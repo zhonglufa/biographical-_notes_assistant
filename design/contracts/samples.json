@@ -34,10 +34,65 @@
         { "payload": { "traceId": "t", "ok": true, "method": "X" }, "reason": "响应含 method → additionalProperties 失败" },
         { "payload": { "traceId": "t", "ok": false, "error": { "message": "m", "retryable": false } }, "reason": "error 缺 code" }
       ]
+    },
+    "b07-task-result.schema.json": {
+      "valid": [
+        { "taskId": "T1", "idempotencyKey": "U1", "status": "done", "outcome": "success", "platformApplyId": "P1", "updatedAt": 1700000000000 },
+        { "taskId": "T2", "idempotencyKey": "U2", "status": "pending", "outcome": null }
+      ],
+      "invalid": [
+        { "payload": { "taskId": "T1", "status": "done" }, "reason": "缺必需字段 idempotencyKey" },
+        { "payload": { "taskId": "T1", "idempotencyKey": "U1", "status": "unknown" }, "reason": "status 不在 enum" },
+        { "payload": { "taskId": "T1", "idempotencyKey": "U1", "status": "done", "extra": 1 }, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "b09-health.schema.json": {
+      "valid": [
+        { "platformId": "boss", "healthy": true, "metrics": { "domParseSuccessRate": 0.95, "avgLatencyMs": 120, "cookieHealthy": true }, "checkedAt": 1700000000000 },
+        { "platformId": "lagou", "healthy": false, "reason": "login_expired", "checkedAt": 1700000000001 }
+      ],
+      "invalid": [
+        { "payload": { "platformId": "boss", "checkedAt": 1 }, "reason": "缺必需字段 healthy" },
+        { "payload": { "platformId": "boss", "healthy": true, "metrics": { "domParseSuccessRate": 1.5, "avgLatencyMs": 10, "cookieHealthy": true }, "checkedAt": 1 }, "reason": "domParseSuccessRate > 1" },
+        { "payload": { "platformId": "boss", "healthy": true, "checkedAt": 1, "x": 1 }, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "b10-search-jobs.schema.json": {
+      "valid": [
+        { "platformId": "boss", "query": "java 后端" },
+        { "taskId": "T1", "platformId": "zhipin", "query": "前端", "filters": { "city": "bj" }, "geo": "北京", "page": 2 }
+      ],
+      "invalid": [
+        { "payload": { "query": "java" }, "reason": "缺必需字段 platformId" },
+        { "payload": { "platformId": "boss", "query": "" }, "reason": "query 空，minLength 1 失败" },
+        { "payload": { "platformId": "boss", "query": "java", "extra": 1 }, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "b11-get-job-detail.schema.json": {
+      "valid": [
+        { "platformId": "boss", "externalJobId": "J123" }
+      ],
+      "invalid": [
+        { "payload": { "platformId": "boss" }, "reason": "缺必需字段 externalJobId" },
+        { "payload": { "platformId": "boss", "externalJobId": "J1", "x": 1 }, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "crawler-result.schema.json": {
+      "valid": [
+        { "taskId": "T1", "kind": "searchJobs", "jobs": [ { "externalJobId": "J1", "platformId": "boss", "title": "后端", "company": "X", "collectedAt": 1700000000000 } ], "collectedAt": 1700000000000 },
+        { "taskId": "T2", "kind": "getJobDetail", "jobs": [] }
+      ],
+      "invalid": [
+        { "payload": { "taskId": "T1", "kind": "searchJobs", "jobs": [ { "externalJobId": "J1", "platformId": "boss" } ] }, "reason": "job 缺 title/company/collectedAt" },
+        { "payload": { "taskId": "T1", "kind": "unknown", "jobs": [] }, "reason": "kind 不在 enum" },
+        { "payload": { "taskId": "T1", "kind": "searchJobs", "jobs": [], "x": 1 }, "reason": "存在未声明额外字段" }
+      ]
     }
   },
   "registryFiles": {
     "error-codes.json": "error-codes.schema.json",
-    "agent-server-rpc.methods.json": "agent-server-rpc.registry.schema.json"
+    "agent-server-rpc.methods.json": "agent-server-rpc.registry.schema.json",
+    "adapter-facade.methods.json": "adapter-facade.registry.schema.json",
+    "external-api.registry.json": "external-api.registry.schema.json"
   }
 }

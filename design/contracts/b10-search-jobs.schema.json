@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "B10 服务端触发本机 Agent 采集 searchJobs（服务端→本机 Agent）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["platformId", "query"],
+  "properties": {
+    "taskId": { "type": "string", "minLength": 1 },
+    "platformId": { "type": "string", "minLength": 1 },
+    "query": { "type": "string", "minLength": 1, "maxLength": 200 },
+    "filters": { "type": ["object", "null"], "additionalProperties": true },
+    "geo": { "type": "string", "nullable": true },
+    "page": { "type": "integer", "minimum": 1, "nullable": true }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "外部 API（A 层）契约注册表自洽 schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "basePath", "endpoints", "uniformEnvelope"],
+  "properties": {
+    "contractVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "basePath": { "type": "string" },
+    "endpoints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "method", "path", "purpose", "auth", "contractStatus"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^A\\d{2}$" },
+          "method": { "type": "string", "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"] },
+          "path": { "type": "string", "pattern": "^/" },
+          "purpose": { "type": "string", "minLength": 1 },
+          "auth": { "type": "string", "enum": ["none", "Bearer", "Bearer+role", "Bearer+pro", "channel-signature", "Bearer(query)"] },
+          "contractStatus": { "type": "string", "enum": ["fully-detailed", "outlined"] },
+          "ref": { "type": "string", "nullable": true },
+          "requestFields": { "type": "array", "items": { "type": "string" }, "nullable": true },
+          "responseFields": { "type": "array", "items": { "type": "string" }, "nullable": true }
+        }
+      },
+      "minItems": 1
+    },
+    "uniformEnvelope": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["listResponse", "itemResponse", "error"],
+      "properties": {
+        "listResponse": { "type": "string" },
+        "itemResponse": { "type": "string" },
+        "error": { "type": "string", "const": "error-envelope" }
+      }
+    }
+  }
+}

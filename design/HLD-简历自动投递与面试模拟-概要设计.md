@@ -1,5 +1,6 @@
 # 概要设计文档（HLD）：AI 简历助手 — 自动投递与面试模拟
 
+> 2026-08-16 · **v3.16（接口完整性收口：#110/#111）**：适配器模块 LLD v1.0 落地，闭合 HLD §9.4 残余「B07/B09 字段 schema」「searchJobs/getJobDetail 采集路径入 B 系列」(#111) 与「22/25 外部 API 补详细契约」(#110)。新增机器可读契约 `b07-task-result`/`b09-health`/`b10-search-jobs`/`b11-get-job-detail`/`crawler-result` schema + `adapter-facade.registry`（统一 PlatformAdapter 门面）+ `external-api.registry`（A 层 25 端点全枚举，A09/A11/A14/A21 全详 + 其余字段大纲）；新增 B10/B11 采集触发端点与事件 `crawler.job.discovered`；全部纳入 `design/contracts/` 校验器（双闸门）。R-15 覆盖率长尾收窄，剩余 [LLD 细化] 为业务子域（解析/退款/PIPL 等）。
 > 2026-08-15 · **v3.15（契约测试基础设施落地）**：接口契约从"纸面"升级为"机器可校验"——新增 `design/contracts/`：统一错误信封 / 事件信封 / RPC 信封 JSON Schema、错误码注册表、本机 Agent↔服务端 RPC 注册表，以及零依赖校验器 `validate_contracts.py`（正向样本通过 + 反向样本证伪 + 注册表自洽 + 错误码唯一）；并接入 GitHub Actions CI 与 pre-commit 双闸门，使核心链路契约可机器校验（支撑 R-15 缓解；R-15 覆盖率长尾仍 [LLD 细化]）。
 > 2026-08-15 · **v3.14（接口完整性补全）**：接口设计章（§4）全面契约化——§4.7 升级为权威错误注册表（统一信封 + retryable/user_action + 双向对账）、§4.6 事件逐类型化 payload + 顺序/去重/重放/DLQ、新增 §4.8 接口契约总规范（基线：版本化/幂等/鉴权/分页/限流/SLA/异步）、§4.9 本机 Agent↔服务端 RPC 契约（传输/设备令牌生命周期/双向 RPC 方法清单/握手协商）、§4.10 支付渠道回调契约（签名验签+幂等+对账）、B01–B05 字段 schema。契约级覆盖率由 ~30% 提升至核心链路全覆盖。
 > 2026-08-15 · **v3.11（本轮修复）**：修复 fig-c2-container.svg 标签白底遮挡箭头（REST:8000、HTTPS:443，缩窄白底至刚好包住文本）；修复 fig-2-4-hr-status.svg / fig-2-5-ai-match.svg alt 分支背景遮挡激活条（片段背景移至激活条之前绘制）；统一所有时序图底部图例格式（背景框 + 五项说明）；同步更新作图-01-通用规范.md（新增 §2.4.6 ST-16 标签白底矩形不遮挡规则 + 图例色板 `#D1D5DB`/`#F9FAFB`）和作图-04-UML时序图.md（新增 §3.3.8 渲染顺序与图例规范）。
@@ -696,6 +697,14 @@
 | A24 | GET | `/api/v1/daily-report/today` | 获取今日日报摘要 | Bearer |
 | A25 | PUT | `/api/v1/users/daily-report/preference` | 设置日报推送时间偏好 | Bearer |
 
+### 4.1.1 外部 API 契约注册表（机器可读，#110 收口）
+
+25 个 A 层端点的**机器可读契约注册表**已落盘：`design/contracts/external-api.registry.json`（schema：`external-api.registry.schema.json`）。每个端点含 `method` / `path` / `auth` / `contractStatus` / 请求-响应字段大纲；统一信封见 `uniformEnvelope`（列表响应 `{items,total,page,pageSize}`、单项 `{data}`、错误 `error-envelope`）。
+
+- `fully-detailed`（HLD 已给字段 schema）：A09（§4.2）、A11（§4.3）、A14（§4.4）、A21（§4.10）。
+- `outlined`（字段大纲级，本注册表首填）：其余 21 端点（A01–A08 / A10 / A12 / A13 / A15 / A16–A19 / A20 / A22–A25）。全详 JSON Schema 留编码期按大纲生成。
+- 注册表经校验器自洽校验（无重复 ID、auth 枚举合法、fully-detailed 须带 `ref`），纳入 pre-commit + CI 双闸门。
+
 ### 4.2 核心契约：批量投递（A09）
 
 | 字段 | 值 |
@@ -751,6 +760,8 @@
 | B07 | GET | `/internal/v1/apply/tasks/{taskId}` | 查询投递任务结果（Agent 回写） | 同步 | 服务端→本机 Agent |
 | B08 | POST | `/internal/v1/apply/status` | 批量触发 getApplicationStatus 轮询（本机 Agent 执行） | 异步 | 服务端→本机 Agent |
 | B09 | POST | `/internal/v1/adapters/health` | 全适配器健康检查触发（本机 Agent 上报） | 异步 | 服务端→本机 Agent |
+| B10 | POST | `/internal/v1/crawl/search` | 服务端触发本机 Agent 采集 searchJobs（入 B 系列） | 异步 | 服务端→本机 Agent |
+| B11 | POST | `/internal/v1/crawl/detail` | 服务端触发本机 Agent 采集 getJobDetail（入 B 系列） | 异步 | 服务端→本机 Agent |
 
 **B01–B05 字段契约**（Java → Python(LLM 网关) 内网，超时与同步性见上表；失败统一返回 §4.7 信封，`retryable=true` 走降级路径 `LLM_DEGRADED`）：
 
@@ -783,6 +794,31 @@
 | 触发频率 | 定时轮询，默认 6h/平台，BOSS/猎聘可配置 2-4h（高频平台）[Expert judgment] |
 | 幂等推进 | `viewed` 后不再轮询该条（状态机已前进）；`unknown` 保持现状 |
 
+**B07 契约要点**（查询结果回写查询，schema：`b07-task-result.schema.json`）：
+
+| 字段 | 值 |
+|------|-----|
+| 响应体 | `{ taskId, idempotencyKey, status: enum(pending\|running\|done\|failed), outcome?: enum(success\|failed\|captcha\|risk_blocked\|need_login), platformApplyId?, failReason?, evidence?, updatedAt }` |
+| 说明 | 服务端查 B07，本机 Agent 返回其回写的投递结果；`outcome` 与 B06 结果事件对齐；`evidence` 不长期留存明文凭证 |
+
+**B09 契约要点**（健康上报，schema：`b09-health.schema.json`）：
+
+| 字段 | 值 |
+|------|-----|
+| 触发 | `POST /internal/v1/adapters/health`（服务端→本机 Agent） |
+| 上报体（Agent→服务端） | `{ platformId, healthy:bool, reason?, metrics:{ domParseSuccessRate:number[0,1], avgLatencyMs:int, cookieHealthy:bool, selectorBundleVersion? }, checkedAt:int64 }` |
+| 健康分 | `domParseSuccessRate` 为健康分核心；失败率 > 20% 持续 5min → 自动降级该平台（HLD §6.13.3） |
+
+**B10 / B11 契约要点**（采集触发，#111 收口，schema：`b10-search-jobs.schema.json` / `b11-get-job-detail.schema.json`）：
+
+| 字段 | 值 |
+|------|-----|
+| B10 请求体 | `{ taskId?, platformId, query:string(1..200), filters?, geo?, page? }`（不含 Cookie，本机加载） |
+| B11 请求体 | `{ taskId?, platformId, externalJobId }`（不含 Cookie，本机加载） |
+| 结果回写 | 经 `crawler-result.schema.json`：`{ taskId, kind: searchJobs\|getJobDetail, jobs:[job], collectedAt }`；`job` 即 `JOB` 实体（`externalJobId+platformId` 去重） |
+| 采集路径 | 服务端触发 → 本机 Agent 加载本地 Cookie 查平台页 → 解析 → 回写 `crawler-result` → 写 `JOB` 表 + 发 `crawler.job.discovered` 事件（§4.6）；节流同源 B08（默认 6h/平台） |
+| 统一门面 | B10/B11 对应适配器 `searchJobs` / `getJobDetail`（统一 `PlatformAdapter` 门面，见 `adapter-facade.methods.json`） |
+
 ### 4.6 事件消息契约（C 层，RabbitMQ）
 
 **事件信封（所有事件统一）**：`{ eventType: string, traceId: string, ts: int64, producer: string, payload: object, dedupKey?: string }`。`dedupKey` 为去重键（缺省时由消费侧按业务键去重）；`ts` 为生产者毫秒时间戳，用于顺序判定与重放窗口。
@@ -796,6 +832,7 @@
 | `hr.viewed.detected` | Java 轮询回调 | 通知 | `{ applicationId:string, platformId:string, detectedAt:int64, evidence?:{snapshotUrl?:string} }` | 按 `applicationId` 去重（仅首次有效）；允许 Best-Effort 丢失 |
 | `member.plan.changed` | 支付模块 | 用户权限 | `{ userId:string, plan:enum(free\|pro\|team), effectiveAt:int64, orderNo:string }` | 按 `orderNo` 去重；强一致（影响权益），失败阻塞重试 |
 | `adapter.health.degraded` | Python 健康检查 | Java 状态机/通知 | `{ platformId:string, reason:enum(login_expired\|rate_limited\|version_mismatch\|unreachable), severity:enum(warn\|critical) }` | 按 `platformId+reason+窗口(5m)` 去重；`critical` 触发停用+通知 |
+| `crawler.job.discovered` | 本机 Agent | 岗位浏览/匹配/推荐 | `{ jobId:string, platformId:string, externalJobId:string, title:string, company:string, collectedAt:int64, source:enum(search\|detail) }` | 按 `externalJobId+platformId` 去重；可重放（重采集）；Best-Effort 丢失可接受 |
 
 **全局语义**：投递结果与联动类事件开启 RabbitMQ 手动 ack + 死信队列；重复消费依靠 `dedupKey`/业务表唯一键去重 [Expert judgment] ADR-004。消费失败进 DLQ，按事件级 `retryPolicy`（上表）重试，超限告警人工介入。重放：状态类事件支持时间窗（默认 24h）内重放，幂等键保证重放安全。
 
@@ -1782,12 +1819,12 @@ HLD §4.6 只说"manual ack + 死信队列"，**没给 exchange/队列/路由的
 
 | 项 | 状态 | 说明 |
 |----|------|------|
-| 22/25 外部 API 补详细契约（A01–A08/A10/A12/A13/A15/A16–A19/A22–A25） | 待 LLD 细化 | 仅路径表，无请求/响应字段 schema；模板仿 §4.2–§4.4 |
-| B07 查询结果 / B09 健康检查 补字段 schema | 待 LLD 细化 | §4.5 仅方法名 |
-| 适配器 `searchJobs`/`getJobDetail` 服务端触发路径入 B 系列 | 待 LLD 细化 | 采集路径未契约化（见 §3.6） |
+| 22/25 外部 API 补详细契约（A01–A08/A10/A12/A13/A15/A16–A19/A22–A25） | **[闭环]** | 见 `design/contracts/external-api.registry.json`（A 层 25 端点全枚举，A09/A11/A14/A21 全详 + 其余字段大纲，§4.1.1）；实际缺口 21 端点已出字段大纲级契约，全详 JSON Schema 留编码期生成 |
+| B07 查询结果 / B09 健康检查 补字段 schema | **[闭环]** | 见 §4.5 B07/B09 契约要点 + `design/contracts/b07-task-result.schema.json`、`b09-health.schema.json` |
+| 适配器 `searchJobs`/`getJobDetail` 服务端触发路径入 B 系列 | **[闭环]** | 见 §4.5 B10/B11 + `b10-search-jobs.schema.json`/`b11-get-job-detail.schema.json` + `crawler-result.schema.json` + 事件 `crawler.job.discovered`（LLD-平台适配器系统-模块设计.md §4） |
 | 契约测试基础设施（契约可验证基线；支撑 R-15 缓解）：`contracts/` + 零依赖校验器 + CI 双闸门 | **[闭环]** | 见 `design/contracts/` 与 §9.23；Pact 消费方测试留待编码期嵌入；R-15 覆盖率长尾仍 [LLD 细化] |
 | 错误码 ↔ LLD `AGENT-1xxx` 逐码桥接明细 | **[闭环]** | 见 §4.7.1 逐码桥接表（正向统一码→AGENT-1xxx + 反向 AGENT-1xxx→统一码；含桥接纪律）；同步修复 §4.7 叙述表与 `error-codes.json` 注册表漂移（补 `PAY_*`、加 `MAINTENANCE`、更正 `AGENT-1003` 误例） |
-| 新风险 R-15（接口契约覆盖率） | 已登记 | 见风险登记表复评 |
+| 新风险 R-15（接口契约覆盖率） | 已收窄（采集/适配器/外部 API 轮廓已契约化；剩余业务子域 [LLD 细化]） | 见风险登记表复评 |
 
 > 以上不阻塞首选模块（本机 Agent）编码，但为集成期返工源，登记为 [LLD 细化] 排期；核心链路（投递/状态/适配器/事件/错误/本机Agent↔服务端/支付回调/AI编排）已完成契约化。
 
@@ -2046,16 +2083,26 @@ v3.7 完成后，第七轮以「领域建模与业务逻辑」视角再审 PRD �
 - **效果**：HLD 接口契约从"叙述性 / 纸面"升级为"可校验资产"；后续任一信封字段变更都会被校验器拦截，杜绝实现与契约漂移。Pact 消费方契约测试（§6.13.4）留待编码期嵌入本仓库。
 - **交付**：机器可校验契约基线已建成（零依赖校验器 + CI/pre-commit 双闸门），基础设施项 **[闭环]**。**更正**：此前误将此基础设施标为闭环 R-04；R-04 实际为「支付闭环细节薄卡」（已 `[闭环-模块前]`），与契约测试无关。本基础设施是 **R-15（接口契约覆盖率不足）** 的缓解前提，但 R-15 因 22/25 外部 API、B07/B09、适配器采集路径仍 `[LLD 细化]` 未关闭。
 
+### 9.24 接口完整性收口修订记录（v3.15 → v3.16，架构师自主推进 #110/#111）
+
+- **动机**：HLD §9.4 残余三条仍未契约化——① 22/25 外部 API 仅路径表无字段 schema；② B07/B09 仅方法名无字段；③ 适配器 `searchJobs`/`getJobDetail` 采集路径未契约化。三者是集成期返工源，且为 R-15（接口契约覆盖率）长尾主因。
+- **动作**：
+  - 适配器模块 LLD v1.0（`LLD-平台适配器系统-模块设计.md`）落地，闭合 #111：B07/B09 字段 schema + B10/B11 采集触发端点 + `crawler-result` 采集回写 + 事件 `crawler.job.discovered`。
+  - `external-api.registry.json`（A 层 25 端点全枚举）落地，闭合 #110：A09/A11/A14/A21 全详（ref HLD §4.2–§4.4/§4.10），其余 21 端点出字段大纲级契约（实际缺口修正为 21，原估 22/25 含已详 3 端点的统计口径差异，已透明说明）。
+  - 统一适配器门面 `adapter-facade.methods.json`（PlatformAdapter 十方法 + 生命周期 + 反爬基线）机器可读。
+  - 全部新契约纳入 `design/contracts/validate_contracts.py`（schema 12 / 注册表 4 全绿），与 PRD-HLD 防漂移校验器构成双闸门。
+- **效果**：R-15 覆盖率长尾由「外部 API + B07/B09 + 采集路径」三项收窄为仅业务子域（解析质量/退款/PIPL 等，见 §9.4 其余 [LLD 细化]）；核心链路 + 适配器 + 采集 + 外部 API 轮廓均已机器可校验。
+
 ## 10. 关联文档与后续交付
 
 | 文档 | 状态 |
 |------|------|
 | PRD v4.5 最终版 | 已完成（上游，本版重导出依据） |
 | ADR-001 ~ 023 | 已完成（决策依据） |
-| **本文档 HLD v3.15** | **本次交付（v3.14 接口契约化 + v3.15 契约测试基础设施：§4 全面契约化 + `design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线；契约级覆盖率 ~30%→核心链路全覆盖→可机器校验）** |
+| **本文档 HLD v3.16** | **本次交付（v3.14 接口契约化 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面；`design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线；契约级覆盖率 ~30%→核心链路全覆盖→可机器校验→适配器/采集/外部 API 轮廓全覆盖）** |
 | 数据库设计（ER + 表结构 + 索引） | 下一步 |
 | API 契约文档（含 Mock） | 进行中（§4 已契约化，`design/contracts/` 机器可读契约已落地并经校验器闭环，OpenAPI / Mock 导出顺延） |
 | LLD 详细设计（类图/时序/算法） | 待排期 |
 | 测试计划 / 部署运维手册 | P2 后续 |
 
-> 文档版本：2026-08-15 · v3.15（v3.14 接口完整性补全 + v3.15 契约测试基础设施：`design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线）· 编写依据 software-design-document 规范（设计评审导向）
+> 文档版本：2026-08-16 · v3.16（v3.14 接口完整性补全 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面；`design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线）· 编写依据 software-design-document 规范（设计评审导向）

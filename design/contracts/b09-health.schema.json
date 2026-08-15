@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "B09 适配器健康上报（本机 Agent→服务端）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["platformId", "healthy", "checkedAt"],
+  "properties": {
+    "platformId": { "type": "string", "minLength": 1 },
+    "healthy": { "type": "boolean" },
+    "reason": { "type": "string", "nullable": true },
+    "metrics": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["domParseSuccessRate", "avgLatencyMs", "cookieHealthy"],
+      "properties": {
+        "domParseSuccessRate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "avgLatencyMs": { "type": "integer", "minimum": 0 },
+        "cookieHealthy": { "type": "boolean" },
+        "selectorBundleVersion": { "type": "string", "nullable": true }
+      }
+    },
+    "checkedAt": { "type": "integer", "format": "int64" }
+  }
+}

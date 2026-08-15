@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "B11 服务端触发本机 Agent 采集 getJobDetail（服务端→本机 Agent）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["platformId", "externalJobId"],
+  "properties": {
+    "taskId": { "type": "string", "minLength": 1 },
+    "platformId": { "type": "string", "minLength": 1 },
+    "externalJobId": { "type": "string", "minLength": 1 }
+  }
+}

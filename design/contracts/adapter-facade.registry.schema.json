@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "统一适配器门面 PlatformAdapter 注册表自洽 schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contractVersion", "facade", "platformBinding", "methods", "lifecycleStates", "antiBot"],
+  "properties": {
+    "contractVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "facade": { "type": "string", "const": "PlatformAdapter" },
+    "platformBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["deployedAt", "executedAt", "cookieScope"],
+      "properties": {
+        "deployedAt": { "type": "string", "const": "local-agent" },
+        "executedAt": { "type": "string", "const": "local-agent" },
+        "cookieScope": { "type": "string", "const": "local-only" }
+      }
+    },
+    "methods": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["name", "kind"],
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "enum": ["lifecycle", "action", "query", "trigger"] },
+          "params": { "type": "array", "items": { "type": "string" }, "nullable": true },
+          "returns": { "type": "string", "nullable": true }
+        }
+      },
+      "minItems": 1
+    },
+    "lifecycleStates": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["installed", "test_mode", "enabled", "disabled", "degraded", "login_expired"] },
+      "minItems": 1
+    },
+    "antiBot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["humanLikeDelaySec", "mouseTrajectory", "captchaPause", "cookieLocalEncrypt"],
+      "properties": {
+        "humanLikeDelaySec": { "type": "array", "items": { "type": "integer", "minimum": 0 }, "minItems": 2, "maxItems": 2 },
+        "mouseTrajectory": { "type": "string", "enum": ["bezier"] },
+        "captchaPause": { "type": "boolean" },
+        "cookieLocalEncrypt": { "type": "boolean" }
+      }
+    }
+  }
+}

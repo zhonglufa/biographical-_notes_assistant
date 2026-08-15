@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "B07 投递任务结果查询响应（服务端→本机 Agent 回写查询）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["taskId", "idempotencyKey", "status"],
+  "properties": {
+    "taskId": { "type": "string", "minLength": 1 },
+    "idempotencyKey": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["pending", "running", "done", "failed"] },
+    "outcome": { "type": "string", "enum": ["success", "failed", "captcha", "risk_blocked", "need_login"], "nullable": true },
+    "platformApplyId": { "type": "string", "nullable": true },
+    "failReason": { "type": "string", "nullable": true },
+    "evidence": { "type": ["object", "null"], "additionalProperties": true },
+    "updatedAt": { "type": "integer", "format": "int64" }
+  }
+}
