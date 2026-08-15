@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rpc-envelope.schema.json",
+  "title": "本机 Agent↔服务端 RPC 信封 (HLD §4.9)",
+  "description": "WSS 长连接上的应用层 JSON 帧。每条消息要么是请求（含 method），要么是响应（含 ok），二者互斥。",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/rpc-request" },
+    { "$ref": "#/$defs/rpc-response" }
+  ],
+  "$defs": {
+    "rpc-error": {
+      "type": "object",
+      "required": ["code", "message", "retryable"],
+      "additionalProperties": false,
+      "properties": {
+        "code": { "type": "string", "minLength": 1 },
+        "message": { "type": "string" },
+        "retryable": { "type": "boolean" },
+        "user_action": { "type": ["string", "null"] }
+      }
+    },
+    "rpc-request": {
+      "type": "object",
+      "required": ["traceId", "ts", "method"],
+      "additionalProperties": false,
+      "properties": {
+        "traceId": { "type": "string", "minLength": 1 },
+        "ts": { "type": "integer", "minimum": 0, "description": "发送方毫秒时间戳" },
+        "method": { "type": "string", "minLength": 1, "description": "RPC 方法名，见 agent-server-rpc.methods.json" },
+        "idempotencyKey": { "type": "string", "description": "请求级幂等键 UUID" },
+        "params": { "type": "object", "description": "方法参数对象" }
+      }
+    },
+    "rpc-response": {
+      "type": "object",
+      "required": ["traceId", "ok"],
+      "additionalProperties": false,
+      "properties": {
+        "traceId": { "type": "string", "minLength": 1 },
+        "ok": { "type": "boolean" },
+        "result": { "type": "object", "description": "成功时的结果对象" },
+        "error": { "$ref": "#/$defs/rpc-error", "description": "失败时的错误，遵循 §4.7 信封" }
+      }
+    }
+  }
+}

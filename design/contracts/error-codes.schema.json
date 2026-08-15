@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "error-codes.schema.json",
+  "title": "错误码注册表 schema (HLD §4.7)",
+  "description": "校验 error-codes.json 注册表自洽：每条含 code/http/retryable/namespace，code 全局唯一。",
+  "type": "object",
+  "required": ["registry"],
+  "additionalProperties": false,
+  "properties": {
+    "registry": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "http", "retryable", "namespace"],
+        "additionalProperties": false,
+        "properties": {
+          "code": { "type": "string", "minLength": 1, "description": "字符串业务错误码（权威唯一）" },
+          "http": { "type": "integer", "minimum": 100, "maximum": 599 },
+          "retryable": { "type": "boolean" },
+          "user_action": { "type": ["string", "null"] },
+          "namespace": { "type": "string", "description": "A=通用 / AUTH=鉴权 / B=LLM·适配器·浏览器 / PAY=支付" }
+        }
+      }
+    }
+  }
+}

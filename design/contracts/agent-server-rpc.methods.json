@@ -1,0 +1,62 @@
+{
+  "contractVersion": "1.0.0",
+  "transport": "WSS",
+  "heartbeatSec": 30,
+  "deviceEndpoints": [
+    {
+      "method": "POST",
+      "path": "/api/v1/device/register",
+      "request": { "deviceFingerprint": "string", "os": "string", "agentVersion": "string" },
+      "response": { "deviceId": "string", "deviceSecret": "string", "contractVersion": "string" }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/device/token",
+      "request": { "deviceId": "string", "deviceSecret": "string", "grant_type": "client_credentials" },
+      "response": { "accessToken": "string", "expiresIn": 900, "refreshToken": "string|null" }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/device/token/revoke",
+      "request": { "deviceId": "string", "reason": "string" },
+      "response": { "code": 204 }
+    }
+  ],
+  "handshake": {
+    "method": "POST",
+    "path": "/api/v1/device/handshake",
+    "request": { "clientVersion": "string", "contractVersion": "string", "capabilities": ["string"] },
+    "response": { "negotiatedCapabilities": ["string"], "serverContractVersion": "string", "enforceAfter": "string" }
+  },
+  "rpcMethods": {
+    "serverToAgent": [
+      { "method": "ApplyTask.Deliver", "params": ["taskId", "idempotencyKey", "platformId", "jobId", "resumeVersionId", "behavioralProfile"], "returns": "{ taskId, accepted:bool }" },
+      { "method": "Status.Poll", "params": ["checks"], "returns": "PollResult[]" },
+      { "method": "Adapter.HealthCheck", "params": [], "returns": "HealthReport[]" },
+      { "method": "Config.Push", "params": ["policyDelta"], "returns": "{ ok }" },
+      { "method": "Adapter.LoginGuidance", "params": ["platformId"], "returns": "{ loginUrl, qr? }" }
+    ],
+    "agentToServer": [
+      { "method": "Result.Report", "params": ["taskId", "idempotencyKey", "outcome", "platformApplyId?", "failReason?", "evidence?"], "returns": "{ ok }" },
+      { "method": "Status.Observed", "params": ["checks"], "returns": "{ ok }" },
+      { "method": "Health.Report", "params": ["reports"], "returns": "{ ok }" },
+      { "method": "Heartbeat", "params": [], "returns": "{ ok }" },
+      { "method": "Event.Publish", "params": ["eventType", "payload"], "returns": "{ ok }" }
+    ]
+  },
+  "paymentCallback": {
+    "method": "POST",
+    "path": "/api/v1/payments/callback",
+    "auth": "channel-signature",
+    "request": {
+      "channel": "enum(wechat|alipay)",
+      "outTradeNo": "string(order_no)",
+      "transactionId": "string",
+      "tradeStatus": "enum(SUCCESS|CLOSED|REFUND)",
+      "amount": "int(分)",
+      "sign": "string",
+      "timestamp": "int64"
+    },
+    "response": { "code": 200 }
+  }
+}

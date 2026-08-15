@@ -1,0 +1,26 @@
+{
+  "registry": [
+    { "code": "INVALID_PARAM", "http": 400, "retryable": false, "namespace": "A", "user_action": "检查输入后重试" },
+    { "code": "INVALID_STATE_TRANSITION", "http": 409, "retryable": false, "namespace": "A", "user_action": "刷新后重试" },
+    { "code": "INVALID_JOBS", "http": 400, "retryable": false, "namespace": "A", "user_action": "调整岗位列表" },
+    { "code": "UNAUTHORIZED", "http": 401, "retryable": false, "namespace": "AUTH", "user_action": "重新登录" },
+    { "code": "TOKEN_EXPIRED", "http": 401, "retryable": false, "namespace": "AUTH", "user_action": "调用 refresh" },
+    { "code": "CREDENTIAL_MISSING", "http": 401, "retryable": false, "namespace": "AUTH", "user_action": "重新登录" },
+    { "code": "FORBIDDEN", "http": 403, "retryable": false, "namespace": "A" },
+    { "code": "QUOTA_EXCEEDED", "http": 403, "retryable": false, "namespace": "A", "user_action": "升级会员" },
+    { "code": "PLAN_REQUIRED", "http": 403, "retryable": false, "namespace": "A", "user_action": "升级会员" },
+    { "code": "DATA_ISOLATION_VIOLATION", "http": 403, "retryable": false, "namespace": "A" },
+    { "code": "PLATFORM_DISABLED", "http": 403, "retryable": false, "namespace": "A", "user_action": "启用平台或换平台" },
+    { "code": "RESOURCE_NOT_FOUND", "http": 404, "retryable": false, "namespace": "A", "user_action": "检查 ID" },
+    { "code": "NOT_FOUND", "http": 404, "retryable": false, "namespace": "A", "user_action": "检查 ID" },
+    { "code": "DUPLICATE_REQUEST", "http": 409, "retryable": false, "namespace": "A" },
+    { "code": "ALREADY_APPLIED", "http": 409, "retryable": false, "namespace": "A", "user_action": "已投过该岗" },
+    { "code": "RATE_LIMITED", "http": 429, "retryable": true, "namespace": "A", "user_action": "稍后重试" },
+    { "code": "LLM_DEGRADED", "http": 502, "retryable": true, "namespace": "B", "user_action": "稍后重试" },
+    { "code": "ADAPTER_UNAVAILABLE", "http": 502, "retryable": true, "namespace": "B", "user_action": "稍后重试" },
+    { "code": "BROWSER_OVERLOADED", "http": 502, "retryable": true, "namespace": "B", "user_action": "稍后重试" },
+    { "code": "PAY_SIGN_INVALID", "http": 400, "retryable": false, "namespace": "PAY" },
+    { "code": "PAY_DUPLICATE", "http": 200, "retryable": false, "namespace": "PAY" },
+    { "code": "PAY_AMOUNT_MISMATCH", "http": 400, "retryable": false, "namespace": "PAY", "user_action": "联系客服" }
+  ]
+}

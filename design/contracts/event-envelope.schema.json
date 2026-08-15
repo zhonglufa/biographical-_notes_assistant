@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "event-envelope.schema.json",
+  "title": "事件信封 (HLD §4.6)",
+  "description": "RabbitMQ 事件统一信封。payload 为各事件类型化对象（见 agent-server-rpc.methods.json 事件表与 HLD §4.6）。",
+  "type": "object",
+  "required": ["eventType", "traceId", "ts", "producer", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "eventType": { "type": "string", "minLength": 1, "description": "事件类型，枚举见事件注册表" },
+    "traceId": { "type": "string", "minLength": 1, "description": "全链路追踪 ID" },
+    "ts": { "type": "integer", "minimum": 0, "description": "生产者毫秒时间戳，用于顺序判定与重放窗口" },
+    "producer": { "type": "string", "minLength": 1, "description": "生产者服务标识" },
+    "payload": { "type": "object", "description": "类型化事件负载" },
+    "dedupKey": { "type": "string", "description": "可选去重键；缺省由消费侧按业务键去重" }
+  }
+}

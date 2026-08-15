@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "error-envelope.schema.json",
+  "title": "统一错误信封 (HLD §4.7)",
+  "description": "所有 A/B/C 层响应的统一错误信封。code 必须在 error-codes.json 注册表中且唯一；历史数字码仅作 deprecated 别名。",
+  "type": "object",
+  "required": ["code", "message", "traceId", "retryable"],
+  "additionalProperties": false,
+  "properties": {
+    "code": { "type": "string", "minLength": 1, "description": "字符串业务错误码，注册表唯一" },
+    "message": { "type": "string", "description": "人类可读，不泄露内部实现细节" },
+    "traceId": { "type": "string", "minLength": 1, "description": "全链路追踪 ID，用于排障与对账" },
+    "retryable": { "type": "boolean", "description": "客户端能否安全重试（结合 idempotencyKey 重放）" },
+    "user_action": { "type": ["string", "null"], "description": "可选，面向终端用户的处置建议" }
+  }
+}

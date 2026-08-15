@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "agent-server-rpc.registry.schema.json",
+  "title": "本机 Agent↔服务端 RPC 注册表 schema (HLD §4.9)",
+  "description": "校验 agent-server-rpc.methods.json：设备令牌端点、握手端点、双向 RPC 方法清单、支付回调端点。",
+  "type": "object",
+  "required": ["contractVersion", "transport", "heartbeatSec", "deviceEndpoints", "handshake", "rpcMethods", "paymentCallback"],
+  "additionalProperties": false,
+  "properties": {
+    "contractVersion": { "type": "string", "minLength": 1 },
+    "transport": { "type": "string", "enum": ["WSS", "gRPC-Web"] },
+    "heartbeatSec": { "type": "integer", "minimum": 1 },
+    "deviceEndpoints": { "type": "array", "items": { "$ref": "#/$defs/endpoint" } },
+    "handshake": { "$ref": "#/$defs/endpoint" },
+    "rpcMethods": {
+      "type": "object",
+      "required": ["serverToAgent", "agentToServer"],
+      "additionalProperties": false,
+      "properties": {
+        "serverToAgent": { "type": "array", "items": { "$ref": "#/$defs/rpcMethod" } },
+        "agentToServer": { "type": "array", "items": { "$ref": "#/$defs/rpcMethod" } }
+      }
+    },
+    "paymentCallback": { "$ref": "#/$defs/endpoint" }
+  },
+  "$defs": {
+    "endpoint": {
+      "type": "object",
+      "required": ["method", "path", "request", "response"],
+      "additionalProperties": false,
+      "properties": {
+        "method": { "type": "string", "enum": ["POST", "GET", "PUT", "DELETE", "PATCH"] },
+        "path": { "type": "string", "minLength": 1 },
+        "request": { "type": "object" },
+        "response": { "type": "object" },
+        "auth": { "type": "string" }
+      }
+    },
+    "rpcMethod": {
+      "type": "object",
+      "required": ["method", "params", "returns"],
+      "additionalProperties": false,
+      "properties": {
+        "method": { "type": "string", "minLength": 1 },
+        "params": { "type": "array", "items": { "type": "string" } },
+        "returns": { "type": "string" }
+      }
+    }
+  }
+}

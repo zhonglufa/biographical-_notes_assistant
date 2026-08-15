@@ -1,0 +1,22 @@
+name: contract-check
+
+on:
+  push:
+    paths:
+      - 'design/contracts/**'
+      - 'design/HLD-*.md'
+  pull_request:
+    paths:
+      - 'design/contracts/**'
+      - 'design/HLD-*.md'
+
+jobs:
+  validate-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run contract validator
+        run: python design/contracts/validate_contracts.py
