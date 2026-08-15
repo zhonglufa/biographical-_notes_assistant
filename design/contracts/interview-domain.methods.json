@@ -1,0 +1,78 @@
+{
+  "contractVersion": "1.0.0",
+  "transport": "INTERNAL_REST",
+  "auth": "X_INTERNAL_TOKEN",
+  "basePath": "/internal/v1/interview",
+  "sessionStateMachine": {
+    "states": ["created", "active", "in_progress", "paused", "completed", "scored", "archived", "abandoned"],
+    "initial": "created",
+    "transitions": [
+      { "from": "created", "to": "active", "trigger": "用户点击开始(A17 返回 sessionId 后首个动作)" },
+      { "from": "active", "to": "in_progress", "trigger": "首题下发+用户首次作答" },
+      { "from": "in_progress", "to": "paused", "trigger": "用户主动暂停(断点续聊)" },
+      { "from": "in_progress", "to": "completed", "trigger": "所有轮次结束/用户主动结束" },
+      { "from": "in_progress", "to": "abandoned", "trigger": "超时未应答(单轮 30min 静默关)" },
+      { "from": "paused", "to": "in_progress", "trigger": "用户恢复续聊(上下文保留,非状态回退)" },
+      { "from": "completed", "to": "scored", "trigger": "评估完成生成报告(A19)" },
+      { "from": "completed", "to": "abandoned", "trigger": "用户放弃评分" },
+      { "from": "scored", "to": "archived", "trigger": "超过保留期归档(§5.3)" }
+    ]
+  },
+  "rubric": {
+    "scoreScale": "1-5",
+    "aggregation": "weighted",
+    "dimensions": ["回答完整性", "技术准确性", "结构化表达", "与岗位匹配度"],
+    "weightedScoreRange": "0-100",
+    "defaultWeights": { "回答完整性": 0.25, "技术准确性": 0.25, "结构化表达": 0.25, "与岗位匹配度": 0.25 }
+  },
+  "asr": {
+    "primary": "cloud_asr",
+    "fallback": "ondevice_asr",
+    "textFallback": "text_input",
+    "degradeChain": ["cloud_asr", "ondevice_asr", "text_input"]
+  },
+  "facadeMethods": {
+    "createSession": {
+      "sync": true,
+      "timeoutMs": 2000,
+      "degradeTo": "-",
+      "request": ["userId:string", "questionSetId:string", "applicationId?:string", "mode:enum(text|voice)"],
+      "response": ["sessionId:string", "state:enum(created)"]
+    },
+    "getNextQuestion": {
+      "sync": false,
+      "timeoutMs": 30000,
+      "degradeTo": "question_bank",
+      "request": ["sessionId:string", "turn:int(1..N)"],
+      "response": ["questionId:string", "text:string", "type:enum(behavior|tech|case)", "expectedPoints:string[]", "jdKeywordsCoverage:float(0..1)"]
+    },
+    "submitAnswer": {
+      "sync": false,
+      "timeoutMs": 3000,
+      "degradeTo": "advise",
+      "request": ["sessionId:string", "questionId:string", "answer:string", "modality:enum(text|voice_asr)"],
+      "response": ["turnScore:float(0..1)", "rubric:[{dim,score}]", "feedback:string"]
+    },
+    "evaluateSession": {
+      "sync": true,
+      "timeoutMs": 5000,
+      "degradeTo": "advise",
+      "request": ["sessionId:string"],
+      "response": ["weightedScore:int(0..100)", "dimensions:[{dim,score,reason}]", "degradeFlag:bool"]
+    },
+    "endSession": {
+      "sync": true,
+      "timeoutMs": 2000,
+      "degradeTo": "-",
+      "request": ["sessionId:string", "reason:enum(complete|abandon|timeout)"],
+      "response": ["state:enum(completed|abandoned)"]
+    },
+    "getReport": {
+      "sync": true,
+      "timeoutMs": 2000,
+      "degradeTo": "-",
+      "request": ["sessionId:string"],
+      "response": ["report:interviewEvaluation", "appealEntry:bool", "rerunEntry:bool"]
+    }
+  }
+}

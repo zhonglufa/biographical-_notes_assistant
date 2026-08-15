@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-question",
+  "title": "INTERVIEW_QUESTION 面试题（HLD §3.9 / G7-1）",
+  "description": "单道面试题：类型 + 题干 + 期望要点 + JD 关键词覆盖率（成功标准 ≥80%，PRD §7.2）。",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "text": { "type": "string", "minLength": 1 },
+    "type": { "type": "string", "enum": ["behavior", "tech", "case"] },
+    "expectedPoints": {
+      "type": "array",
+      "items": { "type": "string" },
+      "nullable": true
+    },
+    "jdKeywordsCoverage": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "本题覆盖 JD 技术关键词比例；整场面试题集成功标准 ≥0.8"
+    }
+  },
+  "required": ["id", "text", "type"],
+  "additionalProperties": false
+}

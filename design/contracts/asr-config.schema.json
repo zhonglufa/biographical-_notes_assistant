@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "asr-config",
+  "title": "ASR 供应商降级配置（HLD §6.16 G7-3）",
+  "description": "语音作答经 ASR 转写；主=云端合规境内 ASR，端侧备选，文本兜底。ASR 文本同样过 B6 内容安全。供应商选型 ⚠ LLD 待拍板。",
+  "type": "object",
+  "properties": {
+    "provider": { "type": "string", "enum": ["cloud_asr", "ondevice_asr", "text_input"] },
+    "degradeChain": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["cloud_asr", "ondevice_asr", "text_input"] },
+      "minItems": 2
+    },
+    "contentSafetyPassed": {
+      "type": "boolean",
+      "description": "ASR 文本过 B6 内容安全层",
+      "nullable": true
+    }
+  },
+  "required": ["provider", "degradeChain"],
+  "additionalProperties": false
+}

@@ -190,6 +190,73 @@
         { "payload": { "eventType": "ai.task.result", "traceId": "t1", "taskId": "T1", "method": "b02", "status": "ok", "result": {}, "producedAt": "now" }, "reason": "producedAt 非整数" },
         { "payload": { "eventType": "ai.task.result", "traceId": "t1", "taskId": "T1", "method": "b01", "status": "ok", "result": {}, "producedAt": 1 }, "reason": "method 不在 enum(b02/b04/b05)" }
       ]
+    },
+    "interview-session.schema.json": {
+      "valid": [
+        { "id": "S1", "userId": "U1", "questionSetId": "Q1", "state": "in_progress", "mode": "text", "currentTurn": 2, "startedAt": 1700000000000 },
+        { "id": "S2", "userId": "U1", "questionSetId": "Q1", "applicationId": null, "state": "created", "mode": "voice", "currentTurn": 0, "startedAt": 1700000000001 }
+      ],
+      "invalid": [
+        { "payload": { "id": "S1", "userId": "U1", "questionSetId": "Q1", "state": "invalid_state", "mode": "text", "currentTurn": 0, "startedAt": 1 }, "reason": "state 不在 enum" },
+        { "payload": { "id": "S1", "userId": "U1", "questionSetId": "Q1", "state": "active", "mode": "text", "currentTurn": 0 }, "reason": "缺必需字段 startedAt" },
+        { "payload": { "id": "S1", "userId": "U1", "questionSetId": "Q1", "state": "active", "mode": "text", "currentTurn": 0, "startedAt": 1, "x": 1 }, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "interview-question.schema.json": {
+      "valid": [
+        { "id": "q1", "text": "介绍项目", "type": "behavior" },
+        { "id": "q2", "text": "算法题", "type": "tech", "expectedPoints": ["时间复杂度", "边界"], "jdKeywordsCoverage": 0.85 }
+      ],
+      "invalid": [
+        { "payload": { "id": "q1", "text": "介绍", "type": "unknown" }, "reason": "type 不在 enum" },
+        { "payload": { "id": "q1", "type": "behavior" }, "reason": "缺必需字段 text" }
+      ]
+    },
+    "interview-evaluation.schema.json": {
+      "valid": [
+        { "sessionId": "S1", "weightedScore": 82, "dimensions": [
+            { "dim": "回答完整性", "rawScore": 4, "reason": "覆盖全面" },
+            { "dim": "技术准确性", "rawScore": 4, "reason": "要点准确" },
+            { "dim": "结构化表达", "rawScore": 3, "reason": "条理较清晰" },
+            { "dim": "与岗位匹配度", "rawScore": 5, "reason": "高度契合" }
+          ], "degradeFlag": false, "appealEntry": true, "rerunEntry": true },
+        { "sessionId": "S2", "weightedScore": 55, "dimensions": [
+            { "dim": "回答完整性", "rawScore": 3, "score": 0.6, "reason": "部分覆盖" },
+            { "dim": "技术准确性", "rawScore": 2, "reason": "有错误" },
+            { "dim": "结构化表达", "rawScore": 2, "reason": "混乱" },
+            { "dim": "与岗位匹配度", "rawScore": 3, "reason": "一般" },
+            { "dim": "沟通态度", "rawScore": 3, "reason": "第5维可选示例" }
+          ], "degradeFlag": true }
+      ],
+      "invalid": [
+        { "payload": { "sessionId": "S1", "weightedScore": 150, "dimensions": [ { "dim": "a", "rawScore": 3, "reason": "y" }, { "dim": "b", "rawScore": 3, "reason": "y" }, { "dim": "c", "rawScore": 3, "reason": "y" }, { "dim": "d", "rawScore": 3, "reason": "y" } ], "degradeFlag": false }, "reason": "weightedScore > 100" },
+        { "payload": { "sessionId": "S1", "weightedScore": 80, "degradeFlag": false }, "reason": "缺必需字段 dimensions" },
+        { "payload": { "sessionId": "S1", "weightedScore": 80, "dimensions": [ { "dim": "a", "rawScore": 3, "reason": "y" }, { "dim": "b", "rawScore": 3, "reason": "y" }, { "dim": "c", "rawScore": 3, "reason": "y" }, { "dim": "d", "rawScore": 3, "reason": "y" } ], "degradeFlag": false, "x": 1 }, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "asr-config.schema.json": {
+      "valid": [
+        { "provider": "cloud_asr", "degradeChain": ["cloud_asr", "ondevice_asr", "text_input"], "contentSafetyPassed": true },
+        { "provider": "text_input", "degradeChain": ["cloud_asr", "ondevice_asr", "text_input"] }
+      ],
+      "invalid": [
+        { "payload": { "provider": "unknown_asr", "degradeChain": ["cloud_asr", "text_input"] }, "reason": "provider 不在 enum" },
+        { "payload": { "provider": "cloud_asr" }, "reason": "缺必需字段 degradeChain" }
+      ]
+    },
+    "interview-events.event.schema.json": {
+      "valid": [
+        { "eventType": "interview.session.started", "traceId": "t1", "ts": 1700000000000, "producer": "interview-service", "payload": { "sessionId": "S1", "mode": "voice" } },
+        { "eventType": "interview.question.asked", "traceId": "t2", "ts": 1700000000001, "producer": "interview-service", "payload": { "sessionId": "S1", "questionId": "q1", "turn": 1 } },
+        { "eventType": "interview.answer.received", "traceId": "t3", "ts": 1700000000002, "producer": "interview-service", "payload": { "sessionId": "S1", "questionId": "q1", "modality": "voice_asr", "asrProvider": "cloud_asr" } },
+        { "eventType": "interview.eval.done", "traceId": "t4", "ts": 1700000000003, "producer": "interview-service", "payload": { "sessionId": "S1", "weightedScore": 82, "degradeFlag": false } },
+        { "eventType": "interview.session.ended", "traceId": "t5", "ts": 1700000000004, "producer": "interview-service", "payload": { "sessionId": "S1", "reason": "complete", "state": "completed" } }
+      ],
+      "invalid": [
+        { "payload": { "eventType": "interview.session.started", "traceId": "t1", "ts": 1, "producer": "interview-service", "payload": { "sessionId": "S1" } }, "reason": "payload 缺 mode → oneOf 中所有分支 payload 失败 → 0 匹配" },
+        { "payload": { "eventType": "interview.unknown", "traceId": "t1", "ts": 1, "producer": "interview-service", "payload": {} }, "reason": "eventType 不在 enum（顶层 properties 失败）" },
+        { "payload": { "eventType": "interview.question.asked", "traceId": "t1", "ts": 1, "producer": "interview-service", "payload": { "sessionId": "S1", "questionId": "q1", "turn": 0 } }, "reason": "turn minimum 1 失败 → 该分支 payload 失败，其它分支 eventType 不匹配 → 0 匹配" }
+      ]
     }
   },
   "registryFiles": {
@@ -197,6 +264,7 @@
     "agent-server-rpc.methods.json": "agent-server-rpc.registry.schema.json",
     "adapter-facade.methods.json": "adapter-facade.registry.schema.json",
     "external-api.registry.json": "external-api.registry.schema.json",
-    "ai-orchestrator.methods.json": "ai-orchestrator.registry.schema.json"
+    "ai-orchestrator.methods.json": "ai-orchestrator.registry.schema.json",
+    "interview-domain.methods.json": "interview-domain.registry.schema.json"
   }
 }

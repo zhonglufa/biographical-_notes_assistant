@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-domain-registry",
+  "title": "面试模拟域契约注册表（自洽 schema）",
+  "description": "校验 interview-domain.methods.json 的自洽性：contractVersion / transport / 会话状态机 / rubric 聚合模型 / ASR 降级链 / 会话门面方法。HLD §6.16 G7-1/2/3。",
+  "type": "object",
+  "properties": {
+    "contractVersion": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "transport": { "type": "string", "enum": ["INTERNAL_REST"] },
+    "auth": { "type": "string", "minLength": 1 },
+    "basePath": { "type": "string", "minLength": 1 },
+    "sessionStateMachine": {
+      "type": "object",
+      "properties": {
+        "states": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["created", "active", "in_progress", "paused", "completed", "scored", "archived", "abandoned"] },
+          "minItems": 1
+        },
+        "initial": { "type": "string" },
+        "transitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "from": { "type": "string" },
+              "to": { "type": "string" },
+              "trigger": { "type": "string", "minLength": 1 }
+            },
+            "required": ["from", "to", "trigger"],
+            "additionalProperties": false
+          },
+          "minItems": 1
+        }
+      },
+      "required": ["states", "initial", "transitions"],
+      "additionalProperties": false
+    },
+    "rubric": {
+      "type": "object",
+      "properties": {
+        "scoreScale": { "type": "string", "const": "1-5" },
+        "aggregation": { "type": "string", "enum": ["weighted", "equal"] },
+        "dimensions": {
+          "type": "array",
+          "items": { "type": "string", "minLength": 1 },
+          "minItems": 4,
+          "maxItems": 5
+        },
+        "weightedScoreRange": { "type": "string", "const": "0-100" },
+        "defaultWeights": {
+          "type": "object",
+          "description": "维度→权重(0..1)，求和为 1；HLD 不拍板，LLD 默认等权或产品默认权重（⚠ 第5维权重待拍板）",
+          "additionalProperties": { "type": "number", "minimum": 0, "maximum": 1 }
+        }
+      },
+      "required": ["scoreScale", "aggregation", "dimensions", "weightedScoreRange"],
+      "additionalProperties": false
+    },
+    "asr": {
+      "type": "object",
+      "properties": {
+        "primary": { "type": "string", "description": "主 ASR（云端合规境内优先）" },
+        "fallback": { "type": "string", "description": "端侧/离线 ASR 备选" },
+        "textFallback": { "type": "string", "const": "text_input", "description": "均不可用降级文本输入" },
+        "degradeChain": {
+          "type": "array",
+          "items": { "type": "string", "enum": ["cloud_asr", "ondevice_asr", "text_input"] },
+          "minItems": 2
+        }
+      },
+      "required": ["primary", "fallback", "textFallback", "degradeChain"],
+      "additionalProperties": false
+    },
+    "facadeMethods": {
+      "type": "object",
+      "properties": {
+        "createSession": { "$ref": "#/$defs/method" },
+        "getNextQuestion": { "$ref": "#/$defs/method" },
+        "submitAnswer": { "$ref": "#/$defs/method" },
+        "evaluateSession": { "$ref": "#/$defs/method" },
+        "endSession": { "$ref": "#/$defs/method" },
+        "getReport": { "$ref": "#/$defs/method" }
+      },
+      "required": ["createSession", "getNextQuestion", "submitAnswer", "evaluateSession", "endSession", "getReport"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["contractVersion", "transport", "auth", "basePath", "sessionStateMachine", "rubric", "asr", "facadeMethods"],
+  "additionalProperties": false,
+  "$defs": {
+    "method": {
+      "type": "object",
+      "properties": {
+        "sync": { "type": "boolean" },
+        "timeoutMs": { "type": "integer", "minimum": 1 },
+        "degradeTo": { "type": "string" },
+        "request": { "type": "array", "items": { "type": "string" } },
+        "response": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["sync", "timeoutMs", "degradeTo", "request", "response"],
+      "additionalProperties": false
+    }
+  }
+}

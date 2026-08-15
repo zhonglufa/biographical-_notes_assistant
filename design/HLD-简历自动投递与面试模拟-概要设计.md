@@ -1,5 +1,6 @@
 # 概要设计文档（HLD）：AI 简历助手 — 自动投递与面试模拟
 
+> 2026-08-16 · **v3.18（面试模拟域 LLD v1.0：G7-1/2/3 机器可读契约闭环）**：面试模拟域（产品名两大支柱之一）模块 LLD 落地，闭合 HLD §9.4 残余「§26.2 rubric / §26.3 ASR」与 §6.16 G7-1/2/3 领域模型。新增机器可读契约 `interview-domain.registry`（门面 6 方法 + 状态机 + rubric + ASR 降级链）+ `interview-session`/`interview-question`/`interview-evaluation`/`asr-config` schema + `interview-events.event.schema.json`（5 类事件 oneOf 定型）；全部纳入 `design/contracts/` 校验器（schema 30 / 注册表 6 全绿）。LLD 详述会话状态机/题目生成/逐轮评估/rubric 聚合/ASR 降级链，并显式登记待拍板项（ASR 厂商选型 T1、rubric 第 5 维权重 T2、加权权重 T3）。
 > 2026-08-16 · **v3.17（AI 编排服务 LLD v1.0：B01–B05 机器可读契约闭环）**：AI 编排服务（服务端 Python LLM 网关）模块 LLD 落地，闭合 HLD §9.4 残余「B01–B05 AI 编排内部契约补机器可读 schema」。新增机器可读契约 `b01-match`/`b02-questions`/`b03-evaluate`/`b04-optimize`/`b05-ats`（各 request/response 独立 schema）+ `ai-result.event.schema.json`（`ai.task.result` 异步回写事件）+ `ai-orchestrator.registry`（五个方法注册表，contractVersion 1.0.0）；全部纳入 `design/contracts/` 校验器（schema 24 / 注册表 5 全绿）。LLD 详述三级降级链/模型路由 golden set κ 回归/内容安全/匹配度模型/配额超时/R-10 幻觉硬熔断默认阈值（显式登记待决项）。
 > 2026-08-16 · **v3.16（接口完整性收口：#110/#111）**：适配器模块 LLD v1.0 落地，闭合 HLD §9.4 残余「B07/B09 字段 schema」「searchJobs/getJobDetail 采集路径入 B 系列」(#111) 与「22/25 外部 API 补详细契约」(#110)。新增机器可读契约 `b07-task-result`/`b09-health`/`b10-search-jobs`/`b11-get-job-detail`/`crawler-result` schema + `adapter-facade.registry`（统一 PlatformAdapter 门面）+ `external-api.registry`（A 层 25 端点全枚举，A09/A11/A14/A21 全详 + 其余字段大纲）；新增 B10/B11 采集触发端点与事件 `crawler.job.discovered`；全部纳入 `design/contracts/` 校验器（双闸门）。R-15 覆盖率长尾收窄，剩余 [LLD 细化] 为业务子域（解析/退款/PIPL 等）。
 > 2026-08-15 · **v3.15（契约测试基础设施落地）**：接口契约从"纸面"升级为"机器可校验"——新增 `design/contracts/`：统一错误信封 / 事件信封 / RPC 信封 JSON Schema、错误码注册表、本机 Agent↔服务端 RPC 注册表，以及零依赖校验器 `validate_contracts.py`（正向样本通过 + 反向样本证伪 + 注册表自洽 + 错误码唯一）；并接入 GitHub Actions CI 与 pre-commit 双闸门，使核心链路契约可机器校验（支撑 R-15 缓解；R-15 覆盖率长尾仍 [LLD 细化]）。
@@ -837,6 +838,11 @@
 | `adapter.health.degraded` | Python 健康检查 | Java 状态机/通知 | `{ platformId:string, reason:enum(login_expired\|rate_limited\|version_mismatch\|unreachable), severity:enum(warn\|critical) }` | 按 `platformId+reason+窗口(5m)` 去重；`critical` 触发停用+通知 |
 | `crawler.job.discovered` | 本机 Agent | 岗位浏览/匹配/推荐 | `{ jobId:string, platformId:string, externalJobId:string, title:string, company:string, collectedAt:int64, source:enum(search\|detail) }` | 按 `externalJobId+platformId` 去重；可重放（重采集）；Best-Effort 丢失可接受 |
 | `ai.task.result` | AI 编排服务（Python） | Java 业务服务 | `{ taskId:string, method:enum(b02\|b04\|b05), status:enum(ok\|degraded), result:object, degradeTo?:string, traceId:string, producedAt:int64 }`（机器可读：`ai-result.event.schema.json`） | 按 `taskId` 幂等（重复覆盖首次结果）；异步 B02/B04/B05 结果回写；失败进 DLQ 重试 ≤3 次（见 `LLD-AI编排服务-模块设计.md` §7） |
+| `interview.session.started` | 面试会话服务 | 审计/通知 | `{ sessionId:string, mode:enum(text\|voice) }`（机器可读：`interview-events.event.schema.json`） | 写 `interview_session_event`；按 `sessionId` 溯源 |
+| `interview.question.asked` | 面试会话服务 | 审计 | `{ sessionId:string, questionId:string, turn:int }` | 每轮问答写事件，断点续聊可重放 |
+| `interview.answer.received` | 面试会话服务 | 评估/审计 | `{ sessionId:string, questionId:string, modality:enum(text\|voice_asr), asrProvider?:string }` | `modality=voice_asr` 记录实际 ASR 供应商；降级文本时 `asrProvider=null` |
+| `interview.eval.done` | 面试会话服务 | 报告/通知 | `{ sessionId:string, weightedScore:int(0..100), degradeFlag:bool }` | 评估完成触发；`degradeFlag=true` 标注降级评估 |
+| `interview.session.ended` | 面试会话服务 | 审计/归档 | `{ sessionId:string, reason:enum(complete\|abandon\|timeout), state:enum(completed\|abandoned) }` | 终态写事件 |
 
 **全局语义**：投递结果与联动类事件开启 RabbitMQ 手动 ack + 死信队列；重复消费依靠 `dedupKey`/业务表唯一键去重 [Expert judgment] ADR-004。消费失败进 DLQ，按事件级 `retryPolicy`（上表）重试，超限告警人工介入。重放：状态类事件支持时间窗（默认 24h）内重放，幂等键保证重放安全。
 
@@ -1645,6 +1651,8 @@ HLD §4.6 只说"manual ack + 死信队列"，**没给 exchange/队列/路由的
 - 决策（⚠ 供应商选型留 LLD）：**优先云端合规 ASR（境内）**为主、端侧/离线 ASR 为降级备选；主供应商不可用或质量回归超阈值 → 切备用；均不可用 → 降级为**文本输入**（PRD 模块 5/6 既有边界，麦克风拒绝即文本）[Data-backed] PRD §26.3 / §643。
 - 与 §6.5 P 鉴权、§6.11 B6 内容安全对齐：ASR 文本同样过内容安全层。
 
+**机器可读契约（v3.18 已落地）**：G7-1/2/3 已沉淀为 JSON Schema 与注册表，见 `design/contracts/`：`interview-domain.registry`（门面 6 方法 `createSession`/`getNextQuestion`/`submitAnswer`/`evaluateSession`/`endSession`/`getReport` + 会话状态机 + rubric 聚合 + ASR 降级链，contractVersion 1.0.0）+ `interview-session`/`interview-question`/`interview-evaluation`/`asr-config` schema + `interview-events.event.schema.json`（5 类事件 oneOf 定型）；全部经 `validate_contracts.py` 校验（正向必过/反向必败证伪/注册表自洽）。待拍板项（ASR 厂商选型 / rubric 第 5 维权重 / 加权权重）见 `LLD-面试模拟域-模块设计.md` §10 与 §9.4 待决项。
+
 依据：[Data-backed] PRD §689 / §691 / §26.2 / §26.3 / §643 / §683；[Expert judgment] 类比 application_event 审计。
 
 ---
@@ -1807,8 +1815,11 @@ HLD §4.6 只说"manual ack + 死信队列"，**没给 exchange/队列/路由的
 | §25.4 退款 / 试用 / 退订工作流 | LLD（支付模块） | 待 LLD 细化 |
 | §25.5 本机 Agent 本地存储膨胀与清理 | LLD（本机 Agent） | 待 LLD 细化 |
 | §25.6 数据携带权主动入口（PIPL §45） | LLD（数据导出） | 待 LLD 细化（法务协同） |
-| §26.2 面试评估 rubric 透明性与可申诉 | HLD 已锚定（v3.8 G7-2：维度集 / 加权综合分 0–100 / 逐维分数+理由 / 重跑+申诉入口） | LLD 细化维度权重与第 5 维（§6.16 G7-2） |
-| §26.3 语音 ASR 供应商与降级 | HLD 已锚定（v3.8 G7-3：`AsrProvider` 抽象 + 云端合规为主 / 端侧备选 / 文本兜底降级链） | LLD 细化供应商选型（§6.16 G7-3） |
+| §26.2 面试评估 rubric 透明性与可申诉 | **[闭环]** | 见 §6.16 G7-2 + `interview-evaluation.schema.json` + `LLD-面试模拟域-模块设计.md` §6（维度集 / 加权综合分 0–100 / 逐维分数+理由 / 重跑+申诉入口 / degradeFlag） |
+| §26.3 语音 ASR 供应商与降级 | **[闭环]** | 见 §6.16 G7-3 + `asr-config.schema.json` + `LLD-面试模拟域-模块设计.md` §7（AsrProvider 抽象 + 云端合规为主/端侧备选/文本兜底降级链） |
+| ⚠ 待拍板 T1：ASR 供应商选型（具体云端/端侧厂商） | HLD G7-3 留 LLD | 抽象 `AsrProvider` 已固化降级链 `cloud_asr→ondevice_asr→text_input`；具体厂商由编码期配置中心确定（LLD §10 T1） |
+| ⚠ 待拍板 T2：rubric 第 5 维启用与权重 | HLD G7-2 不拍板 | 默认 4 维等权（各 0.25）；第 5 维是否启用及权重由产品/将军拍板（LLD §10 T2） |
+| ⚠ 待拍板 T3：加权权重最终值 | HLD 不拍板 | 默认等权；产品可配置非等权，须保证 `defaultWeights` 求和=1（LLD §10 T3） |
 | §27.1 多设备同账号 Agent 任务调度冲突 | LLD（调度） | 待 LLD 细化（§5.3/§6.5 J 已给原则） |
 | §27.3 限流提示可解释性 | LLD（前端） | 待 LLD 细化 |
 | §27.4 激活 / 留存 / 付费转化漏斗埋点 | LLD（埋点） | 待 LLD 细化（§6.11 B2 已给事件 schema） |
@@ -2108,16 +2119,25 @@ v3.7 完成后，第七轮以「领域建模与业务逻辑」视角再审 PRD �
   - §4.5 B01–B05 补机器可读指针；§4.6 补 `ai.task.result` 事件（收口异步回写契约空白）；§9.4 残余表收口 + R-10 待决登记。
 - **效果**：内部服务契约 B01–B05 全部机器可校验，AI 编排这条核心链路契约完整性闭合；R-15 剩余 [LLD 细化] 仅业务子域（解析/退款/PIPL/ASR 选型等），与接口契约覆盖率无关。
 
+### 9.26 面试模拟域 LLD 收口修订记录（v3.17 → v3.18，架构师自主推进 G7-1/2/3 契约化）
+
+- **动机**：面试模拟是产品名两大支柱之一（"投递 + 面试模拟"），但 LLD 此前完全真空，仅 HLD §6.16 锚定领域模型（G7-1 会话状态机 / G7-2 rubric / G7-3 ASR 降级），§9.4 将 §26.2/§26.3 登记为 LLD 细化。作为将领/架构师自主推进，选定此线闭合接口完整性残缺口，且不触及将军已延后的 PIPL 三块/退款。
+- **动作**：
+  - 面试模拟域 LLD v1.0（`LLD-面试模拟域-模块设计.md`）落地：统一 `InterviewSessionFacade` 门面（6 方法）、7 态会话状态机（无回退边/断点续聊/单轮 30min 超时）、题目生成（驱动 B02）、逐轮评估（驱动 B03）、rubric 综合评估模型（4 维默认等权 + 加权综合分 0–100 + 透明可申诉 + degradeFlag）、ASR 降级链（cloud→ondevice→text）；显式登记 3 项待拍板（T1 ASR 厂商 / T2 第5维权重 / T3 加权权重）。
+  - `design/contracts/` 新增 7 schema + 1 注册表：`interview-session`/`interview-question`/`interview-evaluation`/`asr-config`/5 类事件 + `interview-domain.registry`（门面+状态机+rubric+ASR 降级链）；校验器升至 **schema 30 / 注册表 6 全绿**。
+  - §6.16 G7 补机器可读指针；§4.6 补面试域 5 事件（`interview.session.started` 等，oneOf 定型）；§9.4 §26.2/§26.3 收口 **[闭环]** + 登记 T1/T2/T3 待拍板项。
+- **效果**：面试模拟域核心链路契约完整性闭合；R-15 剩余 [LLD 细化] 仅业务子域（解析/退款/PIPL），与接口契约覆盖率无关。待拍板项为数值/厂商待定，非接口缺失。
+
 ## 10. 关联文档与后续交付
 
 | 文档 | 状态 |
 |------|------|
 | PRD v4.5 最终版 | 已完成（上游，本版重导出依据） |
 | ADR-001 ~ 023 | 已完成（决策依据） |
-| **本文档 HLD v3.17** | **本次交付（v3.14 接口契约化 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面 + v3.17 AI 编排服务 LLD v1.0：B01–B05 机器可读 request/response schema + `ai.task.result` 异步回写事件 + `ai-orchestrator.registry` 五方法注册表；`design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线；契约级覆盖率 ~30%→核心链路全覆盖→可机器校验→适配器/采集/外部 API/AI 编排轮廓全覆盖）** |
+| **本文档 HLD v3.18** | **本次交付（v3.14 接口契约化 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111 + v3.17 AI 编排服务 LLD v1.0（B01–B05）+ v3.18 面试模拟域 LLD v1.0（G7-1/2/3）：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面 + AI 编排 `ai-orchestrator.registry` 五方法 + 面试域 `interview-domain.registry` 六方法/状态机/rubric/ASR 降级链；`design/contracts/` 机器可读契约（schema 30 / 注册表 6）+ 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线；契约级覆盖率 ~30%→核心链路全覆盖→可机器校验→适配器/采集/外部 API/AI 编排/面试模拟轮廓全覆盖）** |
 | 数据库设计（ER + 表结构 + 索引） | 下一步 |
 | API 契约文档（含 Mock） | 进行中（§4 已契约化，`design/contracts/` 机器可读契约已落地并经校验器闭环，OpenAPI / Mock 导出顺延） |
 | LLD 详细设计（类图/时序/算法） | 待排期 |
 | 测试计划 / 部署运维手册 | P2 后续 |
 
-> 文档版本：2026-08-16 · v3.17（v3.14 接口完整性补全 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面 + v3.17 AI 编排服务 LLD v1.0：B01–B05 机器可读 request/response schema + `ai.task.result` 异步回写事件 + `ai-orchestrator.registry` 五方法注册表；`design/contracts/` 机器可读契约 + 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线）· 编写依据 software-design-document 规范（设计评审导向）
+> 文档版本：2026-08-16 · v3.18（v3.14 接口完整性补全 + v3.15 契约测试基础设施 + v3.16 接口完整性收口 #110/#111：适配器模块 LLD v1.0 + B07/B09/B10/B11 字段 schema + `external-api.registry` 25 端点枚举 + 统一 `adapter-facade` 门面 + v3.17 AI 编排服务 LLD v1.0（B01–B05 机器可读契约）+ v3.18 面试模拟域 LLD v1.0（G7-1/2/3：interview-domain.registry 六方法/状态机/rubric/ASR 降级链 + interview-session/question/evaluation/asr-config schema + 5 类面试事件）；`design/contracts/` 机器可读契约（schema 30 / 注册表 6）+ 零依赖校验器 + CI / pre-commit 双闸门建立机器可校验契约基线）· 编写依据 software-design-document 规范（设计评审导向）

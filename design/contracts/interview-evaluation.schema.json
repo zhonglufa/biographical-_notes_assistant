@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-evaluation",
+  "title": "面试评估报告（HLD §6.16 G7-2 rubric 透明可申诉）",
+  "description": "承载 rubric 维度集 + 加权综合分 0-100 + 逐维理由；降级评估须标 degradeFlag=true。逐维度展示分数与理由，提供重跑/申诉入口。",
+  "type": "object",
+  "properties": {
+    "sessionId": { "type": "string", "minLength": 1 },
+    "weightedScore": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "加权综合分 0-100（各维 1-5 × 权重聚合）"
+    },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dim": { "type": "string", "minLength": 1, "description": "维度名（回答完整性/技术准确性/结构化表达/与岗位匹配度/可选第5维）" },
+          "rawScore": { "type": "number", "minimum": 1, "maximum": 5, "description": "原维分 1-5" },
+          "score": { "type": "number", "minimum": 0, "maximum": 1, "description": "归一化分(0..1)" },
+          "reason": { "type": "string", "minLength": 1, "description": "自然语言理由（透明可申诉）" }
+        },
+        "required": ["dim", "rawScore", "reason"],
+        "additionalProperties": false
+      },
+      "minItems": 4,
+      "maxItems": 5
+    },
+    "degradeFlag": {
+      "type": "boolean",
+      "description": "降级评估(LLM 不可用→规则建议)时为 true，报告须标注『本次为降级评估，仅供参考』"
+    },
+    "appealEntry": { "type": "boolean", "description": "重跑本场/申诉入口可用" },
+    "rerunEntry": { "type": "boolean" }
+  },
+  "required": ["sessionId", "weightedScore", "dimensions", "degradeFlag"],
+  "additionalProperties": false
+}

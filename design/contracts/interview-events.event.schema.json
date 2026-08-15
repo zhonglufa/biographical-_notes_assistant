@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-events",
+  "title": "面试模拟域事件（C 层 RabbitMQ，HLD §6.16 G7-2 审计溯源）",
+  "description": "interview_session_event 审计溯源：每态变更/每轮问答/评估完成写事件，供重跑/申诉。envelope 同 §4.6 事件信封；payload 按事件类型定型。",
+  "type": "object",
+  "properties": {
+    "eventType": { "type": "string", "enum": ["interview.session.started", "interview.question.asked", "interview.answer.received", "interview.eval.done", "interview.session.ended"] },
+    "traceId": { "type": "string", "minLength": 1 },
+    "ts": { "type": "integer", "minimum": 0 },
+    "producer": { "type": "string", "const": "interview-service" },
+    "payload": { "type": "object" }
+  },
+  "required": ["eventType", "traceId", "ts", "producer", "payload"],
+  "additionalProperties": false,
+  "oneOf": [
+    { "properties": { "eventType": { "const": "interview.session.started" }, "payload": { "$ref": "#/$defs/sessionStarted" } }, "required": ["eventType", "payload"] },
+    { "properties": { "eventType": { "const": "interview.question.asked" }, "payload": { "$ref": "#/$defs/questionAsked" } }, "required": ["eventType", "payload"] },
+    { "properties": { "eventType": { "const": "interview.answer.received" }, "payload": { "$ref": "#/$defs/answerReceived" } }, "required": ["eventType", "payload"] },
+    { "properties": { "eventType": { "const": "interview.eval.done" }, "payload": { "$ref": "#/$defs/evalDone" } }, "required": ["eventType", "payload"] },
+    { "properties": { "eventType": { "const": "interview.session.ended" }, "payload": { "$ref": "#/$defs/sessionEnded" } }, "required": ["eventType", "payload"] }
+  ],
+  "$defs": {
+    "sessionStarted": {
+      "type": "object",
+      "properties": { "sessionId": { "type": "string" }, "mode": { "type": "string", "enum": ["text", "voice"] } },
+      "required": ["sessionId", "mode"],
+      "additionalProperties": false
+    },
+    "questionAsked": {
+      "type": "object",
+      "properties": { "sessionId": { "type": "string" }, "questionId": { "type": "string" }, "turn": { "type": "integer", "minimum": 1 } },
+      "required": ["sessionId", "questionId", "turn"],
+      "additionalProperties": false
+    },
+    "answerReceived": {
+      "type": "object",
+      "properties": {
+        "sessionId": { "type": "string" },
+        "questionId": { "type": "string" },
+        "modality": { "type": "string", "enum": ["text", "voice_asr"] },
+        "asrProvider": { "type": "string", "nullable": true, "description": "modality=voice_asr 时记录实际 ASR 供应商；降级文本时为 null" }
+      },
+      "required": ["sessionId", "questionId", "modality"],
+      "additionalProperties": false
+    },
+    "evalDone": {
+      "type": "object",
+      "properties": {
+        "sessionId": { "type": "string" },
+        "weightedScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "degradeFlag": { "type": "boolean" }
+      },
+      "required": ["sessionId", "weightedScore"],
+      "additionalProperties": false
+    },
+    "sessionEnded": {
+      "type": "object",
+      "properties": {
+        "sessionId": { "type": "string" },
+        "reason": { "type": "string", "enum": ["complete", "abandon", "timeout"] },
+        "state": { "type": "string", "enum": ["completed", "abandoned"] }
+      },
+      "required": ["sessionId", "reason", "state"],
+      "additionalProperties": false
+    }
+  }
+}

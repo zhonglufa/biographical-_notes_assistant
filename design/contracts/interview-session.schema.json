@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-session",
+  "title": "INTERVIEW_SESSION 面试会话实体（HLD §6.16 G7-1 / §5.2）",
+  "description": "一次完整 AI 面试模拟运行实例：承载问答轮次、当前态、评估报告引用。状态机无回退边；摄像头不进状态；语音经 ASR 转写。",
+  "type": "object",
+  "properties": {
+    "id": { "type": "string", "minLength": 1 },
+    "userId": { "type": "string", "minLength": 1 },
+    "questionSetId": { "type": "string", "minLength": 1 },
+    "applicationId": { "type": "string", "nullable": true, "description": "备战场景可无 application" },
+    "state": {
+      "type": "string",
+      "enum": ["created", "active", "in_progress", "paused", "completed", "scored", "archived", "abandoned"]
+    },
+    "mode": { "type": "string", "enum": ["text", "voice"], "description": "voice 模式经 ASR 转写(降级文本)" },
+    "currentTurn": { "type": "integer", "minimum": 0 },
+    "startedAt": { "type": "integer", "minimum": 0 },
+    "endedAt": { "type": "integer", "minimum": 0, "nullable": true }
+  },
+  "required": ["id", "userId", "questionSetId", "state", "mode", "currentTurn", "startedAt"],
+  "additionalProperties": false
+}
