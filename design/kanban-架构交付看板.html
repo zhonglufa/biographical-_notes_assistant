@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>架构交付看板 · HLD v3.20</title>
+<style>
+  body { font-family: -apple-system, "Segoe UI", "Microsoft YaHei", sans-serif; background: #fff; color: #1a1a1a; margin: 0; padding: 20px; }
+  .board { display: flex; gap: 14px; overflow-x: auto; align-items: flex-start; }
+  .col { min-width: 232px; flex: 0 0 232px; background: #fafafa; border: 0.5px solid #e3e3e3; border-radius: 12px; padding: 10px; }
+  .col h3 { font-size: 13px; font-weight: 500; margin: 0 0 8px; display: flex; justify-content: space-between; align-items: center; }
+  .col .cnt { font-size: 12px; color: #666; background: #eee; border-radius: 8px; padding: 1px 8px; }
+  .card { background: #fff; border: 0.5px solid #e0e0e0; border-left-width: 3px; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; font-size: 12.5px; line-height: 1.45; }
+  .card b { font-weight: 500; }
+  .tag { display: inline-block; font-size: 11px; color: #555; background: #f0f0f0; border-radius: 6px; padding: 1px 6px; margin-top: 5px; }
+  .c-done { border-left-color: #3B6D11; }
+  .c-doing { border-left-color: #185FA5; }
+  .c-back { border-left-color: #BA7517; }
+  .c-defer { border-left-color: #5F5E5A; }
+  .c-risk { border-left-color: #A32D2D; }
+  .h-done { color: #27500A; }
+  .h-doing { color: #0C447C; }
+  .h-back { color: #633806; }
+  .h-defer { color: #444441; }
+  .h-risk { color: #791F1F; }
+  .star { color: #A32D2D; font-weight: 500; }
+  .summary { font-size: 13px; color: #444; margin: 0 0 14px; }
+</style>
+</head>
+<body>
+  <h2 style="font-size:15px;font-weight:500;margin:0 0 4px;">架构交付看板 · HLD v3.20</h2>
+  <p class="summary">产品：AI 简历助手 — 自动投递与面试模拟。覆盖 PRD/HLD/LLD×多模块 + 机器可读契约。共 38 项交付状态总览。</p>
+  <div class="board">
+    <div class="col">
+      <h3 class="h-done">已闭环 / 已完成 <span class="cnt">11</span></h3>
+      <div class="card c-done"><b>数据库设计 LLD v1.0</b> <span class="star">★本次</span><br>双存储 DDL + 索引 + 分区<span class="tag">§10 长期挂起项收口</span></div>
+      <div class="card c-done"><b>机器可读契约基线</b><br>schema 30 / 注册表 6 + 双闸门<span class="tag">validate_contracts.py</span></div>
+      <div class="card c-done"><b>本机 Agent LLD v1.3</b><br>多设备调度 + 本地存储治理<span class="tag">§27.1 / §25.5</span></div>
+      <div class="card c-done"><b>适配器系统 LLD v1.0</b><br>统一 adapter-facade 门面<span class="tag">§3.4</span></div>
+      <div class="card c-done"><b>AI 编排服务 LLD v1.0</b><br>B01–B05 机器可读契约<span class="tag">§4.5</span></div>
+      <div class="card c-done"><b>面试模拟域 LLD v1.0</b><br>G7-1/2/3 状态机/rubric/ASR<span class="tag">§6.16</span></div>
+      <div class="card c-done"><b>密钥与凭证工程 LLD v1.0</b><br>泄露全量吊销 7 步工程<span class="tag">§31.7</span></div>
+      <div class="card c-done"><b>§9.4 多项闭环</b><br>§25.5/§27.1/§31.7/§26.2/§26.3/TIER2<span class="tag">Cookie 派生已拍板</span></div>
+      <div class="card c-done"><b>接口完整性闭环</b><br>22/25 外部 API / B07–B11 / 契约测试 / 错误码桥接<span class="tag">R-15 收窄</span></div>
+      <div class="card c-done"><b>HLD v3.20</b><br>本版交付（含本次数据库设计）<span class="tag">v3.14→v3.20</span></div>
+      <div class="card c-done"><b>PRD v4.5 / ADR-001~023</b><br>上游与决策依据<span class="tag">已完成</span></div>
+    </div>
+
+    <div class="col">
+      <h3 class="h-doing">进行中 <span class="cnt">3</span></h3>
+      <div class="card c-doing"><b>API 契约文档（含 Mock）</b><br>OpenAPI / Mock 导出顺延<span class="tag">§4 已契约化</span></div>
+      <div class="card c-doing"><b>剩余业务子域 LLD</b><br>解析/退款/PIPL 等见「待细化」列<span class="tag">逐模块推进</span></div>
+      <div class="card c-doing"><b>6 张 SVG 架构图重绘</b><br>用户照《图信息说明书》自行绘制<span class="tag">fig-c1/c2/2-2/2-3/2-4/2-5</span></div>
+    </div>
+
+    <div class="col">
+      <h3 class="h-back">待细化 / 待数据 <span class="cnt">9</span></h3>
+      <div class="card c-back"><b>§25.3 简历导入解析质量</b><span class="tag">待 LLD 细化</span></div>
+      <div class="card c-back"><b>§25.4 退款 / 试用 / 退订</b><span class="tag">支付模块</span></div>
+      <div class="card c-back"><b>§27.3 限流提示可解释</b><span class="tag">前端</span></div>
+      <div class="card c-back"><b>§27.4 激活 / 留存 / 转化埋点</b><span class="tag">埋点</span></div>
+      <div class="card c-back"><b>§31.10 分析数据隐私</b><br>防重识别 k=50<span class="tag">分析模块</span></div>
+      <div class="card c-back"><b>§34.5 帮助中心与错误可解释</b><span class="tag">前端/客服</span></div>
+      <div class="card c-back"><b>§34.6 流失预警与挽回</b><span class="tag">增长</span></div>
+      <div class="card c-back"><b>§34.7 AI 内容版权声明</b><span class="tag">AI/法务</span></div>
+      <div class="card c-back"><b>notification 表</b><br>待通知模块 LLD 收口<span class="tag">草案已列</span></div>
+    </div>
+
+    <div class="col">
+      <h3 class="h-defer">延后 · PIPL / 法务 <span class="cnt">6</span></h3>
+      <div class="card c-defer"><b>§25.6 数据携带权</b><br>PIPL §45<span class="tag">法务协同</span></div>
+      <div class="card c-defer"><b>PIPL §24 自动化决策</b><span class="tag">延后</span></div>
+      <div class="card c-defer"><b>DSAR 全流程</b><span class="tag">延后</span></div>
+      <div class="card c-defer"><b>安全威胁模型</b><span class="tag">延后</span></div>
+      <div class="card c-defer"><b>§31.11 数据删除可验证</b><br>被遗忘权<span class="tag">法务协同</span></div>
+      <div class="card c-defer"><b>无障碍 §19</b><span class="tag">待定</span></div>
+    </div>
+
+    <div class="col">
+      <h3 class="h-risk">风险待决 / 待拍板 <span class="cnt">9</span></h3>
+      <div class="card c-risk"><b>T1 ASR 厂商选型</b><span class="tag">编码期定</span></div>
+      <div class="card c-risk"><b>T2 rubric 第 5 维权重</b><span class="tag">产品拍板</span></div>
+      <div class="card c-risk"><b>T3 加权权重最终值</b><span class="tag">产品拍板</span></div>
+      <div class="card c-risk"><b>精确框架小版本号</b><span class="tag">LLD 锁定</span></div>
+      <div class="card c-risk"><b>代理 IP 池 / 风控参数</b><span class="tag">PoC 调</span></div>
+      <div class="card c-risk"><b>高校模板 80% 覆盖率</b><span class="tag">估算值</span></div>
+      <div class="card c-risk"><b>R1 幂等键前端 UUID 反模式</b><span class="tag">术语统一</span></div>
+      <div class="card c-risk"><b>R5 "事件溯源"措辞</b><span class="tag">术语统一</span></div>
+      <div class="card c-risk"><b>R-10 幻觉硬熔断阈值</b><span class="tag">配置中心</span></div>
+    </div>
+  </div>
+</body>
+</html>
