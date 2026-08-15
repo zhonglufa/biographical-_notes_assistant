@@ -19,6 +19,7 @@
     { "code": "LLM_DEGRADED", "http": 502, "retryable": true, "namespace": "B", "user_action": "稍后重试" },
     { "code": "ADAPTER_UNAVAILABLE", "http": 502, "retryable": true, "namespace": "B", "user_action": "稍后重试" },
     { "code": "BROWSER_OVERLOADED", "http": 502, "retryable": true, "namespace": "B", "user_action": "稍后重试" },
+    { "code": "MAINTENANCE", "http": 503, "retryable": true, "namespace": "A", "user_action": "稍后重试" },
     { "code": "PAY_SIGN_INVALID", "http": 400, "retryable": false, "namespace": "PAY" },
     { "code": "PAY_DUPLICATE", "http": 200, "retryable": false, "namespace": "PAY" },
     { "code": "PAY_AMOUNT_MISMATCH", "http": 400, "retryable": false, "namespace": "PAY", "user_action": "联系客服" }

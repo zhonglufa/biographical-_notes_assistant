@@ -834,12 +834,62 @@
 | `LLM_DEGRADED` | 502 | LLM 降级/超时 | true（走降级路径） | 稍后重试 | B01–B05 |
 | `ADAPTER_UNAVAILABLE` | 502 | 适配器不可用 | true | 稍后重试 | B06/B09 |
 | `BROWSER_OVERLOADED` | 502 | 本机浏览器实例池满 | true（排队） | 稍后重试 | B06 |
+| `PAY_SIGN_INVALID` | 400 | 支付回调签名验签失败 | false | 无（已记录） | §4.10（B 层支付回调） |
+| `PAY_DUPLICATE` | 200 | 支付幂等冲突（重复回调） | false | 无（已去重） | §4.10 |
+| `PAY_AMOUNT_MISMATCH` | 400 | 回调金额与订单不符 | false | 联系客服 | §4.10 |
 | `MAINTENANCE` | 503 | 服务维护 | true | 稍后重试 | A 层通用 |
 
 **命名空间桥接**：
-- 本机 Agent 内部错误见 LLD `AGENT-1xxx` 系列；经信封 `code` 桥接映射（如 `AGENT-1001 适配器失效`→`ADAPTER_UNAVAILABLE`、`AGENT-1003 浏览器池满`→`BROWSER_OVERLOADED`），`retryable` 沿用上表。
+- 本机 Agent 内部错误见 LLD `AGENT-1xxx` 系列；经信封 `code` 桥接映射（如 `AGENT-1001 BrowserLaunchFailed`→`ADAPTER_UNAVAILABLE`、`AGENT-3001 SelectorMiss`→`ADAPTER_UNAVAILABLE`、浏览器池满直接→`BROWSER_OVERLOADED`），`retryable` 沿用上表。逐码桥接明细见 §4.7.1。
 - 支付渠道回调错误见 §4.10，独立码段 `PAY_*`（`PAY_SIGN_INVALID`/`PAY_DUPLICATE`/`PAY_AMOUNT_MISMATCH`）。
 - 适配器/平台侧错误经 B06 结果事件 `outcome` 枚举承载（`failed`/`captcha`/`risk_blocked`/`need_login`），不进入业务错误码表。
+
+#### 4.7.1 错误码 ↔ `AGENT-1xxx` 逐码桥接明细（#109 收口）
+
+本小节将 §4.7 统一错误注册表（权威、机器可读，见 `design/contracts/error-codes.json`）与本机 Agent LLD `AGENT-1xxx` 系列（见 LLD v1.2 §6.2）逐码桥接，消除"数字码 vs 字符串码"双向失配，并为 R-15（接口契约覆盖率）提供跨层错误映射依据。`retryable` 一律沿用 §4.7 总表。
+
+**正向（统一码 → 本机 Agent 侧 `AGENT-1xxx` 触发条件）**
+
+| 统一码 | 命名空间 | `AGENT-1xxx` 触发来源 | 备注 |
+|--------|----------|------------------------|------|
+| `INVALID_PARAM` | A | 本机 Agent §7.1 输入校验失败统一包装 | 输入端，非特定 AGENT 码 |
+| `INVALID_STATE_TRANSITION` | A | 任务状态机非法转移守卫 | 本地可测 |
+| `INVALID_JOBS` | A | §7.1 岗位列表校验 | 同 `INVALID_PARAM` 类 |
+| `UNAUTHORIZED` | AUTH | `AGENT-2001 CookieDecryptFailed` | 重登 |
+| `TOKEN_EXPIRED` | AUTH | 设备令牌过期 / WSS 握手 426 → refresh | 本机 Agent↔服务端 |
+| `CREDENTIAL_MISSING` | AUTH | `AGENT-2001` / `AGENT-2002` | 凭据缺失 / 安全区不可用 |
+| `FORBIDDEN` | A | （服务端鉴权，本机 Agent 一般不直接产） | — |
+| `QUOTA_EXCEEDED` | A | （服务端配额） | — |
+| `PLAN_REQUIRED` | A | （服务端套餐） | — |
+| `DATA_ISOLATION_VIOLATION` | A | （服务端 / 安全） | — |
+| `PLATFORM_DISABLED` | A | 本机 Agent 启用平台适配器前开关检查 | 本地可测 |
+| `RESOURCE_NOT_FOUND` | A | §7.1 引用存在性（`resume_version_id`/`job_id`） | 本地可测 |
+| `NOT_FOUND` | A | 同上（兼容别名） | — |
+| `DUPLICATE_REQUEST` | A | §7.1 幂等四元组 `UNIQUE` 冲突（本地先于服务端） | ADR-006 |
+| `ALREADY_APPLIED` | A | 业务四元组重复投递（本地 / 服务端） | — |
+| `RATE_LIMITED` | A | `AGENT-3002 PlatformRateLimited` | 1:1 平台限流 |
+| `LLM_DEGRADED` | B | （服务端 LLM 编排降级；本机 Agent 收到结果） | 非本机 Agent 直接产 |
+| `ADAPTER_UNAVAILABLE` | B | `AGENT-1001 BrowserLaunchFailed` / `AGENT-3001 SelectorMiss` / `AGENT-4001 CaptchaTimeout`（超时类） | 适配器不可用主源 |
+| `BROWSER_OVERLOADED` | B | 浏览器池满载（BrowserPool 容量，HLD §21） | 本机 Agent 直接产，无对应 AGENT 码 |
+| `MAINTENANCE` | A | （服务端维护；本机 Agent 收到） | — |
+| `PAY_SIGN_INVALID` | PAY | （服务端支付回调验签；非本机 Agent） | §4.10 |
+| `PAY_DUPLICATE` | PAY | （服务端支付幂等） | §4.10 |
+| `PAY_AMOUNT_MISMATCH` | PAY | （服务端支付金额校验） | §4.10 |
+
+**反向（`AGENT-1xxx` → 统一码）**
+
+| `AGENT-1xxx` | 类型 | 上报统一码 | 恢复策略 | 备注 |
+|--------------|------|-----------|----------|------|
+| `AGENT-1001` | BrowserLaunchFailed | `ADAPTER_UNAVAILABLE` (B, retryable) | 退避重试；N 次 → break-glass 报用户 | — |
+| `AGENT-2001` | CookieDecryptFailed | `UNAUTHORIZED` / `CREDENTIAL_MISSING` (AUTH) | re-prompt 解锁 | 不记明文日志 |
+| `AGENT-2002` | KeychainUnavailable | （本地 fallback DPAPI；彻底失败 → `CREDENTIAL_MISSING`） | fallback + 告警 | 多数情形无统一码，仅告警 |
+| `AGENT-3001` | SelectorMiss | `ADAPTER_UNAVAILABLE` (B, retryable) | 挂起适配器 + 触发 R-09 | — |
+| `AGENT-3002` | PlatformRateLimited | `RATE_LIMITED` (A, retryable) | 退避 + 冷却 | 1:1 |
+| `AGENT-4001` | CaptchaTimeout | `ADAPTER_UNAVAILABLE` (B)（建议后续独立超时码） | 任务 rollback | user_action 手动过码 |
+| `AGENT-5001` | WorkerHeartbeatLost | （**不**包装为错误码；走事件 / 状态通道 `Status.Observed`） | supervisor fail-closed | 进程级，非网络错误信封 |
+| `AGENT-5002` | SQLiteCorrupt | （**不**包装为错误码；走 `Health.Report` / `Status.Observed`） | `enter_safe_mode` + `snapshot` 恢复 | 持久化故障走健康通道，绝不静默放行 |
+
+> 桥接纪律：`AGENT-5001`/`AGENT-5002` 属进程级 / 持久化级故障，**严禁**包装进统一错误信封（避免客户端误重试）；一律经事件信封 / 健康通道上报，由 supervision 与受限安全模式处置。本桥接表可后续导出为 `design/contracts/error-code-bridge.json` 纳入零依赖校验器做机器校验（见 §9.23 后续项）。
 
 ---
 
@@ -1736,7 +1786,7 @@ HLD §4.6 只说"manual ack + 死信队列"，**没给 exchange/队列/路由的
 | B07 查询结果 / B09 健康检查 补字段 schema | 待 LLD 细化 | §4.5 仅方法名 |
 | 适配器 `searchJobs`/`getJobDetail` 服务端触发路径入 B 系列 | 待 LLD 细化 | 采集路径未契约化（见 §3.6） |
 | 契约测试基础设施（契约可验证基线；支撑 R-15 缓解）：`contracts/` + 零依赖校验器 + CI 双闸门 | **[闭环]** | 见 `design/contracts/` 与 §9.23；Pact 消费方测试留待编码期嵌入；R-15 覆盖率长尾仍 [LLD 细化] |
-| 错误码 ↔ LLD `AGENT-1xxx` 逐码桥接明细 | 待补 | §4.7 已给原则与示例 |
+| 错误码 ↔ LLD `AGENT-1xxx` 逐码桥接明细 | **[闭环]** | 见 §4.7.1 逐码桥接表（正向统一码→AGENT-1xxx + 反向 AGENT-1xxx→统一码；含桥接纪律）；同步修复 §4.7 叙述表与 `error-codes.json` 注册表漂移（补 `PAY_*`、加 `MAINTENANCE`、更正 `AGENT-1003` 误例） |
 | 新风险 R-15（接口契约覆盖率） | 已登记 | 见风险登记表复评 |
 
 > 以上不阻塞首选模块（本机 Agent）编码，但为集成期返工源，登记为 [LLD 细化] 排期；核心链路（投递/状态/适配器/事件/错误/本机Agent↔服务端/支付回调/AI编排）已完成契约化。
