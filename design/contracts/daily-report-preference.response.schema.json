@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "daily-report-preference-response",
+  "title": "A25 日报推送时间偏好 - 响应",
+  "description": "PUT /api/v1/users/daily-report/preference 响应体（统一信封 data 内）。",
+  "type": "object",
+  "properties": {
+    "ok": { "type": "boolean" },
+    "updatedAt": { "type": "integer", "minimum": 0, "description": "epoch 毫秒" }
+  },
+  "required": ["ok", "updatedAt"],
+  "additionalProperties": false
+}

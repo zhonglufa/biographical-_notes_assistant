@@ -371,6 +371,35 @@
         { "taskId": "T1", "status": "queued", "reason": "status 不在 enum" },
         { "taskId": "T1", "status": "pending", "extra": 1, "reason": "存在未声明额外字段" }
       ]
+    },
+    "daily-report-today.response.schema.json": {
+      "valid": [
+        { "date": "2026-08-16", "summary": "今日投递 12 份，成功 10", "stats": { "appliedTotal": 12, "success": 10, "failed": 2, "byPlatform": [ { "platformId": "boss", "count": 8 } ], "hrViews": 3, "interviewInvites": 1, "newQuestions": 5, "trend7d": [ { "date": "2026-08-10", "count": 5 } ] } }
+      ],
+      "invalid": [
+        { "date": "2026-08-16", "summary": "x", "reason": "缺必需字段 stats" },
+        { "date": "2026-08-16", "summary": "x", "stats": { "appliedTotal": 12, "success": 10, "failed": 2, "byPlatform": [ { "platformId": "boss", "count": 8 } ], "hrViews": 3, "interviewInvites": 1, "newQuestions": 5, "trend7d": [ { "date": "2026-08-10", "count": 5 } ] }, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "daily-report-preference.request.schema.json": {
+      "valid": [
+        { "pushTime": "20:00", "enabled": true },
+        { "pushTime": "08:30", "enabled": false }
+      ],
+      "invalid": [
+        { "enabled": true, "reason": "缺必需字段 pushTime" },
+        { "pushTime": "25:00", "enabled": true, "reason": "pushTime 不匹配 HH:mm" },
+        { "pushTime": "20:00", "enabled": true, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "daily-report-preference.response.schema.json": {
+      "valid": [
+        { "ok": true, "updatedAt": 1700000000000 }
+      ],
+      "invalid": [
+        { "updatedAt": 1700000000000, "reason": "缺必需字段 ok" },
+        { "ok": true, "updatedAt": 1700000000000, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
     }
   },
   "registryFiles": {

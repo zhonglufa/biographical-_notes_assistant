@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "daily-report-preference-request",
+  "title": "A25 日报推送时间偏好 - 请求",
+  "description": "PUT /api/v1/users/daily-report/preference 请求体（统一信封 data 内）。pushTime 为 HH:mm 24 小时制；enabled 控制是否推送。",
+  "type": "object",
+  "properties": {
+    "pushTime": { "type": "string", "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$", "description": "HH:mm 推送时间（默认 20:00）" },
+    "enabled": { "type": "boolean" }
+  },
+  "required": ["pushTime", "enabled"],
+  "additionalProperties": false
+}

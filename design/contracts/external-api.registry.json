@@ -30,7 +30,7 @@
     { "id": "A21", "method": "POST", "path": "/payments/callback", "purpose": "支付渠道回调", "auth": "channel-signature", "contractStatus": "fully-detailed", "ref": "HLD §4.10 + payments-callback.request.schema.json" },
     { "id": "A22", "method": "GET", "path": "/notifications", "purpose": "通知列表", "auth": "Bearer", "contractStatus": "fully-detailed", "ref": "notifications-list.response.schema.json", "requestFields": ["level?", "page", "pageSize"], "responseFields": ["items:[notification]", "unread"] },
     { "id": "A23", "method": "GET", "path": "/notifications/ws", "purpose": "WebSocket 连接（推送）", "auth": "Bearer(query)", "contractStatus": "outlined", "requestFields": null, "responseFields": ["wsUrl"] },
-    { "id": "A24", "method": "GET", "path": "/daily-report/today", "purpose": "获取今日日报摘要", "auth": "Bearer", "contractStatus": "outlined", "requestFields": null, "responseFields": ["date", "summary", "stats"] },
-    { "id": "A25", "method": "PUT", "path": "/users/daily-report/preference", "purpose": "设置日报推送时间偏好", "auth": "Bearer", "contractStatus": "outlined", "requestFields": ["pushTime", "enabled"], "responseFields": ["ok"] }
+    { "id": "A24", "method": "GET", "path": "/daily-report/today", "purpose": "获取今日日报摘要", "auth": "Bearer", "contractStatus": "fully-detailed", "ref": "daily-report-today.response.schema.json", "requestFields": null, "responseFields": ["date", "summary", "stats"] },
+    { "id": "A25", "method": "PUT", "path": "/users/daily-report/preference", "purpose": "设置日报推送时间偏好", "auth": "Bearer", "contractStatus": "fully-detailed", "ref": "daily-report-preference.request.schema.json / daily-report-preference.response.schema.json", "requestFields": ["pushTime", "enabled"], "responseFields": ["ok", "updatedAt"] }
   ]
 }

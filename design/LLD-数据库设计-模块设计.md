@@ -54,6 +54,7 @@
 | `interview_evaluation` | 面试 | session_id | — | 1:1 session（报告） |
 | `interview_session_event` | 面试 | (user_id, id) | idx(session_id) | N:1 session（审计） |
 | `daily_report` | 运营 | (user_id, report_date) | — | N:1 user；每日一条 |
+| `user_preference` | 用户 | user_id | uk(user_id) | 1:1 user；日报推送时间偏好（A25，§3.12 每日日报 LLD） |
 | `audit_log` | 合规 | id | idx(object_type,object_id) | 跨实体统一审计 |
 | `notification`（草案） | 通知 | id | idx(user_id, read_flag) | N:1 user（待通知模块 LLD 收口） |
 
@@ -415,6 +416,15 @@ CREATE TABLE daily_report (
   KEY idx_user (user_id)
 ) COMMENT='日报快照, 每日一条(§5.1 ⑭)；按月分区可选';
 
+CREATE TABLE user_preference (
+  user_id                BIGINT UNSIGNED NOT NULL,
+  daily_report_push_time TIME NOT NULL DEFAULT '20:00:00' COMMENT 'HH:mm 推送时间(A25)',
+  daily_report_enabled   TINYINT(1) NOT NULL DEFAULT 1 COMMENT '是否推送日报(A25)',
+  created_at             DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at             DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (user_id)
+) COMMENT='用户偏好(§3.12 A25 日报推送时间；与 strategy_config 分离：投递策略 vs 通知偏好)';
+
 CREATE TABLE audit_log (
   id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   actor_type  ENUM('user','service','agent','system') NOT NULL,
@@ -489,6 +499,7 @@ CREATE TABLE notification (
 | 会话审计溯源 | interview_session_event | `idx_session(session_id)` | 二级 |
 | 审计检索（对象/操作人） | audit_log | `idx_object` / `idx_actor` | 二级 |
 | 日报按日定位 | daily_report | `PRIMARY KEY(user_id, report_date)` | 主键 |
+| 用户偏好按用户定位 | user_preference | `PRIMARY KEY(user_id)` | 主键 |
 
 ---
 
