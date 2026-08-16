@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "payments-order-response",
+  "title": "A20 创建会员订单 - 响应",
+  "description": "POST /api/v1/payments/orders 响应体（统一信封 data 内）。amount 为整数分，expireAt 为 epoch 毫秒。",
+  "type": "object",
+  "properties": {
+    "orderNo": { "type": "string", "minLength": 1, "description": "订单号（uk，全局唯一）" },
+    "payUrl": { "type": "string", "minLength": 1, "description": "渠道收银台 URL" },
+    "amount": { "type": "integer", "minimum": 0, "description": "应付金额（整数分，服务端权威计算）" },
+    "expireAt": { "type": "integer", "minimum": 0, "description": "订单过期时间 epoch 毫秒（now+24h）" }
+  },
+  "required": ["orderNo", "payUrl", "amount", "expireAt"],
+  "additionalProperties": false
+}

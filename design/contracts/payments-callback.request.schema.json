@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "payments-callback-request",
+  "title": "A21 支付渠道回调 - 请求体",
+  "description": "POST /api/v1/payments/callback 请求体（渠道→服务端，渠道非对称签名验签，不经本机 Agent）。源自 HLD §4.10 内联 schema 落盘。amount 为整数分；outTradeNo == order_no。",
+  "type": "object",
+  "properties": {
+    "channel": { "type": "string", "enum": ["wechat", "alipay"], "description": "支付渠道" },
+    "outTradeNo": { "type": "string", "minLength": 1, "description": "商户订单号（= 本系统 order_no）" },
+    "transactionId": { "type": "string", "minLength": 1, "description": "渠道交易流水号" },
+    "tradeStatus": { "type": "string", "enum": ["SUCCESS", "CLOSED", "REFUND"], "description": "交易状态：成功/关闭/退款" },
+    "amount": { "type": "integer", "minimum": 0, "description": "交易金额（整数分）" },
+    "sign": { "type": "string", "minLength": 1, "description": "渠道签名（微信 Wechatpay-Signature / 支付宝 sign + 平台公钥验签）" },
+    "timestamp": { "type": "integer", "minimum": 0, "description": "渠道时间戳 epoch 毫秒" }
+  },
+  "required": ["channel", "outTradeNo", "transactionId", "tradeStatus", "amount", "sign", "timestamp"],
+  "additionalProperties": false
+}

@@ -136,7 +136,7 @@ CREATE TABLE member_order (
   order_no  VARCHAR(64) NOT NULL,
   user_id   BIGINT UNSIGNED NOT NULL,
   plan      ENUM('pro','enterprise') NOT NULL,
-  status    ENUM('pending','paid','refunded','closed') NOT NULL DEFAULT 'pending',
+  status    ENUM('pending','paid','activated','expired','refunded','closed') NOT NULL DEFAULT 'pending' COMMENT 'canonical 五态+pending/closed(未支付逾期终态)，对齐 PRD §22.2 与 LLD-支付模块 §1',
   amount    DECIMAL(10,2) NOT NULL,
   paid_at   DATETIME(3),
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),

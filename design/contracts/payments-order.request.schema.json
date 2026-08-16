@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "payments-order-request",
+  "title": "A20 创建会员订单 - 请求",
+  "description": "POST /api/v1/payments/orders 请求体（客户端→服务端，Bearer）。金额由服务端权威计算，客户端只传套餐与周期，不从客户端取价。",
+  "type": "object",
+  "properties": {
+    "plan": { "type": "string", "enum": ["pro", "team"], "description": "套餐：pro=专业版, team=团队/高级版（对齐 PRD §12 定价）" },
+    "months": { "type": "integer", "minimum": 1, "maximum": 12, "description": "购买月数（1..12）" },
+    "couponCode": { "type": "string", "minLength": 1, "nullable": true, "description": "优惠券码（可选）" }
+  },
+  "required": ["plan", "months"],
+  "additionalProperties": false
+}
