@@ -1,0 +1,5627 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "简历自动投递与面试模拟 - API 契约（OpenAPI 3.1）",
+    "version": "1.0.0",
+    "description": "由 design/contracts/ 机器可读契约自动导出（生成器：api-contracts/gen_openapi.py）。\n\n## 分层\n- **A 层（外部 API）**：公共 REST，basePath /api/v1，25 个端点（A01-A25）。多数端点 contractStatus=outlined，schema 为 best-effort，以 x-contract-status 标注。\n- **B 层（AI 编排）**：内部 REST /internal/v1/ai，b01-b05 直引机器可读 b0X schema（严格）。\n- **面试模拟域**：内部 REST /internal/v1/interview，6 个 facade 方法（outlined）。\n- **C 层（本机 Agent↔服务端）**：WSS RPC，本文件仅收录 device/* 与 payments/callback 等少数 HTTP 端点；双向 RPC 方法见下方 x-agent-rpc。\n\n## 信封\n- 统一错误信封：components.schemas/error-envelope（§4.7）\n- 事件信封：event-envelope（§4.6）；RPC 信封：rpc-envelope（§4.9）\n\n## Mock\n本文件即为 Mock 数据源：`npx @stoplight/prism mock -s openapi.json`。",
+    "x-error-codes": [
+      {
+        "code": "INVALID_PARAM",
+        "http": 400,
+        "retryable": false,
+        "namespace": "A",
+        "user_action": "检查输入后重试"
+      },
+      {
+        "code": "INVALID_STATE_TRANSITION",
+        "http": 409,
+        "retryable": false,
+        "namespace": "A",
+        "user_action": "刷新后重试"
+      },
+      {
+        "code": "INVALID_JOBS",
+        "http": 400,
+        "retryable": false,
+        "namespace": "A",
+        "user_action": "调整岗位列表"
+      },
+      {
+        "code": "UNAUTHORIZED",
+        "http": 401,
+        "retryable": false,
+        "namespace": "AUTH",
+        "user_action": "重新登录"
+      },
+      {
+        "code": "TOKEN_EXPIRED",
+        "http": 401,
+        "retryable": false,
+        "namespace": "AUTH",
+        "user_action": "调用 refresh"
+      },
+      {
+        "code": "CREDENTIAL_MISSING",
+        "http": 401,
+        "retryable": false,
+        "namespace": "AUTH",
+        "user_action": "重新登录"
+      },
+      {
+        "code": "FORBIDDEN",
+        "http": 403,
+        "retryable": false,
+        "namespace": "A"
+      },
+      {
+        "code": "QUOTA_EXCEEDED",
+        "http": 403,
+        "retryable": false,
+        "namespace": "A",
+        "user_action": "升级会员"
+      },
+      {
+        "code": "PLAN_REQUIRED",
+        "http": 403,
+        "retryable": false,
+        "namespace": "A",
+        "user_action": "升级会员"
+      },
+      {
+        "code": "DATA_ISOLATION_VIOLATION",
+        "http": 403,
+        "retryable": false,
+        "namespace": "A"
+      },
+      {
+        "code": "PLATFORM_DISABLED",
+        "http": 403,
+        "retryable": false,
+        "namespace": "A",
+        "user_action": "启用平台或换平台"
+      },
+      {
+        "code": "RESOURCE_NOT_FOUND",
+        "http": 404,
+        "retryable": false,
+        "namespace": "A",
+        "user_action": "检查 ID"
+      },
+      {
+        "code": "NOT_FOUND",
+        "http": 404,
+        "retryable": false,
+        "namespace": "A",
+        "user_action": "检查 ID"
+      },
+      {
+        "code": "DUPLICATE_REQUEST",
+        "http": 409,
+        "retryable": false,
+        "namespace": "A"
+      },
+      {
+        "code": "ALREADY_APPLIED",
+        "http": 409,
+        "retryable": false,
+        "namespace": "A",
+        "user_action": "已投过该岗"
+      },
+      {
+        "code": "RATE_LIMITED",
+        "http": 429,
+        "retryable": true,
+        "namespace": "A",
+        "user_action": "稍后重试"
+      },
+      {
+        "code": "LLM_DEGRADED",
+        "http": 502,
+        "retryable": true,
+        "namespace": "B",
+        "user_action": "稍后重试"
+      },
+      {
+        "code": "ADAPTER_UNAVAILABLE",
+        "http": 502,
+        "retryable": true,
+        "namespace": "B",
+        "user_action": "稍后重试"
+      },
+      {
+        "code": "BROWSER_OVERLOADED",
+        "http": 502,
+        "retryable": true,
+        "namespace": "B",
+        "user_action": "稍后重试"
+      },
+      {
+        "code": "MAINTENANCE",
+        "http": 503,
+        "retryable": true,
+        "namespace": "A",
+        "user_action": "稍后重试"
+      },
+      {
+        "code": "PAY_SIGN_INVALID",
+        "http": 400,
+        "retryable": false,
+        "namespace": "PAY"
+      },
+      {
+        "code": "PAY_DUPLICATE",
+        "http": 200,
+        "retryable": false,
+        "namespace": "PAY"
+      },
+      {
+        "code": "PAY_AMOUNT_MISMATCH",
+        "http": 400,
+        "retryable": false,
+        "namespace": "PAY",
+        "user_action": "联系客服"
+      }
+    ],
+    "x-agent-rpc": {
+      "transport": "WSS",
+      "heartbeatSec": 30,
+      "envelopes": {
+        "rpc": "rpc-envelope",
+        "event": "event-envelope"
+      },
+      "serverToAgent": [
+        {
+          "method": "ApplyTask.Deliver",
+          "params": [
+            "taskId",
+            "idempotencyKey",
+            "platformId",
+            "jobId",
+            "resumeVersionId",
+            "behavioralProfile"
+          ],
+          "returns": "{ taskId, accepted:bool }"
+        },
+        {
+          "method": "Status.Poll",
+          "params": [
+            "checks"
+          ],
+          "returns": "PollResult[]"
+        },
+        {
+          "method": "Adapter.HealthCheck",
+          "params": [],
+          "returns": "HealthReport[]"
+        },
+        {
+          "method": "Config.Push",
+          "params": [
+            "policyDelta"
+          ],
+          "returns": "{ ok }"
+        },
+        {
+          "method": "Adapter.LoginGuidance",
+          "params": [
+            "platformId"
+          ],
+          "returns": "{ loginUrl, qr? }"
+        }
+      ],
+      "agentToServer": [
+        {
+          "method": "Result.Report",
+          "params": [
+            "taskId",
+            "idempotencyKey",
+            "outcome",
+            "platformApplyId?",
+            "failReason?",
+            "evidence?"
+          ],
+          "returns": "{ ok }"
+        },
+        {
+          "method": "Status.Observed",
+          "params": [
+            "checks"
+          ],
+          "returns": "{ ok }"
+        },
+        {
+          "method": "Health.Report",
+          "params": [
+            "reports"
+          ],
+          "returns": "{ ok }"
+        },
+        {
+          "method": "Heartbeat",
+          "params": [],
+          "returns": "{ ok }"
+        },
+        {
+          "method": "Event.Publish",
+          "params": [
+            "eventType",
+            "payload"
+          ],
+          "returns": "{ ok }"
+        }
+      ]
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.example.com",
+      "description": "A 层（外部 API）根；实际 basePath 见各 path"
+    },
+    {
+      "url": "http://internal-gateway:8080",
+      "description": "B/C 层（内部）根"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "operationId": "a.A01.authlogin",
+        "summary": "登录（邮箱/验证码/微信）",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "none",
+        "x-contract-status": "outlined",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "channel(enum email|sms|wechat)": {
+                    "type": "string"
+                  },
+                  "code|password": {
+                    "type": "string"
+                  },
+                  "deviceId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "email",
+                  "channel(enum email|sms|wechat)",
+                  "code|password",
+                  "deviceId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "accessToken": {
+                          "type": "string"
+                        },
+                        "refreshToken": {
+                          "type": "string"
+                        },
+                        "expiresIn": {
+                          "type": "string"
+                        },
+                        "userId": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "accessToken",
+                        "refreshToken",
+                        "expiresIn",
+                        "userId",
+                        "plan"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "operationId": "a.A02.authrefresh",
+        "summary": "刷新令牌",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "refreshToken": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "refreshToken"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "accessToken": {
+                          "type": "string"
+                        },
+                        "expiresIn": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "accessToken",
+                        "expiresIn"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "operationId": "a.A03.usersme",
+        "summary": "当前用户与权益",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "userId": {
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "plan": {
+                          "type": "string"
+                        },
+                        "quotaUsed": {
+                          "type": "string"
+                        },
+                        "quotaLimit": {
+                          "type": "string"
+                        },
+                        "preferences": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "userId",
+                        "email",
+                        "plan",
+                        "quotaUsed",
+                        "quotaLimit",
+                        "preferences"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resumes": {
+      "post": {
+        "operationId": "a.A04.resumes",
+        "summary": "创建简历",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "content": {
+                    "type": "string"
+                  },
+                  "templateId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "title",
+                  "content"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "resumeId": {
+                          "type": "string"
+                        },
+                        "versionId": {
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "resumeId",
+                        "versionId",
+                        "createdAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resumes/{id}/versions": {
+      "get": {
+        "operationId": "a.A05.resumesidversions",
+        "summary": "版本列表 + diff",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "versions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": true,
+                            "description": "versionId, createdAt, note (outlined)"
+                          }
+                        },
+                        "diffAvailable": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "versions",
+                        "diffAvailable"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/resumes/{id}/ats": {
+      "post": {
+        "operationId": "a.A06.resumesidats",
+        "summary": "触发 ATS 评分",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "taskId": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "taskId",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs": {
+      "get": {
+        "operationId": "a.A07.jobs",
+        "summary": "岗位列表（筛选/分页）",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "responses": {
+          "200": {
+            "description": "成功（列表信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "jobStub (outlined)"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "pageSize": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "pageSize"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/jobs/{id}/favorite": {
+      "post": {
+        "operationId": "a.A08.jobsidfavorite",
+        "summary": "收藏/忽略",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "action(enum favorite|ignore)": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "action(enum favorite|ignore)"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "ok"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/applications/batch": {
+      "post": {
+        "operationId": "a.A09.applicationsbatch",
+        "summary": "批量发起投递（确认队列）",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer+role",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "HLD §4.2",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/applications": {
+      "get": {
+        "operationId": "a.A10.applications",
+        "summary": "投递记录列表",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "responses": {
+          "200": {
+            "description": "成功（列表信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "applicationStub (outlined)"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "pageSize": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "pageSize"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/applications/{id}": {
+      "get": {
+        "operationId": "a.A11.applicationsid",
+        "summary": "单条投递详情（含状态机）",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "HLD §4.3",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/strategies": {
+      "get": {
+        "operationId": "a.A12.strategies",
+        "summary": "读取策略配置",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "matchThreshold": {
+                          "type": "string"
+                        },
+                        "dailyLimit": {
+                          "type": "string"
+                        },
+                        "platforms": {
+                          "type": "string",
+                          "description": "([], outlined)"
+                        },
+                        "blacklist": {
+                          "type": "string",
+                          "description": "([], outlined)"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "matchThreshold",
+                        "dailyLimit",
+                        "platforms",
+                        "blacklist"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "a.A13.strategies",
+        "summary": "更新策略配置（PC）",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer+pro",
+        "x-contract-status": "outlined",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "matchThreshold": {
+                    "type": "string"
+                  },
+                  "dailyLimit": {
+                    "type": "string"
+                  },
+                  "platforms": {
+                    "type": "string"
+                  },
+                  "blacklist": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "matchThreshold",
+                  "dailyLimit",
+                  "platforms",
+                  "blacklist"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "ok",
+                        "updatedAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/adapters": {
+      "get": {
+        "operationId": "a.A14.adapters",
+        "summary": "适配器列表与状态",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "HLD §4.4",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/adapters/{id}/enable": {
+      "post": {
+        "operationId": "a.A15.adaptersidenable",
+        "summary": "启用/停用适配器",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer+pro",
+        "x-contract-status": "outlined",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enabled(bool)": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "enabled(bool)"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "adapterId": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "adapterId",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/interviews/questions": {
+      "get": {
+        "operationId": "a.A16.interviewsquestions",
+        "summary": "面试题列表（备战）",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "questionSets": {
+                          "type": "string",
+                          "description": "([], outlined)"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "questionSets"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/interviews/sessions": {
+      "post": {
+        "operationId": "a.A17.interviewssessions",
+        "summary": "创建 AI 面试会话",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jobId": {
+                    "type": "string"
+                  },
+                  "mode(enum text|voice)": {
+                    "type": "string"
+                  },
+                  "questionSetId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "mode(enum text|voice)"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "sessionId": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "sessionId",
+                        "status"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/interviews/sessions/{id}/answer": {
+      "post": {
+        "operationId": "a.A18.interviewssessionsidanswer",
+        "summary": "提交作答（文本/语音）",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "questionId": {
+                    "type": "string"
+                  },
+                  "answer(text|audioRef)": {
+                    "type": "string"
+                  },
+                  "asrProvider": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "questionId",
+                  "answer(text|audioRef)"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "accepted": {
+                          "type": "string"
+                        },
+                        "score": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "accepted"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/interviews/sessions/{id}/report": {
+      "get": {
+        "operationId": "a.A19.interviewssessionsidreport",
+        "summary": "评估报告",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "sessionId": {
+                          "type": "string"
+                        },
+                        "overallScore": {
+                          "type": "string"
+                        },
+                        "rubric": {
+                          "type": "string",
+                          "description": "([], outlined)"
+                        },
+                        "feedback": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "sessionId",
+                        "overallScore",
+                        "rubric",
+                        "feedback"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/orders": {
+      "post": {
+        "operationId": "a.A20.paymentsorders",
+        "summary": "创建会员订单",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "plan(enum pro|team)": {
+                    "type": "string"
+                  },
+                  "months": {
+                    "type": "string"
+                  },
+                  "coupon": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "plan(enum pro|team)",
+                  "months"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "orderNo": {
+                          "type": "string"
+                        },
+                        "payUrl": {
+                          "type": "string"
+                        },
+                        "amount": {
+                          "type": "string"
+                        },
+                        "expireAt": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "orderNo",
+                        "payUrl",
+                        "amount",
+                        "expireAt"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/payments/callback": {
+      "post": {
+        "operationId": "a.A21.paymentscallback",
+        "summary": "支付渠道回调",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "channel-signature",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "HLD §4.10",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications": {
+      "get": {
+        "operationId": "a.A22.notifications",
+        "summary": "通知列表",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "responses": {
+          "200": {
+            "description": "成功（列表信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "notification (outlined)"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    },
+                    "page": {
+                      "type": "integer"
+                    },
+                    "pageSize": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total",
+                    "page",
+                    "pageSize"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/ws": {
+      "get": {
+        "operationId": "a.A23.notificationsws",
+        "summary": "WebSocket 连接（推送）",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer(query)",
+        "x-contract-status": "outlined",
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "wsUrl": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "wsUrl"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/daily-report/today": {
+      "get": {
+        "operationId": "a.A24.dailyreporttoday",
+        "summary": "获取今日日报摘要",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "date": {
+                          "type": "string"
+                        },
+                        "summary": {
+                          "type": "string"
+                        },
+                        "stats": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "date",
+                        "summary",
+                        "stats"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/daily-report/preference": {
+      "put": {
+        "operationId": "a.A25.usersdailyreportpreference",
+        "summary": "设置日报推送时间偏好",
+        "tags": [
+          "A 外部 API"
+        ],
+        "x-auth": "Bearer",
+        "x-contract-status": "outlined",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "pushTime": {
+                    "type": "string"
+                  },
+                  "enabled": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "pushTime",
+                  "enabled"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（单项信封 §10 uniformEnvelope）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "ok": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "ok"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/ai/match": {
+      "post": {
+        "operationId": "ai.b01.match",
+        "summary": "B 层 AI 编排：b01（match）",
+        "tags": [
+          "B AI 编排（内部 REST）"
+        ],
+        "x-sync": true,
+        "x-timeoutMs": 5000,
+        "x-degradeTo": "rule_engine",
+        "x-transport": "INTERNAL_REST",
+        "x-auth": "X_INTERNAL_TOKEN",
+        "x-basePath": "/internal/v1/ai",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/b01-match-request"
+              },
+              "examples": {
+                "sample": {
+                  "value": {
+                    "jd": "JD 文本",
+                    "resume": "简历文本"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（B 层严格契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/b01-match-response"
+                },
+                "examples": {
+                  "sample": {
+                    "value": {
+                      "score": 0.85,
+                      "matchedSkills": [
+                        "Java"
+                      ],
+                      "explanation": "匹配度较高",
+                      "model": "deepseek",
+                      "elapsedMs": 1200
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/ai/questions": {
+      "post": {
+        "operationId": "ai.b02.questions",
+        "summary": "B 层 AI 编排：b02（questions）",
+        "tags": [
+          "B AI 编排（内部 REST）"
+        ],
+        "x-sync": false,
+        "x-timeoutMs": 30000,
+        "x-degradeTo": "question_bank",
+        "x-transport": "INTERNAL_REST",
+        "x-auth": "X_INTERNAL_TOKEN",
+        "x-basePath": "/internal/v1/ai",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/b02-questions-request"
+              },
+              "examples": {
+                "sample": {
+                  "value": {
+                    "jd": "JD",
+                    "resume": "R",
+                    "count": 5,
+                    "lang": "zh"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（B 层严格契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/b02-questions-response"
+                },
+                "examples": {
+                  "sample": {
+                    "value": {
+                      "questionSetId": "Q1",
+                      "questions": [
+                        {
+                          "id": "q1",
+                          "text": "介绍项目",
+                          "type": "behavior"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/ai/evaluate": {
+      "post": {
+        "operationId": "ai.b03.evaluate",
+        "summary": "B 层 AI 编排：b03（evaluate）",
+        "tags": [
+          "B AI 编排（内部 REST）"
+        ],
+        "x-sync": true,
+        "x-timeoutMs": 3000,
+        "x-degradeTo": "advise",
+        "x-transport": "INTERNAL_REST",
+        "x-auth": "X_INTERNAL_TOKEN",
+        "x-basePath": "/internal/v1/ai",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/b03-evaluate-request"
+              },
+              "examples": {
+                "sample": {
+                  "value": {
+                    "questionId": "q1",
+                    "answer": "回答内容"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（B 层严格契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/b03-evaluate-response"
+                },
+                "examples": {
+                  "sample": {
+                    "value": {
+                      "score": 0.8,
+                      "rubric": [
+                        {
+                          "dim": "完整性",
+                          "score": 0.9
+                        }
+                      ],
+                      "feedback": "好"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/ai/optimize": {
+      "post": {
+        "operationId": "ai.b04.optimize",
+        "summary": "B 层 AI 编排：b04（optimize）",
+        "tags": [
+          "B AI 编排（内部 REST）"
+        ],
+        "x-sync": false,
+        "x-timeoutMs": 10000,
+        "x-degradeTo": "template",
+        "x-transport": "INTERNAL_REST",
+        "x-auth": "X_INTERNAL_TOKEN",
+        "x-basePath": "/internal/v1/ai",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/b04-optimize-request"
+              },
+              "examples": {
+                "sample": {
+                  "value": {
+                    "resume": "简历原文",
+                    "target": "后端开发"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（B 层严格契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/b04-optimize-response"
+                },
+                "examples": {
+                  "sample": {
+                    "value": {
+                      "optimized": "优化后全文",
+                      "changes": [
+                        {
+                          "field": "技能",
+                          "from": "a",
+                          "to": "b"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/ai/ats": {
+      "post": {
+        "operationId": "ai.b05.ats",
+        "summary": "B 层 AI 编排：b05（ats）",
+        "tags": [
+          "B AI 编排（内部 REST）"
+        ],
+        "x-sync": false,
+        "x-timeoutMs": 10000,
+        "x-degradeTo": "score_skip",
+        "x-transport": "INTERNAL_REST",
+        "x-auth": "X_INTERNAL_TOKEN",
+        "x-basePath": "/internal/v1/ai",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/b05-ats-request"
+              },
+              "examples": {
+                "sample": {
+                  "value": {
+                    "resume": "简历原文"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（B 层严格契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/b05-ats-response"
+                },
+                "examples": {
+                  "sample": {
+                    "value": {
+                      "atsScore": 82,
+                      "suggestions": [
+                        {
+                          "section": "教育",
+                          "hint": "补充实习"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/interview/session": {
+      "post": {
+        "operationId": "interview.createSession",
+        "summary": "面试域：createSession",
+        "tags": [
+          "面试模拟域（内部 REST）"
+        ],
+        "x-sync": true,
+        "x-timeoutMs": 2000,
+        "x-degradeTo": "-",
+        "x-basePath": "/internal/v1/interview",
+        "description": "会话状态机：created(active) -> active(in_progress) -> in_progress(paused) -> in_progress(completed) -> in_progress(abandoned) -> paused(in_progress) -> completed(scored) -> completed(abandoned) -> scored(archived)；rubric：回答完整性/技术准确性/结构化表达/与岗位匹配度；ASR 降级链：cloud_asr -> ondevice_asr -> text_input",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "userId": {
+                    "type": "string"
+                  },
+                  "questionSetId": {
+                    "type": "string"
+                  },
+                  "applicationId?": {
+                    "type": "string"
+                  },
+                  "mode": {
+                    "type": "string",
+                    "enum": [
+                      "text",
+                      "voice"
+                    ]
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "userId",
+                  "questionSetId",
+                  "applicationId?",
+                  "mode"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（面试域 outlined 契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "sessionId": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "created"
+                          ]
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "sessionId",
+                        "state"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/interview/session/{sessionId}/question": {
+      "post": {
+        "operationId": "interview.getNextQuestion",
+        "summary": "面试域：getNextQuestion",
+        "tags": [
+          "面试模拟域（内部 REST）"
+        ],
+        "x-sync": false,
+        "x-timeoutMs": 30000,
+        "x-degradeTo": "question_bank",
+        "x-basePath": "/internal/v1/interview",
+        "description": "会话状态机：created(active) -> active(in_progress) -> in_progress(paused) -> in_progress(completed) -> in_progress(abandoned) -> paused(in_progress) -> completed(scored) -> completed(abandoned) -> scored(archived)；rubric：回答完整性/技术准确性/结构化表达/与岗位匹配度；ASR 降级链：cloud_asr -> ondevice_asr -> text_input",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string"
+                  },
+                  "turn": {
+                    "type": "integer",
+                    "minimum": 1.0
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "sessionId",
+                  "turn"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（面试域 outlined 契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "questionId": {
+                          "type": "string"
+                        },
+                        "text": {
+                          "type": "string"
+                        },
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "behavior",
+                            "tech",
+                            "case"
+                          ]
+                        },
+                        "expectedPoints": {
+                          "type": "array",
+                          "items": {
+                            "type": "string"
+                          }
+                        },
+                        "jdKeywordsCoverage": {
+                          "type": "number",
+                          "minimum": 0.0,
+                          "maximum": 1.0
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "questionId",
+                        "text",
+                        "type",
+                        "expectedPoints",
+                        "jdKeywordsCoverage"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/interview/session/{sessionId}/answer": {
+      "post": {
+        "operationId": "interview.submitAnswer",
+        "summary": "面试域：submitAnswer",
+        "tags": [
+          "面试模拟域（内部 REST）"
+        ],
+        "x-sync": false,
+        "x-timeoutMs": 3000,
+        "x-degradeTo": "advise",
+        "x-basePath": "/internal/v1/interview",
+        "description": "会话状态机：created(active) -> active(in_progress) -> in_progress(paused) -> in_progress(completed) -> in_progress(abandoned) -> paused(in_progress) -> completed(scored) -> completed(abandoned) -> scored(archived)；rubric：回答完整性/技术准确性/结构化表达/与岗位匹配度；ASR 降级链：cloud_asr -> ondevice_asr -> text_input",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string"
+                  },
+                  "questionId": {
+                    "type": "string"
+                  },
+                  "answer": {
+                    "type": "string"
+                  },
+                  "modality": {
+                    "type": "string",
+                    "enum": [
+                      "text",
+                      "voice_asr"
+                    ]
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "sessionId",
+                  "questionId",
+                  "answer",
+                  "modality"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（面试域 outlined 契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "turnScore": {
+                          "type": "number",
+                          "minimum": 0.0,
+                          "maximum": 1.0
+                        },
+                        "rubric": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "dim": {
+                                "type": "string"
+                              },
+                              "score": {
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": true,
+                            "required": [
+                              "dim",
+                              "score"
+                            ]
+                          }
+                        },
+                        "feedback": {
+                          "type": "string"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "turnScore",
+                        "rubric",
+                        "feedback"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/interview/session/{sessionId}/evaluate": {
+      "post": {
+        "operationId": "interview.evaluateSession",
+        "summary": "面试域：evaluateSession",
+        "tags": [
+          "面试模拟域（内部 REST）"
+        ],
+        "x-sync": true,
+        "x-timeoutMs": 5000,
+        "x-degradeTo": "advise",
+        "x-basePath": "/internal/v1/interview",
+        "description": "会话状态机：created(active) -> active(in_progress) -> in_progress(paused) -> in_progress(completed) -> in_progress(abandoned) -> paused(in_progress) -> completed(scored) -> completed(abandoned) -> scored(archived)；rubric：回答完整性/技术准确性/结构化表达/与岗位匹配度；ASR 降级链：cloud_asr -> ondevice_asr -> text_input",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "sessionId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（面试域 outlined 契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "weightedScore": {
+                          "type": "integer",
+                          "minimum": 0.0,
+                          "maximum": 100.0
+                        },
+                        "dimensions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "dim": {
+                                "type": "string"
+                              },
+                              "score": {
+                                "type": "string"
+                              },
+                              "reason": {
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": true,
+                            "required": [
+                              "dim",
+                              "score",
+                              "reason"
+                            ]
+                          }
+                        },
+                        "degradeFlag": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "weightedScore",
+                        "dimensions",
+                        "degradeFlag"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/interview/session/{sessionId}/end": {
+      "post": {
+        "operationId": "interview.endSession",
+        "summary": "面试域：endSession",
+        "tags": [
+          "面试模拟域（内部 REST）"
+        ],
+        "x-sync": true,
+        "x-timeoutMs": 2000,
+        "x-degradeTo": "-",
+        "x-basePath": "/internal/v1/interview",
+        "description": "会话状态机：created(active) -> active(in_progress) -> in_progress(paused) -> in_progress(completed) -> in_progress(abandoned) -> paused(in_progress) -> completed(scored) -> completed(abandoned) -> scored(archived)；rubric：回答完整性/技术准确性/结构化表达/与岗位匹配度；ASR 降级链：cloud_asr -> ondevice_asr -> text_input",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "complete",
+                      "abandon",
+                      "timeout"
+                    ]
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "sessionId",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（面试域 outlined 契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "state": {
+                          "type": "string",
+                          "enum": [
+                            "completed",
+                            "abandoned"
+                          ]
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "state"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/v1/interview/session/{sessionId}/report": {
+      "get": {
+        "operationId": "interview.getReport",
+        "summary": "面试域：getReport",
+        "tags": [
+          "面试模拟域（内部 REST）"
+        ],
+        "x-sync": true,
+        "x-timeoutMs": 2000,
+        "x-degradeTo": "-",
+        "x-basePath": "/internal/v1/interview",
+        "description": "会话状态机：created(active) -> active(in_progress) -> in_progress(paused) -> in_progress(completed) -> in_progress(abandoned) -> paused(in_progress) -> completed(scored) -> completed(abandoned) -> scored(archived)；rubric：回答完整性/技术准确性/结构化表达/与岗位匹配度；ASR 降级链：cloud_asr -> ondevice_asr -> text_input",
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "outlined",
+                "required": [
+                  "sessionId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功（面试域 outlined 契约）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "report": {
+                          "$ref": "#/components/schemas/interview-evaluation"
+                        },
+                        "appealEntry": {
+                          "type": "boolean"
+                        },
+                        "rerunEntry": {
+                          "type": "boolean"
+                        }
+                      },
+                      "additionalProperties": true,
+                      "x-contract-status": "outlined",
+                      "required": [
+                        "report",
+                        "appealEntry",
+                        "rerunEntry"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": true
+                },
+                "examples": {
+                  "sample": {
+                    "value": {
+                      "data": {
+                        "sessionId": "S1",
+                        "weightedScore": 82,
+                        "dimensions": [
+                          {
+                            "dim": "回答完整性",
+                            "rawScore": 4,
+                            "reason": "覆盖全面"
+                          },
+                          {
+                            "dim": "技术准确性",
+                            "rawScore": 4,
+                            "reason": "要点准确"
+                          },
+                          {
+                            "dim": "结构化表达",
+                            "rawScore": 3,
+                            "reason": "条理较清晰"
+                          },
+                          {
+                            "dim": "与岗位匹配度",
+                            "rawScore": 5,
+                            "reason": "高度契合"
+                          }
+                        ],
+                        "degradeFlag": false,
+                        "appealEntry": true,
+                        "rerunEntry": true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/device/register": {
+      "post": {
+        "operationId": "rpc.api.v1.device.register",
+        "summary": "C 层设备/握手/支付回调端点（WSS 之外少数 HTTP 端点）",
+        "tags": [
+          "C 设备与支付（HTTP）"
+        ],
+        "x-transport": "WSS",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "deviceFingerprint": {
+                    "type": "string"
+                  },
+                  "os": {
+                    "type": "string"
+                  },
+                  "agentVersion": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "required": [
+                  "deviceFingerprint",
+                  "os",
+                  "agentVersion"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deviceId": {
+                      "type": "string"
+                    },
+                    "deviceSecret": {
+                      "type": "string"
+                    },
+                    "contractVersion": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "deviceId",
+                    "deviceSecret",
+                    "contractVersion"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/device/token": {
+      "post": {
+        "operationId": "rpc.api.v1.device.token",
+        "summary": "C 层设备/握手/支付回调端点（WSS 之外少数 HTTP 端点）",
+        "tags": [
+          "C 设备与支付（HTTP）"
+        ],
+        "x-transport": "WSS",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "deviceId": {
+                    "type": "string"
+                  },
+                  "deviceSecret": {
+                    "type": "string"
+                  },
+                  "grant_type": {
+                    "type": "string",
+                    "description": "(client_credentials, outlined)"
+                  }
+                },
+                "additionalProperties": true,
+                "required": [
+                  "deviceId",
+                  "deviceSecret",
+                  "grant_type"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "expiresIn": {
+                      "type": "string",
+                      "description": "(900, outlined)"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": "one of: string|null"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "accessToken",
+                    "expiresIn",
+                    "refreshToken"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/device/token/revoke": {
+      "post": {
+        "operationId": "rpc.api.v1.device.token.revoke",
+        "summary": "C 层设备/握手/支付回调端点（WSS 之外少数 HTTP 端点）",
+        "tags": [
+          "C 设备与支付（HTTP）"
+        ],
+        "x-transport": "WSS",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "deviceId": {
+                    "type": "string"
+                  },
+                  "reason": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "required": [
+                  "deviceId",
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "(204, outlined)"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/device/handshake": {
+      "post": {
+        "operationId": "rpc.api.v1.device.handshake",
+        "summary": "C 层设备/握手/支付回调端点（WSS 之外少数 HTTP 端点）",
+        "tags": [
+          "C 设备与支付（HTTP）"
+        ],
+        "x-transport": "WSS",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientVersion": {
+                    "type": "string"
+                  },
+                  "contractVersion": {
+                    "type": "string"
+                  },
+                  "capabilities": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "description": "'string' (outlined)"
+                    }
+                  }
+                },
+                "additionalProperties": true,
+                "required": [
+                  "clientVersion",
+                  "contractVersion",
+                  "capabilities"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "negotiatedCapabilities": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": true,
+                        "description": "'string' (outlined)"
+                      }
+                    },
+                    "serverContractVersion": {
+                      "type": "string"
+                    },
+                    "enforceAfter": {
+                      "type": "string"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "negotiatedCapabilities",
+                    "serverContractVersion",
+                    "enforceAfter"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/payments/callback": {
+      "post": {
+        "operationId": "rpc.api.v1.payments.callback",
+        "summary": "C 层设备/握手/支付回调端点（WSS 之外少数 HTTP 端点）",
+        "tags": [
+          "C 设备与支付（HTTP）"
+        ],
+        "x-transport": "WSS",
+        "x-auth": "channel-signature",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "channel": {
+                    "type": "string",
+                    "enum": [
+                      "wechat",
+                      "alipay"
+                    ]
+                  },
+                  "outTradeNo": {
+                    "type": "string",
+                    "description": "order_no"
+                  },
+                  "transactionId": {
+                    "type": "string"
+                  },
+                  "tradeStatus": {
+                    "type": "string",
+                    "enum": [
+                      "SUCCESS",
+                      "CLOSED",
+                      "REFUND"
+                    ]
+                  },
+                  "amount": {
+                    "type": "integer",
+                    "description": "范围(分)"
+                  },
+                  "sign": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "additionalProperties": true,
+                "required": [
+                  "channel",
+                  "outTradeNo",
+                  "transactionId",
+                  "tradeStatus",
+                  "amount",
+                  "sign",
+                  "timestamp"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "description": "(200, outlined)"
+                    }
+                  },
+                  "additionalProperties": true,
+                  "required": [
+                    "code"
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "错误响应（统一错误信封 §4.7）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-envelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "adapter-facade-registry": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "统一适配器门面 PlatformAdapter 注册表自洽 schema",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contractVersion",
+          "facade",
+          "platformBinding",
+          "methods",
+          "lifecycleStates",
+          "antiBot"
+        ],
+        "properties": {
+          "contractVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "facade": {
+            "type": "string",
+            "const": "PlatformAdapter"
+          },
+          "platformBinding": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "deployedAt",
+              "executedAt",
+              "cookieScope"
+            ],
+            "properties": {
+              "deployedAt": {
+                "type": "string",
+                "const": "local-agent"
+              },
+              "executedAt": {
+                "type": "string",
+                "const": "local-agent"
+              },
+              "cookieScope": {
+                "type": "string",
+                "const": "local-only"
+              }
+            }
+          },
+          "methods": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "name",
+                "kind"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "lifecycle",
+                    "action",
+                    "query",
+                    "trigger"
+                  ]
+                },
+                "params": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "returns": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              }
+            },
+            "minItems": 1
+          },
+          "lifecycleStates": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "installed",
+                "test_mode",
+                "enabled",
+                "disabled",
+                "degraded",
+                "login_expired"
+              ]
+            },
+            "minItems": 1
+          },
+          "antiBot": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "humanLikeDelaySec",
+              "mouseTrajectory",
+              "captchaPause",
+              "cookieLocalEncrypt"
+            ],
+            "properties": {
+              "humanLikeDelaySec": {
+                "type": "array",
+                "items": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "mouseTrajectory": {
+                "type": "string",
+                "enum": [
+                  "bezier"
+                ]
+              },
+              "captchaPause": {
+                "type": "boolean"
+              },
+              "cookieLocalEncrypt": {
+                "type": "boolean"
+              }
+            }
+          }
+        }
+      },
+      "agent-server-rpc-registry": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "agent-server-rpc.registry.schema.json",
+        "title": "本机 Agent↔服务端 RPC 注册表 schema (HLD §4.9)",
+        "description": "校验 agent-server-rpc.methods.json：设备令牌端点、握手端点、双向 RPC 方法清单、支付回调端点。",
+        "type": "object",
+        "required": [
+          "contractVersion",
+          "transport",
+          "heartbeatSec",
+          "deviceEndpoints",
+          "handshake",
+          "rpcMethods",
+          "paymentCallback"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "contractVersion": {
+            "type": "string",
+            "minLength": 1
+          },
+          "transport": {
+            "type": "string",
+            "enum": [
+              "WSS",
+              "gRPC-Web"
+            ]
+          },
+          "heartbeatSec": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "deviceEndpoints": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/agent-server-rpc-registry/$defs/endpoint"
+            }
+          },
+          "handshake": {
+            "$ref": "#/components/schemas/agent-server-rpc-registry/$defs/endpoint"
+          },
+          "rpcMethods": {
+            "type": "object",
+            "required": [
+              "serverToAgent",
+              "agentToServer"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "serverToAgent": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/agent-server-rpc-registry/$defs/rpcMethod"
+                }
+              },
+              "agentToServer": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/agent-server-rpc-registry/$defs/rpcMethod"
+                }
+              }
+            }
+          },
+          "paymentCallback": {
+            "$ref": "#/components/schemas/agent-server-rpc-registry/$defs/endpoint"
+          }
+        },
+        "$defs": {
+          "endpoint": {
+            "type": "object",
+            "required": [
+              "method",
+              "path",
+              "request",
+              "response"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "method": {
+                "type": "string",
+                "enum": [
+                  "POST",
+                  "GET",
+                  "PUT",
+                  "DELETE",
+                  "PATCH"
+                ]
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "request": {
+                "type": "object"
+              },
+              "response": {
+                "type": "object"
+              },
+              "auth": {
+                "type": "string"
+              }
+            }
+          },
+          "rpcMethod": {
+            "type": "object",
+            "required": [
+              "method",
+              "params",
+              "returns"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "method": {
+                "type": "string",
+                "minLength": 1
+              },
+              "params": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "returns": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      },
+      "ai-orchestrator-registry": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "ai-orchestrator-registry",
+        "title": "AI 编排服务（服务端 Python LLM 网关）内部契约注册表自洽 schema",
+        "description": "校验 ai-orchestrator.methods.json 的自洽性：contractVersion / transport / auth / basePath / methods(b01..b05)。request/response 在 methods.json 中以人类可读字段大纲（string[]）呈现，机器可读权威 schema 见各 b0X-*.schema.json，两层一致性由 LLD 与提交评审保证。",
+        "type": "object",
+        "properties": {
+          "contractVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "transport": {
+            "type": "string",
+            "enum": [
+              "INTERNAL_REST"
+            ]
+          },
+          "auth": {
+            "type": "string",
+            "enum": [
+              "X_INTERNAL_TOKEN"
+            ]
+          },
+          "basePath": {
+            "type": "string"
+          },
+          "methods": {
+            "type": "object",
+            "properties": {
+              "b01": {
+                "$ref": "#/components/schemas/ai-orchestrator-registry/$defs/method"
+              },
+              "b02": {
+                "$ref": "#/components/schemas/ai-orchestrator-registry/$defs/method"
+              },
+              "b03": {
+                "$ref": "#/components/schemas/ai-orchestrator-registry/$defs/method"
+              },
+              "b04": {
+                "$ref": "#/components/schemas/ai-orchestrator-registry/$defs/method"
+              },
+              "b05": {
+                "$ref": "#/components/schemas/ai-orchestrator-registry/$defs/method"
+              }
+            },
+            "required": [
+              "b01",
+              "b02",
+              "b03",
+              "b04",
+              "b05"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "contractVersion",
+          "transport",
+          "auth",
+          "basePath",
+          "methods"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "method": {
+            "type": "object",
+            "properties": {
+              "sync": {
+                "type": "boolean",
+                "description": "true=同步调用（含超时熔断），false=异步（结果经 MQ 回写 ai.task.result 事件）"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "端到端调用预算（毫秒）"
+              },
+              "degradeTo": {
+                "type": "string",
+                "enum": [
+                  "rule_engine",
+                  "question_bank",
+                  "template",
+                  "advise",
+                  "score_skip",
+                  "none"
+                ],
+                "description": "降级目标：rule_engine=规则引擎；question_bank=题库；template=模板；advise=给建议不评分；score_skip=不评分；none=无降级（直接失败并返回 LLM_DEGRADED）"
+              },
+              "request": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "请求字段大纲（人类可读，与 b0X-*.request.schema.json 对齐）"
+              },
+              "response": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "响应字段大纲（人类可读，与 b0X-*.response.schema.json 对齐）"
+              }
+            },
+            "required": [
+              "sync",
+              "timeoutMs",
+              "degradeTo",
+              "request",
+              "response"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "ai-result-event": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "ai-result-event",
+        "title": "AI 异步任务结果回写事件（C 层 RabbitMQ）",
+        "description": "B02/B04/B05 异步调用的结果经 MQ 回写 Java 侧的事件 payload（HLD §4.5：异步结果经 MQ 回写）。仅承载 result 与状态，不含业务落库（由 Java 侧负责）。",
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "const": "ai.task.result"
+          },
+          "traceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "taskId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "method": {
+            "type": "string",
+            "enum": [
+              "b02",
+              "b04",
+              "b05"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "result": {
+            "type": "object",
+            "description": "对应方法的响应体（见 b02/b04/b05 response schema）"
+          },
+          "degradeTo": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "status=degraded 时记录实际降级目标"
+          },
+          "producedAt": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "eventType",
+          "traceId",
+          "taskId",
+          "method",
+          "status",
+          "result",
+          "producedAt"
+        ],
+        "additionalProperties": false
+      },
+      "asr-config": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "asr-config",
+        "title": "ASR 供应商降级配置（HLD §6.16 G7-3）",
+        "description": "语音作答经 ASR 转写；主=云端合规境内 ASR，端侧备选，文本兜底。ASR 文本同样过 B6 内容安全。供应商选型 ⚠ LLD 待拍板。",
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "cloud_asr",
+              "ondevice_asr",
+              "text_input"
+            ]
+          },
+          "degradeChain": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "cloud_asr",
+                "ondevice_asr",
+                "text_input"
+              ]
+            },
+            "minItems": 2
+          },
+          "contentSafetyPassed": {
+            "type": [
+              "boolean",
+              "null"
+            ],
+            "description": "ASR 文本过 B6 内容安全层"
+          }
+        },
+        "required": [
+          "provider",
+          "degradeChain"
+        ],
+        "additionalProperties": false
+      },
+      "b01-match-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b01-match-request",
+        "title": "B01 AI 匹配 - 请求",
+        "description": "POST /internal/v1/ai/match 请求体（Java→Python LLM 网关，同步≤5s）。",
+        "type": "object",
+        "properties": {
+          "jd": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resume": {
+            "type": "string",
+            "minLength": 1
+          },
+          "weights": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "skill": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "jobtitle": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "exp": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "additionalProperties": false,
+            "description": "维度权重（可选，缺省用 HLD §6.11 B5 规则层：技能40/行业20/城市20/经验20）"
+          }
+        },
+        "required": [
+          "jd",
+          "resume"
+        ],
+        "additionalProperties": false
+      },
+      "b01-match-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b01-match-response",
+        "title": "B01 AI 匹配 - 响应",
+        "description": "B01 统一响应结构（含降级链路来源 model 字段，调用方不感知降级路径）。",
+        "type": "object",
+        "properties": {
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "matchedSkills": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string",
+            "enum": [
+              "deepseek",
+              "backup",
+              "rule"
+            ]
+          },
+          "elapsedMs": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "score",
+          "matchedSkills",
+          "explanation",
+          "model",
+          "elapsedMs"
+        ],
+        "additionalProperties": false
+      },
+      "b02-questions-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b02-questions-request",
+        "title": "B02 面试题生成 - 请求",
+        "description": "POST /internal/v1/ai/questions 请求体（异步≤30s，结果经 ai.task.result 回写）。",
+        "type": "object",
+        "properties": {
+          "jd": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resume": {
+            "type": "string",
+            "minLength": 1
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20
+          },
+          "lang": {
+            "type": "string",
+            "enum": [
+              "zh",
+              "en"
+            ]
+          }
+        },
+        "required": [
+          "jd",
+          "resume",
+          "count",
+          "lang"
+        ],
+        "additionalProperties": false
+      },
+      "b02-questions-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b02-questions-response",
+        "title": "B02 面试题生成 - 响应",
+        "description": "B02 响应：题集与逐题类型（behavior=行为/tech=技术/case=案例）。",
+        "type": "object",
+        "properties": {
+          "questionSetId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "text": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "behavior",
+                    "tech",
+                    "case"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "text",
+                "type"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "questionSetId",
+          "questions"
+        ],
+        "additionalProperties": false
+      },
+      "b03-evaluate-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b03-evaluate-request",
+        "title": "B03 作答评估 - 请求",
+        "description": "POST /internal/v1/ai/evaluate 请求体（同步≤3s，对话式交互）。",
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "answer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rubricDims": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "description": "可选评估维度约束；缺省用 HLD §6.16 G7-2 默认维度集（完整性/技术准确性/结构化表达/岗位匹配度）+ 第5维"
+          }
+        },
+        "required": [
+          "questionId",
+          "answer"
+        ],
+        "additionalProperties": false
+      },
+      "b03-evaluate-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b03-evaluate-response",
+        "title": "B03 作答评估 - 响应",
+        "description": "B03 响应：综合分 + 逐维 rubric 分数 + 反馈（rubric 透明可申诉，见 HLD §6.16 G7-2）。",
+        "type": "object",
+        "properties": {
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "rubric": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dim": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              },
+              "required": [
+                "dim",
+                "score"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          },
+          "feedback": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "score",
+          "rubric",
+          "feedback"
+        ],
+        "additionalProperties": false
+      },
+      "b04-optimize-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b04-optimize-request",
+        "title": "B04 简历优化 - 请求",
+        "description": "POST /internal/v1/ai/resume/optimize 请求体（异步≤10s，结果经 ai.task.result 回写）。",
+        "type": "object",
+        "properties": {
+          "resume": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1,
+            "description": "优化目标（如目标岗位/行业/亮点方向）"
+          }
+        },
+        "required": [
+          "resume",
+          "target"
+        ],
+        "additionalProperties": false
+      },
+      "b04-optimize-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b04-optimize-response",
+        "title": "B04 简历优化 - 响应",
+        "description": "B04 响应：优化后全文 + 变更差异列表（字段级 from→to，便于用户审阅确认，呼应半自动产品定位）。",
+        "type": "object",
+        "properties": {
+          "optimized": {
+            "type": "string",
+            "minLength": 1
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "field",
+                "from",
+                "to"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "optimized",
+          "changes"
+        ],
+        "additionalProperties": false
+      },
+      "b05-ats-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b05-ats-request",
+        "title": "B05 ATS 评分 - 请求",
+        "description": "POST /internal/v1/ai/ats 请求体（异步≤10s，结果经 ai.task.result 回写）。",
+        "type": "object",
+        "properties": {
+          "resume": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "resume"
+        ],
+        "additionalProperties": false
+      },
+      "b05-ats-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "b05-ats-response",
+        "title": "B05 ATS 评分 - 响应",
+        "description": "B05 响应：ATS 综合分（0..100）+ 分章节优化建议。",
+        "type": "object",
+        "properties": {
+          "atsScore": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "suggestions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "section": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "hint": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "required": [
+                "section",
+                "hint"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 1
+          }
+        },
+        "required": [
+          "atsScore",
+          "suggestions"
+        ],
+        "additionalProperties": false
+      },
+      "b07-task-result": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "B07 投递任务结果查询响应（服务端→本机 Agent 回写查询）",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "taskId",
+          "idempotencyKey",
+          "status"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "idempotencyKey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "failed"
+            ]
+          },
+          "outcome": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "success",
+              "failed",
+              "captcha",
+              "risk_blocked",
+              "need_login"
+            ]
+          },
+          "platformApplyId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "failReason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evidence": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "updatedAt": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "b09-health": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "B09 适配器健康上报（本机 Agent→服务端）",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "platformId",
+          "healthy",
+          "checkedAt"
+        ],
+        "properties": {
+          "platformId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "healthy": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "metrics": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "domParseSuccessRate",
+              "avgLatencyMs",
+              "cookieHealthy"
+            ],
+            "properties": {
+              "domParseSuccessRate": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "avgLatencyMs": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "cookieHealthy": {
+                "type": "boolean"
+              },
+              "selectorBundleVersion": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "checkedAt": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "b10-search-jobs": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "B10 服务端触发本机 Agent 采集 searchJobs（服务端→本机 Agent）",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "platformId",
+          "query"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "platformId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "filters": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "geo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "page": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          }
+        }
+      },
+      "b11-get-job-detail": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "B11 服务端触发本机 Agent 采集 getJobDetail（服务端→本机 Agent）",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "platformId",
+          "externalJobId"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "platformId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "externalJobId": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      },
+      "crawler-result": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "适配器采集结果回写（B10/B11：本机 Agent→服务端，入 B 系列）",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "taskId",
+          "kind",
+          "jobs"
+        ],
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "searchJobs",
+              "getJobDetail"
+            ]
+          },
+          "jobs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/crawler-result/$defs/job"
+            },
+            "minItems": 0
+          },
+          "collectedAt": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "$defs": {
+          "job": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "externalJobId",
+              "platformId",
+              "title",
+              "company",
+              "collectedAt"
+            ],
+            "properties": {
+              "externalJobId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "platformId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300
+              },
+              "company": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "url": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "salaryMin": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "salaryMax": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "location": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "description": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "requirements": {
+                "type": [
+                  "array",
+                  "null"
+                ],
+                "items": {
+                  "type": "string"
+                }
+              },
+              "source": {
+                "type": "string",
+                "enum": [
+                  "search",
+                  "detail"
+                ],
+                "default": "search"
+              },
+              "collectedAt": {
+                "type": "integer",
+                "format": "int64"
+              }
+            }
+          }
+        }
+      },
+      "error-envelope": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "error-envelope.schema.json",
+        "title": "统一错误信封 (HLD §4.7)",
+        "description": "所有 A/B/C 层响应的统一错误信封。code 必须在 error-codes.json 注册表中且唯一；历史数字码仅作 deprecated 别名。",
+        "type": "object",
+        "required": [
+          "code",
+          "message",
+          "traceId",
+          "retryable"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1,
+            "description": "字符串业务错误码，注册表唯一"
+          },
+          "message": {
+            "type": "string",
+            "description": "人类可读，不泄露内部实现细节"
+          },
+          "traceId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "全链路追踪 ID，用于排障与对账"
+          },
+          "retryable": {
+            "type": "boolean",
+            "description": "客户端能否安全重试（结合 idempotencyKey 重放）"
+          },
+          "user_action": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "可选，面向终端用户的处置建议"
+          }
+        }
+      },
+      "event-envelope": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "event-envelope.schema.json",
+        "title": "事件信封 (HLD §4.6)",
+        "description": "RabbitMQ 事件统一信封。payload 为各事件类型化对象（见 agent-server-rpc.methods.json 事件表与 HLD §4.6）。",
+        "type": "object",
+        "required": [
+          "eventType",
+          "traceId",
+          "ts",
+          "producer",
+          "payload"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "minLength": 1,
+            "description": "事件类型，枚举见事件注册表"
+          },
+          "traceId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "全链路追踪 ID"
+          },
+          "ts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "生产者毫秒时间戳，用于顺序判定与重放窗口"
+          },
+          "producer": {
+            "type": "string",
+            "minLength": 1,
+            "description": "生产者服务标识"
+          },
+          "payload": {
+            "type": "object",
+            "description": "类型化事件负载"
+          },
+          "dedupKey": {
+            "type": "string",
+            "description": "可选去重键；缺省由消费侧按业务键去重"
+          }
+        }
+      },
+      "external-api-registry": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "title": "外部 API（A 层）契约注册表自洽 schema",
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contractVersion",
+          "basePath",
+          "endpoints",
+          "uniformEnvelope"
+        ],
+        "properties": {
+          "contractVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "basePath": {
+            "type": "string"
+          },
+          "endpoints": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "method",
+                "path",
+                "purpose",
+                "auth",
+                "contractStatus"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^A\\d{2}$"
+                },
+                "method": {
+                  "type": "string",
+                  "enum": [
+                    "GET",
+                    "POST",
+                    "PUT",
+                    "DELETE",
+                    "PATCH"
+                  ]
+                },
+                "path": {
+                  "type": "string",
+                  "pattern": "^/"
+                },
+                "purpose": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "auth": {
+                  "type": "string",
+                  "enum": [
+                    "none",
+                    "Bearer",
+                    "Bearer+role",
+                    "Bearer+pro",
+                    "channel-signature",
+                    "Bearer(query)"
+                  ]
+                },
+                "contractStatus": {
+                  "type": "string",
+                  "enum": [
+                    "fully-detailed",
+                    "outlined"
+                  ]
+                },
+                "ref": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "requestFields": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "responseFields": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "minItems": 1
+          },
+          "uniformEnvelope": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "listResponse",
+              "itemResponse",
+              "error"
+            ],
+            "properties": {
+              "listResponse": {
+                "type": "string"
+              },
+              "itemResponse": {
+                "type": "string"
+              },
+              "error": {
+                "type": "string",
+                "const": "error-envelope"
+              }
+            }
+          }
+        }
+      },
+      "interview-domain-registry": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-domain-registry",
+        "title": "面试模拟域契约注册表（自洽 schema）",
+        "description": "校验 interview-domain.methods.json 的自洽性：contractVersion / transport / 会话状态机 / rubric 聚合模型 / ASR 降级链 / 会话门面方法。HLD §6.16 G7-1/2/3。",
+        "type": "object",
+        "properties": {
+          "contractVersion": {
+            "type": "string",
+            "pattern": "^\\d+\\.\\d+\\.\\d+$"
+          },
+          "transport": {
+            "type": "string",
+            "enum": [
+              "INTERNAL_REST"
+            ]
+          },
+          "auth": {
+            "type": "string",
+            "minLength": 1
+          },
+          "basePath": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sessionStateMachine": {
+            "type": "object",
+            "properties": {
+              "states": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "created",
+                    "active",
+                    "in_progress",
+                    "paused",
+                    "completed",
+                    "scored",
+                    "archived",
+                    "abandoned"
+                  ]
+                },
+                "minItems": 1
+              },
+              "initial": {
+                "type": "string"
+              },
+              "transitions": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    },
+                    "trigger": {
+                      "type": "string",
+                      "minLength": 1
+                    }
+                  },
+                  "required": [
+                    "from",
+                    "to",
+                    "trigger"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1
+              }
+            },
+            "required": [
+              "states",
+              "initial",
+              "transitions"
+            ],
+            "additionalProperties": false
+          },
+          "rubric": {
+            "type": "object",
+            "properties": {
+              "scoreScale": {
+                "type": "string",
+                "const": "1-5"
+              },
+              "aggregation": {
+                "type": "string",
+                "enum": [
+                  "weighted",
+                  "equal"
+                ]
+              },
+              "dimensions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "minItems": 4,
+                "maxItems": 5
+              },
+              "weightedScoreRange": {
+                "type": "string",
+                "const": "0-100"
+              },
+              "defaultWeights": {
+                "type": "object",
+                "description": "维度→权重(0..1)，求和为 1；HLD 不拍板，LLD 默认等权或产品默认权重（⚠ 第5维权重待拍板）",
+                "additionalProperties": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            },
+            "required": [
+              "scoreScale",
+              "aggregation",
+              "dimensions",
+              "weightedScoreRange"
+            ],
+            "additionalProperties": false
+          },
+          "asr": {
+            "type": "object",
+            "properties": {
+              "primary": {
+                "type": "string",
+                "description": "主 ASR（云端合规境内优先）"
+              },
+              "fallback": {
+                "type": "string",
+                "description": "端侧/离线 ASR 备选"
+              },
+              "textFallback": {
+                "type": "string",
+                "const": "text_input",
+                "description": "均不可用降级文本输入"
+              },
+              "degradeChain": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "cloud_asr",
+                    "ondevice_asr",
+                    "text_input"
+                  ]
+                },
+                "minItems": 2
+              }
+            },
+            "required": [
+              "primary",
+              "fallback",
+              "textFallback",
+              "degradeChain"
+            ],
+            "additionalProperties": false
+          },
+          "facadeMethods": {
+            "type": "object",
+            "properties": {
+              "createSession": {
+                "$ref": "#/components/schemas/interview-domain-registry/$defs/method"
+              },
+              "getNextQuestion": {
+                "$ref": "#/components/schemas/interview-domain-registry/$defs/method"
+              },
+              "submitAnswer": {
+                "$ref": "#/components/schemas/interview-domain-registry/$defs/method"
+              },
+              "evaluateSession": {
+                "$ref": "#/components/schemas/interview-domain-registry/$defs/method"
+              },
+              "endSession": {
+                "$ref": "#/components/schemas/interview-domain-registry/$defs/method"
+              },
+              "getReport": {
+                "$ref": "#/components/schemas/interview-domain-registry/$defs/method"
+              }
+            },
+            "required": [
+              "createSession",
+              "getNextQuestion",
+              "submitAnswer",
+              "evaluateSession",
+              "endSession",
+              "getReport"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "contractVersion",
+          "transport",
+          "auth",
+          "basePath",
+          "sessionStateMachine",
+          "rubric",
+          "asr",
+          "facadeMethods"
+        ],
+        "additionalProperties": false,
+        "$defs": {
+          "method": {
+            "type": "object",
+            "properties": {
+              "sync": {
+                "type": "boolean"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "degradeTo": {
+                "type": "string"
+              },
+              "request": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "response": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "sync",
+              "timeoutMs",
+              "degradeTo",
+              "request",
+              "response"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "interview-evaluation": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-evaluation",
+        "title": "面试评估报告（HLD §6.16 G7-2 rubric 透明可申诉）",
+        "description": "承载 rubric 维度集 + 加权综合分 0-100 + 逐维理由；降级评估须标 degradeFlag=true。逐维度展示分数与理由，提供重跑/申诉入口。",
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "weightedScore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100,
+            "description": "加权综合分 0-100（各维 1-5 × 权重聚合）"
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dim": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "维度名（回答完整性/技术准确性/结构化表达/与岗位匹配度/可选第5维）"
+                },
+                "rawScore": {
+                  "type": "number",
+                  "minimum": 1,
+                  "maximum": 5,
+                  "description": "原维分 1-5"
+                },
+                "score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "归一化分(0..1)"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "description": "自然语言理由（透明可申诉）"
+                }
+              },
+              "required": [
+                "dim",
+                "rawScore",
+                "reason"
+              ],
+              "additionalProperties": false
+            },
+            "minItems": 4,
+            "maxItems": 5
+          },
+          "degradeFlag": {
+            "type": "boolean",
+            "description": "降级评估(LLM 不可用→规则建议)时为 true，报告须标注『本次为降级评估，仅供参考』"
+          },
+          "appealEntry": {
+            "type": "boolean",
+            "description": "重跑本场/申诉入口可用"
+          },
+          "rerunEntry": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "sessionId",
+          "weightedScore",
+          "dimensions",
+          "degradeFlag"
+        ],
+        "additionalProperties": false
+      },
+      "interview-events-event": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-events",
+        "title": "面试模拟域事件（C 层 RabbitMQ，HLD §6.16 G7-2 审计溯源）",
+        "description": "interview_session_event 审计溯源：每态变更/每轮问答/评估完成写事件，供重跑/申诉。envelope 同 §4.6 事件信封；payload 按事件类型定型。",
+        "type": "object",
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "interview.session.started",
+              "interview.question.asked",
+              "interview.answer.received",
+              "interview.eval.done",
+              "interview.session.ended"
+            ]
+          },
+          "traceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ts": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "producer": {
+            "type": "string",
+            "const": "interview-service"
+          },
+          "payload": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "eventType",
+          "traceId",
+          "ts",
+          "producer",
+          "payload"
+        ],
+        "additionalProperties": false,
+        "oneOf": [
+          {
+            "properties": {
+              "eventType": {
+                "const": "interview.session.started"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/interview-events-event/$defs/sessionStarted"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          },
+          {
+            "properties": {
+              "eventType": {
+                "const": "interview.question.asked"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/interview-events-event/$defs/questionAsked"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          },
+          {
+            "properties": {
+              "eventType": {
+                "const": "interview.answer.received"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/interview-events-event/$defs/answerReceived"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          },
+          {
+            "properties": {
+              "eventType": {
+                "const": "interview.eval.done"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/interview-events-event/$defs/evalDone"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          },
+          {
+            "properties": {
+              "eventType": {
+                "const": "interview.session.ended"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/interview-events-event/$defs/sessionEnded"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          }
+        ],
+        "$defs": {
+          "sessionStarted": {
+            "type": "object",
+            "properties": {
+              "sessionId": {
+                "type": "string"
+              },
+              "mode": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "voice"
+                ]
+              }
+            },
+            "required": [
+              "sessionId",
+              "mode"
+            ],
+            "additionalProperties": false
+          },
+          "questionAsked": {
+            "type": "object",
+            "properties": {
+              "sessionId": {
+                "type": "string"
+              },
+              "questionId": {
+                "type": "string"
+              },
+              "turn": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "sessionId",
+              "questionId",
+              "turn"
+            ],
+            "additionalProperties": false
+          },
+          "answerReceived": {
+            "type": "object",
+            "properties": {
+              "sessionId": {
+                "type": "string"
+              },
+              "questionId": {
+                "type": "string"
+              },
+              "modality": {
+                "type": "string",
+                "enum": [
+                  "text",
+                  "voice_asr"
+                ]
+              },
+              "asrProvider": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "modality=voice_asr 时记录实际 ASR 供应商；降级文本时为 null"
+              }
+            },
+            "required": [
+              "sessionId",
+              "questionId",
+              "modality"
+            ],
+            "additionalProperties": false
+          },
+          "evalDone": {
+            "type": "object",
+            "properties": {
+              "sessionId": {
+                "type": "string"
+              },
+              "weightedScore": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 100
+              },
+              "degradeFlag": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "sessionId",
+              "weightedScore"
+            ],
+            "additionalProperties": false
+          },
+          "sessionEnded": {
+            "type": "object",
+            "properties": {
+              "sessionId": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "complete",
+                  "abandon",
+                  "timeout"
+                ]
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "completed",
+                  "abandoned"
+                ]
+              }
+            },
+            "required": [
+              "sessionId",
+              "reason",
+              "state"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "interview-question": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-question",
+        "title": "INTERVIEW_QUESTION 面试题（HLD §3.9 / G7-1）",
+        "description": "单道面试题：类型 + 题干 + 期望要点 + JD 关键词覆盖率（成功标准 ≥80%，PRD §7.2）。",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "behavior",
+              "tech",
+              "case"
+            ]
+          },
+          "expectedPoints": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string"
+            }
+          },
+          "jdKeywordsCoverage": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "本题覆盖 JD 技术关键词比例；整场面试题集成功标准 ≥0.8"
+          }
+        },
+        "required": [
+          "id",
+          "text",
+          "type"
+        ],
+        "additionalProperties": false
+      },
+      "interview-session": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-session",
+        "title": "INTERVIEW_SESSION 面试会话实体（HLD §6.16 G7-1 / §5.2）",
+        "description": "一次完整 AI 面试模拟运行实例：承载问答轮次、当前态、评估报告引用。状态机无回退边；摄像头不进状态；语音经 ASR 转写。",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "userId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "questionSetId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "applicationId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "备战场景可无 application"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "created",
+              "active",
+              "in_progress",
+              "paused",
+              "completed",
+              "scored",
+              "archived",
+              "abandoned"
+            ]
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice"
+            ],
+            "description": "voice 模式经 ASR 转写(降级文本)"
+          },
+          "currentTurn": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "startedAt": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "endedAt": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          }
+        },
+        "required": [
+          "id",
+          "userId",
+          "questionSetId",
+          "state",
+          "mode",
+          "currentTurn",
+          "startedAt"
+        ],
+        "additionalProperties": false
+      },
+      "rpc-envelope": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "rpc-envelope.schema.json",
+        "title": "本机 Agent↔服务端 RPC 信封 (HLD §4.9)",
+        "description": "WSS 长连接上的应用层 JSON 帧。每条消息要么是请求（含 method），要么是响应（含 ok），二者互斥。",
+        "type": "object",
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/rpc-envelope/$defs/rpc-request"
+          },
+          {
+            "$ref": "#/components/schemas/rpc-envelope/$defs/rpc-response"
+          }
+        ],
+        "$defs": {
+          "rpc-error": {
+            "type": "object",
+            "required": [
+              "code",
+              "message",
+              "retryable"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "message": {
+                "type": "string"
+              },
+              "retryable": {
+                "type": "boolean"
+              },
+              "user_action": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            }
+          },
+          "rpc-request": {
+            "type": "object",
+            "required": [
+              "traceId",
+              "ts",
+              "method"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "traceId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "ts": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "发送方毫秒时间戳"
+              },
+              "method": {
+                "type": "string",
+                "minLength": 1,
+                "description": "RPC 方法名，见 agent-server-rpc.methods.json"
+              },
+              "idempotencyKey": {
+                "type": "string",
+                "description": "请求级幂等键 UUID"
+              },
+              "params": {
+                "type": "object",
+                "description": "方法参数对象"
+              }
+            }
+          },
+          "rpc-response": {
+            "type": "object",
+            "required": [
+              "traceId",
+              "ok"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "traceId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "ok": {
+                "type": "boolean"
+              },
+              "result": {
+                "type": "object",
+                "description": "成功时的结果对象"
+              },
+              "error": {
+                "$ref": "#/components/schemas/rpc-envelope/$defs/rpc-error",
+                "description": "失败时的错误，遵循 §4.7 信封"
+              }
+            }
+          }
+        }
+      },
+      "job-stub": {
+        "type": "object",
+        "description": "岗位摘要（outlined，详见 HLD §4.2）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      },
+      "job": {
+        "type": "object",
+        "description": "岗位详情（outlined，详见 HLD §4.2）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      },
+      "hr-status": {
+        "type": "object",
+        "description": "HR 状态（outlined，详见 HLD §4.3）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      },
+      "quota": {
+        "type": "object",
+        "description": "平台配额（outlined，详见 HLD §4.4）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      },
+      "health-report": {
+        "type": "object",
+        "description": "适配器健康报告（outlined，详见 HLD §4.4）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      },
+      "login-state": {
+        "type": "object",
+        "description": "登录态（outlined，详见 HLD §4.4）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      },
+      "apply-result": {
+        "type": "object",
+        "description": "投递结果（outlined，详见 HLD §4.3）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      },
+      "application-stub": {
+        "type": "object",
+        "description": "投递摘要（outlined，详见 HLD §4.3）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      },
+      "notification": {
+        "type": "object",
+        "description": "通知（outlined，详见 HLD §4.6）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      },
+      "question-sets": {
+        "type": "object",
+        "description": "题集列表（outlined，详见 HLD §6.16）",
+        "additionalProperties": true,
+        "x-contract-status": "outlined"
+      }
+    }
+  }
+}
