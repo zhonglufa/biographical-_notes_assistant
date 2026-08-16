@@ -19,8 +19,7 @@
   - 契约 schema 用 draft 2020-12（nullable + $defs）。转为 OAS 3.1 时：
       * nullable:true -> type 联合 ["X","null"]，删除 nullable
       * 内部 $ref "#/$defs/x" -> "#/components/schemas/<compName>/$defs/x"
-  - A 层 / 面试 facade / device 端点的 request/response 为 human-readable 字段大纲，
-    用 best-effort 解析器转 schema，并标 x-contract-status: outlined（诚实标注未细化）。
+  - A 层 operation 级 `x-contract-status` 取 registry `contractStatus`（2026-08-16 v3.29 后 A 层 25 端点全 fully-detailed，表示严格 JSON Schema 已落盘 design/contracts/ 并经双闸门校验）；内联 request/response body 仍由 registry 字段大纲 best-effort 生成（投影），**权威严格契约见各 operation 的 `x-ref` 指向 design/contracts/*.schema.json**。面试 facade / device 端点仍为 outlined 投影。
   - B 层直引机器可读 b0X schema（严格）。
   - WSS RPC 方法不放 HTTP paths，挂在 info.x-agent-rpc 扩展，供文档查阅。
 """
@@ -568,7 +567,7 @@ def main():
             "description": (
                 "由 design/contracts/ 机器可读契约自动导出（生成器：api-contracts/gen_openapi.py）。\n\n"
                 "## 分层\n"
-                "- **A 层（外部 API）**：公共 REST，basePath /api/v1，25 个端点（A01-A25）。多数端点 contractStatus=outlined，schema 为 best-effort，以 x-contract-status 标注。\n"
+                "- **A 层（外部 API）**：公共 REST，basePath /api/v1，25 个端点（A01-A25）。严格机器可读 schema 已落盘 design/contracts/（request/response *.schema.json）并经双闸门校验（registry `contractStatus=fully-detailed`）。本文件为**概览投影视图**：内联 request/response body 由 registry 字段大纲 best-effort 生成（标 `x-contract-status` 仅表示投影粒度），**权威严格契约见各 operation 的 `x-ref` 指向 design/contracts/ 真实 schema**。\n"
                 "- **B 层（AI 编排）**：内部 REST /internal/v1/ai，b01-b05 直引机器可读 b0X schema（严格）。\n"
                 "- **面试模拟域**：内部 REST /internal/v1/interview，6 个 facade 方法（outlined）。\n"
                 "- **C 层（本机 Agent↔服务端）**：WSS RPC，本文件仅收录 device/* 与 payments/callback 等少数 HTTP 端点；双向 RPC 方法见下方 x-agent-rpc。\n\n"

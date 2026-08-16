@@ -25,7 +25,7 @@
 
 ## 2. 当前状态（循环每轮回写）
 - **所处阶段**：S1（进行中）
-- **完成度**：B 类证据看板模板 76/76 已建（条目齐，真实证据随 S3 灰度回填）· **A 层接口代码桩落地 2/25**（api_stub 已落 A01+A02 + ApiStub 注册表 + 冒烟 10/10 全绿；schema 契约 66/66 双闸门全绿）· 24 核心接口契约 *schema* 已 100% 机器可读 + 双闸门全绿（剩「代码桩落地」按 A2 逐模块推进）· 自检清单/图说明 待启动
+- **完成度**：B 类证据看板模板 76/76 已建（条目齐，真实证据随 S3 灰度回填）· **A 层接口代码桩落地 5/25**（api_stub 已落 A01+A02【Auth】+ A07+A08【Jobs】+ A03【User】 + ApiStub 注册表 + 冒烟 25/25 全绿；schema 契约 66/66 双闸门全绿）· A 层接口(A01–A25 共 25 个)契约 *schema* 已 100% 机器可读 + 双闸门全绿（剩「代码桩落地」按 A2 逐模块推进）· 自检清单/图说明 待启动
 - **文档基线**：PRD v4.5 / HLD v3.35 / LLD v1.2（LLD 仅覆盖"本机 Agent 与投递执行"首选模块）
 - **护栏现状**：双闸门已建（契约 66 schema+6 registry / PRD-HLD 追溯）；LLM 熔断 / 监控 / 灰度 / PIPL / 法检 = 设计待落地（S2/S3）
 
@@ -50,6 +50,7 @@
 
 ## 5. 待决 / BLOCKED（循环遇到须登记，不假装已覆盖）
 - C1 / C9 措辞：待法检 Pro 权威复核（循环在 S3 调专家；失败标 PENDING 继续，最终报告标注）。
+- **OpenAPI 导出 truth gap（2026-08-17 发现 → 已修复）**：registry/HLD 声明 A 层 25 端点全 `fully-detailed`；旧 `openapi.json`（pre-v3.29 导出）曾标 outlined。已重导 `openapi.json`（A 层 25 operation 级 `x-contract-status` 现全 `fully-detailed`，82 `$ref` 全解析），并修正 `gen_openapi.py` docstring + `info.description` + `README.md` 措辞，明确「openapi 为投影视图、权威严格契约见各 operation `x-ref`」。余下 22 处 outlined 为 `$ref` stub 组件 + 面试域（合法，与 A 层 operation 状态不矛盾）。已随本轮提交。
 - 上线前 PIPL 法定最终签署：用户/法务，循环不代签（标"待用户触发"）。
 - 真实凭据 / 部署 / 上线：用户独有动作。
 
@@ -60,7 +61,7 @@
 |---|---|
 | `prd/PRD-简历自动投递与面试模拟-最终版.md` | v4.5（实为评审稿） |
 | `design/HLD-简历自动投递与面试模拟-概要设计.md` | v3.35 |
-| `design/LLD-本机Agent与投递执行-模块设计.md` | v1.2（仅首选模块） |
+| `design/LLD-*.md`（18 个模块） | 全部业务子域已落地（本机Agent v1.3 首选深化；其余 v1.0）；A 层 25 端点全 fully-detailed |
 | `design/contracts/validate_contracts.py` | 双闸门·契约校验 |
 | `design/check_prd_hld_traceability.py` | 双闸门·PRD-HLD 追溯 |
 | `design/交付前设计自检清单.md` | 7 节人工走查 |
@@ -73,7 +74,7 @@
 ---
 
 ## 7. 本轮计划 / 近期序列（循环每轮更新 §2 + 本节）
-- **下一工作包**：A2-1 Auth 模块代码桩(A01+A02)已落地（冒烟 6→10 全绿）。下一工作包 = **A2-2 下一个 A 层独立模块代码桩落地**（建议 Jobs 模块 A07/A08 或 User 模块 A03；同模式注册到 `API_STUB` 注册表 + 补单测），守双闸门；按 A01–A25 逐模块推进至「24 核心接口契约全量落地」。
+- **下一工作包**：A2-3 User 模块 A03 已落地（新增「无请求体 GET 端点」分发模式泛化，冒烟 21→25 全绿，commit `a6c876f`）。下一工作包 = **A2-4 下一个 A 层独立模块代码桩落地**（建议 Resume 模块 A04 `POST /resumes` 或 A05 `GET /resumes/{id}/versions`；同模式注册到 `API_STUB` 注册表 + 补单测；A05 同为无请求体，可直接复用本轮新增的 null-request 分发模式），守双闸门；按 A01–A25 逐模块推进至 A 层接口代码桩全量落地（当前 5/25）。
 - **近期推进序列**：B 类证据看板 → 24 接口契约全量落地 → 交付前自检清单补全 → 图说明收敛 → (S2) RAG 架构成本方案+轻量监控 → (S3) PIPL 合规设计+灰度回滚+生产就绪。
 
 ---
