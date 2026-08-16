@@ -1,6 +1,7 @@
 #!/bin/sh
 # pre-commit hook（版本受控副本，位于 githooks/，由 `git config core.hooksPath githooks` 启用）
-# 双闸门门禁：每次 git commit 前自动运行
+# 三闸门门禁：每次 git commit 前自动运行
+#   闸门0：HLD 文件头版本戳 == 末尾「文档版本」戳（防 HLD 内部版本漂移，双闸门不查此项）
 #   闸门1：design/contracts/validate_contracts.py  —— 契约 Schema 自洽 + 样本证伪
 #   闸门2：design/check_prd_hld_traceability.py    —— PRD<->HLD 防漂移对齐
 # 任一闸门 exit!=0 即拦截本次提交并给出提示（可用 git commit --no-verify 临时绕过，不推荐）。
@@ -8,6 +9,20 @@
 ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 TRACE_SCRIPT="$ROOT/design/check_prd_hld_traceability.py"
 CONTRACT_SCRIPT="$ROOT/design/contracts/validate_contracts.py"
+
+# 闸门0（前置，纯 sh/grep，无需 python）：HLD 文件头版本戳 与 末尾「文档版本」戳 一致性
+# 防 HLD 内部版本漂移——双闸门只查 PRD<->HLD 与外部契约，不查 HLD 自身头/脚，曾漏 v3.33→v3.35
+HLD_FILE="$ROOT/design/HLD-简历自动投递与面试模拟-概要设计.md"
+if [ -f "$HLD_FILE" ]; then
+  HEAD_VER=$(head -5 "$HLD_FILE" | grep -oE "v3\.[0-9]+" | head -1)
+  FOOT_VER=$(grep -E "^> 文档版本" "$HLD_FILE" | grep -oE "v3\.[0-9]+" | head -1)
+  if [ -n "$HEAD_VER" ] && [ -n "$FOOT_VER" ] && [ "$HEAD_VER" != "$FOOT_VER" ]; then
+    echo "❌ 提交被拦截：HLD 文件头版本($HEAD_VER) 与末尾「文档版本」($FOOT_VER) 不一致。"
+    echo "   请同步两处版本戳后再提交（或执行: git commit --no-verify 临时绕过，不推荐）。"
+    exit 1
+  fi
+  echo "▶ 闸门0: HLD 版本戳一致性检查 ✔"
+fi
 
 # 定位 python 解释器：依次尝试 python3 / python / 本机托管版，
 # 并实测"能否真正执行"，跳过 WindowsApps 等不可执行的桩（Permission denied 会误拦所有提交）。
