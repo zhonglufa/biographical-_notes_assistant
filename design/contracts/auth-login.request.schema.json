@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "auth-login-request",
+  "title": "A01 登录 - 请求",
+  "description": "POST /api/v1/auth/login 请求体（统一信封 data 内）。channel 决定凭证类型：email 用 code 或 password；sms 用 phone+code；wechat 用 code（OAuth 临时码）。deviceId 用于本机 Agent 绑定与多端互斥。",
+  "type": "object",
+  "properties": {
+    "channel": { "type": "string", "enum": ["email", "sms", "wechat"], "description": "登录渠道" },
+    "deviceId": { "type": "string", "minLength": 1, "description": "本机 Agent 设备标识，用于令牌绑定" },
+    "email": { "type": ["string", "null"], "description": "email 渠道账号，其余渠道为 null" },
+    "phone": { "type": ["string", "null"], "description": "sms 渠道手机号，其余渠道为 null" },
+    "code": { "type": ["string", "null"], "description": "验证码 / OAuth 临时码（email/sms/wechat 渠道）" },
+    "password": { "type": ["string", "null"], "description": "email 渠道密码登录，与 code 二选一" }
+  },
+  "required": ["channel", "deviceId"],
+  "additionalProperties": false
+}

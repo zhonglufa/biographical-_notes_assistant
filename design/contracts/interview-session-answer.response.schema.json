@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-session-answer-response",
+  "title": "A18 提交作答 - 响应",
+  "description": "POST /api/v1/interviews/sessions/{id}/answer 响应体。accepted 表示已接收并进入评估；score 为逐题即时分（0-1，未评估为 null）。",
+  "type": "object",
+  "properties": {
+    "accepted": { "type": "boolean" },
+    "score": { "type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "0-1 即时分，未评估为 null" }
+  },
+  "required": ["accepted"],
+  "additionalProperties": false
+}

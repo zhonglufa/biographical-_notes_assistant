@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-session-report-response",
+  "title": "A19 评估报告 - 响应",
+  "description": "GET /api/v1/interviews/sessions/{id}/report 响应体。嵌入综合评估（维度对齐 interview-evaluation.schema.json），overallScore 0-100。",
+  "type": "object",
+  "properties": {
+    "sessionId": { "type": "string", "minLength": 1 },
+    "overallScore": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "dimensions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dim": { "type": "string", "minLength": 1 },
+          "rawScore": { "type": "integer", "minimum": 1, "maximum": 5 },
+          "reason": { "type": "string", "minLength": 1 },
+          "score": { "type": ["number", "null"], "minimum": 0, "maximum": 1, "description": "归一化分（可选第5维）" }
+        },
+        "required": ["dim", "rawScore", "reason"],
+        "additionalProperties": false
+      }
+    },
+    "degradeFlag": { "type": "boolean", "nullable": true },
+    "feedback": { "type": "string", "minLength": 1 },
+    "appealEntry": { "type": ["boolean", "null"], "nullable": true },
+    "rerunEntry": { "type": ["boolean", "null"], "nullable": true }
+  },
+  "required": ["sessionId", "overallScore", "dimensions", "feedback"],
+  "additionalProperties": false
+}

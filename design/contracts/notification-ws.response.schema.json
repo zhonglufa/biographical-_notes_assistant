@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "notification-ws-response",
+  "title": "A23 WebSocket 推送连接 - 响应",
+  "description": "GET /api/v1/notifications/ws 响应体。返回已签名的 WebSocket 连接地址（token 经 query 传递，auth=Bearer(query)）。",
+  "type": "object",
+  "properties": {
+    "wsUrl": { "type": "string", "minLength": 1, "description": "wss:// 连接地址（含一次性 token 查询参数）" },
+    "expiresIn": { "type": ["integer", "null"], "minimum": 1, "description": "wsUrl 有效期（秒），过期需重连" }
+  },
+  "required": ["wsUrl"],
+  "additionalProperties": false
+}

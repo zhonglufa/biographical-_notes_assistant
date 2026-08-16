@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "adapter-enable-request",
+  "title": "A15 适配器启停 - 请求",
+  "description": "POST /api/v1/adapters/{id}/enable 请求体。adapterId 取自路径；enabled 控制启用/停用。仅 pro 套餐可操作。",
+  "type": "object",
+  "properties": {
+    "enabled": { "type": "boolean", "description": "true=启用，false=停用" }
+  },
+  "required": ["enabled"],
+  "additionalProperties": false
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-questions-response",
+  "title": "A16 面试题列表（备战） - 响应",
+  "description": "GET /api/v1/interviews/questions 响应体。返回用户可备战的题集列表；单题结构见 interview-question.schema.json。",
+  "type": "object",
+  "properties": {
+    "questionSets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "setId": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "questionCount": { "type": "integer", "minimum": 0 },
+          "difficulty": { "type": "string", "enum": ["easy", "medium", "hard"], "nullable": true },
+          "tags": { "type": "array", "items": { "type": "string" }, "nullable": true }
+        },
+        "required": ["setId", "title", "questionCount"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["questionSets"],
+  "additionalProperties": false
+}

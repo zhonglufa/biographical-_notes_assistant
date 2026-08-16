@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "auth-refresh-request",
+  "title": "A02 刷新令牌 - 请求",
+  "description": "POST /api/v1/auth/refresh 请求体。携带 refreshToken 换取新 accessToken。",
+  "type": "object",
+  "properties": {
+    "refreshToken": { "type": "string", "minLength": 1, "description": "长期刷新令牌" }
+  },
+  "required": ["refreshToken"],
+  "additionalProperties": false
+}

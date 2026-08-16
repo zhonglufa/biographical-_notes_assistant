@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-session-create-response",
+  "title": "A17 创建 AI 面试会话 - 响应",
+  "description": "POST /api/v1/interviews/sessions 响应体。返回新会话标识与初始状态（状态机见 interview-session.schema.json）。",
+  "type": "object",
+  "properties": {
+    "sessionId": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["created", "in_progress", "completed", "abandoned"] }
+  },
+  "required": ["sessionId", "status"],
+  "additionalProperties": false
+}

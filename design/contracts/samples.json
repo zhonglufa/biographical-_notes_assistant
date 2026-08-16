@@ -400,6 +400,157 @@
         { "updatedAt": 1700000000000, "reason": "缺必需字段 ok" },
         { "ok": true, "updatedAt": 1700000000000, "extra": 1, "reason": "存在未声明额外字段" }
       ]
+    },
+    "auth-login.request.schema.json": {
+      "valid": [
+        { "channel": "email", "deviceId": "dev-1", "email": "a@b.com", "code": "123456" },
+        { "channel": "sms", "deviceId": "dev-2", "phone": "13800000000", "code": "654321" },
+        { "channel": "wechat", "deviceId": "dev-3", "code": "wxcode" }
+      ],
+      "invalid": [
+        { "deviceId": "dev", "reason": "缺必需字段 channel" },
+        { "channel": "email", "reason": "缺必需字段 deviceId" },
+        { "channel": "unknown", "deviceId": "d", "reason": "channel 不在 enum" },
+        { "channel": "email", "deviceId": "d", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "auth-login.response.schema.json": {
+      "valid": [
+        { "accessToken": "at", "refreshToken": "rt", "expiresIn": 3600, "userId": "U1", "plan": "pro" },
+        { "accessToken": "at", "refreshToken": "rt", "expiresIn": 7200, "userId": "U2", "plan": "free" }
+      ],
+      "invalid": [
+        { "accessToken": "at", "refreshToken": "rt", "expiresIn": 3600, "userId": "U1", "reason": "缺必需字段 plan" },
+        { "accessToken": "at", "refreshToken": "rt", "expiresIn": 3600, "userId": "U1", "plan": "vip", "reason": "plan 不在 enum" },
+        { "accessToken": "at", "refreshToken": "rt", "expiresIn": 3600, "userId": "U1", "plan": "pro", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "auth-refresh.request.schema.json": {
+      "valid": [
+        { "refreshToken": "rt" }
+      ],
+      "invalid": [
+        { "reason": "缺必需字段 refreshToken" },
+        { "refreshToken": "", "reason": "refreshToken 空 minLength 失败" },
+        { "refreshToken": "rt", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "auth-refresh.response.schema.json": {
+      "valid": [
+        { "accessToken": "at", "expiresIn": 3600 },
+        { "accessToken": "at", "expiresIn": 3600, "refreshToken": "rt2" },
+        { "accessToken": "at", "expiresIn": 3600, "refreshToken": null }
+      ],
+      "invalid": [
+        { "expiresIn": 3600, "reason": "缺必需字段 accessToken" },
+        { "accessToken": "at", "reason": "缺必需字段 expiresIn" },
+        { "accessToken": "at", "expiresIn": 3600, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "adapter-enable.request.schema.json": {
+      "valid": [
+        { "enabled": true },
+        { "enabled": false }
+      ],
+      "invalid": [
+        { "reason": "缺必需字段 enabled" },
+        { "enabled": "yes", "reason": "enabled 非布尔" },
+        { "enabled": true, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "adapter-enable.response.schema.json": {
+      "valid": [
+        { "adapterId": "boss", "status": "enabled" },
+        { "adapterId": "lagou", "status": "disabled" }
+      ],
+      "invalid": [
+        { "status": "enabled", "reason": "缺必需字段 adapterId" },
+        { "adapterId": "boss", "status": "active", "reason": "status 不在 enum" },
+        { "adapterId": "boss", "status": "enabled", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "interview-questions.response.schema.json": {
+      "valid": [
+        { "questionSets": [ { "setId": "Q1", "title": "Java 后端", "questionCount": 10, "difficulty": "medium", "tags": ["java"] } ] },
+        { "questionSets": [] }
+      ],
+      "invalid": [
+        { "reason": "缺必需字段 questionSets" },
+        { "questionSets": [ { "setId": "Q1", "title": "x" } ], "reason": "item 缺 questionCount" },
+        { "questionSets": [], "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "interview-session-create.request.schema.json": {
+      "valid": [
+        { "mode": "text" },
+        { "mode": "voice", "jobId": "J1", "questionSetId": "Q1" },
+        { "mode": "text", "jobId": null, "questionSetId": null }
+      ],
+      "invalid": [
+        { "jobId": "J1", "reason": "缺必需字段 mode" },
+        { "mode": "video", "reason": "mode 不在 enum" },
+        { "mode": "text", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "interview-session-create.response.schema.json": {
+      "valid": [
+        { "sessionId": "S1", "status": "created" },
+        { "sessionId": "S2", "status": "in_progress" }
+      ],
+      "invalid": [
+        { "status": "created", "reason": "缺必需字段 sessionId" },
+        { "sessionId": "S1", "status": "active", "reason": "status 不在 enum" },
+        { "sessionId": "S1", "status": "created", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "interview-session-answer.request.schema.json": {
+      "valid": [
+        { "questionId": "q1", "answer": "我的回答内容" },
+        { "questionId": "q1", "answer": { "audioRef": "audio/123.mp3" }, "asrProvider": "cloud_asr" }
+      ],
+      "invalid": [
+        { "answer": "文本", "reason": "缺必需字段 questionId" },
+        { "questionId": "q1", "reason": "缺必需字段 answer" },
+        { "questionId": "q1", "answer": 123, "reason": "answer 非字符串非对象 → oneOf 0 匹配" },
+        { "questionId": "q1", "answer": "", "reason": "answer 空串 → branch1 失败、branch2 失败 → 0 匹配" },
+        { "questionId": "q1", "answer": "文本", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "interview-session-answer.response.schema.json": {
+      "valid": [
+        { "accepted": true },
+        { "accepted": true, "score": 0.85 },
+        { "accepted": false, "score": null }
+      ],
+      "invalid": [
+        { "score": 0.5, "reason": "缺必需字段 accepted" },
+        { "accepted": true, "score": 1.5, "reason": "score > 1" },
+        { "accepted": true, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "interview-session-report.response.schema.json": {
+      "valid": [
+        { "sessionId": "S1", "overallScore": 82, "dimensions": [ { "dim": "完整性", "rawScore": 4, "reason": "全面" }, { "dim": "准确性", "rawScore": 5, "reason": "准确", "score": 1.0 } ], "degradeFlag": false, "feedback": "表现优秀" },
+        { "sessionId": "S2", "overallScore": 55, "dimensions": [ { "dim": "完整性", "rawScore": 3, "reason": "部分" } ], "feedback": "需加强" }
+      ],
+      "invalid": [
+        { "sessionId": "S1", "overallScore": 150, "dimensions": [ { "dim": "a", "rawScore": 3, "reason": "y" } ], "feedback": "x", "reason": "overallScore > 100" },
+        { "sessionId": "S1", "overallScore": 80, "feedback": "x", "reason": "缺必需字段 dimensions" },
+        { "sessionId": "S1", "overallScore": 80, "dimensions": [ { "dim": "a", "rawScore": 3 } ], "feedback": "x", "reason": "dimension 缺 reason" },
+        { "sessionId": "S1", "overallScore": 80, "dimensions": [ { "dim": "a", "rawScore": 3, "reason": "y" } ], "feedback": "x", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "notification-ws.response.schema.json": {
+      "valid": [
+        { "wsUrl": "wss://api.example.com/ws?token=abc" },
+        { "wsUrl": "wss://api.example.com/ws?token=xyz", "expiresIn": 3600 },
+        { "wsUrl": "wss://api.example.com/ws?token=abc", "expiresIn": null }
+      ],
+      "invalid": [
+        { "reason": "缺必需字段 wsUrl" },
+        { "wsUrl": "", "reason": "wsUrl 空 minLength 失败" },
+        { "wsUrl": "wss://x", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
     }
   },
   "registryFiles": {

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-session-answer-request",
+  "title": "A18 提交作答 - 请求",
+  "description": "POST /api/v1/interviews/sessions/{id}/answer 请求体。answer 为文本或语音引用（oneOf）；语音经 asrProvider 转写后评估。",
+  "type": "object",
+  "properties": {
+    "questionId": { "type": "string", "minLength": 1 },
+    "answer": {
+      "oneOf": [
+        { "type": "string", "minLength": 1, "description": "文本作答" },
+        { "type": "object", "properties": { "audioRef": { "type": "string", "minLength": 1 } }, "required": ["audioRef"], "additionalProperties": false, "description": "语音作答引用（对象存储 key）" }
+      ]
+    },
+    "asrProvider": { "type": ["string", "null"], "description": "语音转写厂商，缺省走默认降级链" }
+  },
+  "required": ["questionId", "answer"],
+  "additionalProperties": false
+}

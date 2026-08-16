@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "adapter-enable-response",
+  "title": "A15 适配器启停 - 响应",
+  "description": "POST /api/v1/adapters/{id}/enable 响应体。返回被操作适配器的新状态。",
+  "type": "object",
+  "properties": {
+    "adapterId": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["enabled", "disabled"], "description": "操作后状态" }
+  },
+  "required": ["adapterId", "status"],
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "interview-session-create-request",
+  "title": "A17 创建 AI 面试会话 - 请求",
+  "description": "POST /api/v1/interviews/sessions 请求体。mode 决定文本或语音（语音触发 ASR 降级链）；jobId 关联岗位用于定制题库，questionSetId 指定题集，缺省由 AI 编排生成。",
+  "type": "object",
+  "properties": {
+    "jobId": { "type": ["string", "null"], "description": "关联投递/岗位，用于岗位化出题" },
+    "mode": { "type": "string", "enum": ["text", "voice"], "description": "交互模式" },
+    "questionSetId": { "type": ["string", "null"], "description": "指定题集，缺省由 AI 编排生成" }
+  },
+  "required": ["mode"],
+  "additionalProperties": false
+}

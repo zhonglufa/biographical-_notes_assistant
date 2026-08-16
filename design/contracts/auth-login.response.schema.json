@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "auth-login-response",
+  "title": "A01 登录 - 响应",
+  "description": "POST /api/v1/auth/login 响应体（统一信封 data 内）。返回双令牌：accessToken 短期、refreshToken 长期（令牌轮转见 A02）。",
+  "type": "object",
+  "properties": {
+    "accessToken": { "type": "string", "minLength": 1, "description": "短期访问令牌（Bearer）" },
+    "refreshToken": { "type": "string", "minLength": 1, "description": "长期刷新令牌" },
+    "expiresIn": { "type": "integer", "minimum": 1, "description": "accessToken 有效期（秒）" },
+    "userId": { "type": "string", "minLength": 1 },
+    "plan": { "type": "string", "enum": ["free", "pro", "team"], "description": "会员套餐" }
+  },
+  "required": ["accessToken", "refreshToken", "expiresIn", "userId", "plan"],
+  "additionalProperties": false
+}
