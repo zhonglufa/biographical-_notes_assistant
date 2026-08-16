@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "applications-list-response",
+  "title": "A10 投递记录列表 - 响应",
+  "description": "GET /api/v1/applications 响应体（统一信封 data 内）。分页列表，applicationStub 为投递简档。",
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "applicationId": { "type": "string", "minLength": 1 },
+          "jobId": { "type": "string", "minLength": 1 },
+          "platformId": { "type": "string", "minLength": 1 },
+          "status": { "type": "string", "enum": ["pending_confirm", "autofilling", "submitted", "viewed", "contacting", "interview_invited", "interview_done", "offer", "rejected", "closed"] },
+          "appliedAt": { "type": "integer", "minimum": 0, "description": "epoch 毫秒" }
+        },
+        "required": ["applicationId", "jobId", "platformId", "status"],
+        "additionalProperties": false
+      }
+    },
+    "total": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["items", "total"],
+  "additionalProperties": false
+}

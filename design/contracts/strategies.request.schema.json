@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "strategies-request",
+  "title": "A13 更新策略配置 - 请求",
+  "description": "PUT /api/v1/strategies 请求体（PC 完整，移动端受限；冲突以 PC 为准 LWW）。",
+  "type": "object",
+  "properties": {
+    "matchThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+    "dailyLimit": { "type": "integer", "minimum": 0 },
+    "platforms": { "type": "array", "items": { "type": "string" } },
+    "blacklist": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["matchThreshold", "dailyLimit", "platforms", "blacklist"],
+  "additionalProperties": false
+}

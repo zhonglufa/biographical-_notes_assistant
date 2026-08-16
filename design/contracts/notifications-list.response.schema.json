@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "notifications-list-response",
+  "title": "A22 通知列表 - 响应",
+  "description": "GET /api/v1/notifications 响应体（统一信封 data 内）。notification 为站内信条目，状态机 sent→read/deleted，到期 archived。",
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "level": { "type": "string", "enum": ["L0", "L1", "L2", "L3"] },
+          "title": { "type": "string" },
+          "body": { "type": "string" },
+          "read": { "type": "boolean" },
+          "createdAt": { "type": "integer", "minimum": 0, "description": "epoch 毫秒" },
+          "channel": { "type": "string", "nullable": true }
+        },
+        "required": ["id", "level", "title", "read", "createdAt"],
+        "additionalProperties": false
+      }
+    },
+    "unread": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["items", "unread"],
+  "additionalProperties": false
+}

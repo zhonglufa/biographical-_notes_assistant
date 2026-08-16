@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "strategies-response",
+  "title": "A12 读取策略配置 - 响应",
+  "description": "GET /api/v1/strategies 响应体（统一信封 data 内）。",
+  "type": "object",
+  "properties": {
+    "matchThreshold": { "type": "number", "minimum": 0, "maximum": 1 },
+    "dailyLimit": { "type": "integer", "minimum": 0 },
+    "platforms": { "type": "array", "items": { "type": "string" } },
+    "blacklist": { "type": "array", "items": { "type": "string" } }
+  },
+  "required": ["matchThreshold", "dailyLimit", "platforms", "blacklist"],
+  "additionalProperties": false
+}

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "user-me-response",
+  "title": "A03 当前用户与权益 - 响应",
+  "description": "GET /api/v1/users/me 响应体（统一信封 data 内）。返回权益上下文，驱动前端权限展示与服务端 A03 字段级判定。",
+  "type": "object",
+  "properties": {
+    "userId": { "type": "string", "minLength": 1 },
+    "email": { "type": "string", "nullable": true },
+    "plan": { "type": "string", "enum": ["free", "pro", "team"] },
+    "quotaUsed": { "type": "integer", "minimum": 0 },
+    "quotaLimit": { "type": "integer", "minimum": 0 },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "pushTime": { "type": "string", "nullable": true },
+        "doNotDisturb": { "type": "boolean", "nullable": true }
+      },
+      "additionalProperties": true,
+      "nullable": true
+    }
+  },
+  "required": ["userId", "plan", "quotaUsed", "quotaLimit"],
+  "additionalProperties": false
+}
