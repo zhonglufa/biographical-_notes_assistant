@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.join(_HERE, "..", "src"))
 
 from contract_runtime import validate_payload
 from event_bus import EventBus, build_payment_status_event
-from api_stub import AUTH_LOGIN, AUTH_REFRESH, API_STUB
+from api_stub import AUTH_LOGIN, AUTH_REFRESH, JOBS_SEARCH, JOBS_FAVORITE, API_STUB
 
 
 def _check(name: str, cond: bool):
@@ -92,12 +92,59 @@ def test_api_stub():
            set(API_STUB.endpoint_ids()) >= {"A01 auth-login", "A02 auth-refresh"})
 
 
+def test_api_stub_jobs():
+    print("· api_stub (Jobs 模块 A07/A08)")
+    # ---- A07 岗位搜索 ----
+    code, body = JOBS_SEARCH.dispatch({"page": 1, "pageSize": 20, "keyword": "Java"})
+    _check("合法岗位搜索 200 + 响应含 items/total/page/pageSize",
+           code == 200 and body.get("total") == 1
+           and body.get("page") == 1 and body.get("pageSize") == 20
+           and isinstance(body.get("items"), list) and len(body["items"]) == 1)
+
+    # jobStub 必填字段齐全 + 枚举合法（matchBand=green 在枚举内）
+    stub = body["items"][0]
+    _check("jobStub 必填字段齐全",
+           all(k in stub for k in
+               ("jobId", "title", "company", "platformId", "source", "collectedAt")))
+    _check("jobStub matchBand 在枚举内",
+           stub.get("matchBand") in ("green", "blue", "gray"))
+
+    code2, _ = JOBS_SEARCH.dispatch({"foo": "bar"})  # 缺 page/pageSize + 额外字段
+    _check("非法岗位搜索(缺 page/pageSize) 422(fail-closed)", code2 == 422)
+
+    # ---- A08 收藏/忽略 ----
+    code3, body3 = JOBS_FAVORITE.dispatch({"action": "favorite"})
+    _check("合法收藏 200 + status=favorited + favoriteId 非空",
+           code3 == 200 and body3.get("status") == "favorited"
+           and isinstance(body3.get("favoriteId"), str) and body3["favoriteId"])
+
+    code4, body4 = JOBS_FAVORITE.dispatch({"action": "ignore"})
+    _check("合法忽略 200 + status=ignored + favoriteId=null",
+           code4 == 200 and body4.get("status") == "ignored"
+           and body4.get("favoriteId") is None)
+
+    code5, _ = JOBS_FAVORITE.dispatch({"action": "bad"})  # 枚举外值
+    _check("非法收藏(枚举外 action) 422(fail-closed)", code5 == 422)
+
+    # ---- 注册表按 id 分发 ----
+    code6, _ = API_STUB.dispatch_id("A07 jobs-search",
+                                    {"page": 1, "pageSize": 20})
+    _check("注册表分发 A07 -> 200", code6 == 200)
+
+    code7, _ = API_STUB.dispatch_id("A08 jobs-favorite", {"action": "favorite"})
+    _check("注册表分发 A08 -> 200", code7 == 200)
+
+    _check("注册表含 A07/A08 两端点",
+           set(API_STUB.endpoint_ids()) >= {"A07 jobs-search", "A08 jobs-favorite"})
+
+
 def main():
     print("=== scaffold 冒烟测试 ===")
     try:
         test_contract_runtime()
         test_event_bus()
         test_api_stub()
+        test_api_stub_jobs()
     except AssertionError as e:
         print(f"\n冒烟测试失败：{e}")
         traceback.print_exc()

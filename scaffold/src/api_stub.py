@@ -5,15 +5,16 @@ api_stub.py — 契约优先的接口分发骨架（D 阶段奠基切片）
 这是一个传输无关的「端点」抽象：生产环境把它挂到 FastAPI/Flask/本机 Agent 的
 HTTP 层即可，但「校验规则」与这里完全一致 —— 换 Web 框架不改契约逻辑。
 
-本切片已落地 **Auth 模块 (A01 登录 + A02 刷新令牌)** 两个端点，证明模块级
-contract-first 落地模式可行；后续 A 层端点按同模式逐一对齐 schema 即可
+本切片已落地 **Auth 模块 (A01 登录 + A02 刷新令牌)** 与 **Jobs 模块
+(A07 岗位搜索 + A08 收藏/忽略)** 共四个端点，证明模块级 contract-first
+落地模式可行；后续 A 层端点按同模式逐一对齐 schema 即可
 （见 README §3 脚手架顺序）。每个端点都是一个 `Endpoint` 实例，统一由
 `API_STUB` 注册表按 id 分发。
 
 ⚠️ 安全边界（REVIEW-3 红线规避）：本文件所有 handler 均为 **demo / mock 桩**，
-只返回符合响应契约结构的占位数据（占位令牌），**不实现任何真实鉴权逻辑**
-（不含密码校验、令牌签发/签名、凭据存储、会话策略）。真实鉴权在 B 阶段由
-服务端 security 模块实现，本脚手架仅演示「契约校验」机制本身。
+只返回符合响应契约结构的占位数据，**不实现任何真实业务逻辑**
+（不含密码校验、令牌签发/签名、凭据存储、会话策略、真实查询/写库）。
+真实实现在 B 阶段由服务端各业务模块完成，本脚手架仅演示「契约校验」机制本身。
 """
 import os
 import sys
@@ -110,10 +111,66 @@ AUTH_REFRESH = Endpoint(
     handler=_refresh_handler,
 )
 
-# 全局注册表：已落地 Auth 模块（A01/A02），后续端点按同模式注册即可。
+# ---- Jobs 模块 demo 桩（仅演示契约，不含真实查询/写库业务逻辑）----
+
+def _jobs_search_handler(req: dict) -> dict:
+    # 真实实现会按 keyword/location/platform/salaryMin/page/pageSize 查询岗位库；
+    # 此处只回符合响应契约的占位结构。jobStub 必填字段：
+    # jobId/title/company/platformId/source/collectedAt（其余字段可空，已含演示值）。
+    return {
+        "items": [
+            {
+                "jobId": "J-demo-001",
+                "title": "Java 开发工程师",
+                "company": "示例科技有限公司",
+                "platformId": "boss-1001",
+                "salaryMin": 15000,
+                "salaryMax": 25000,
+                "location": "深圳",
+                "source": "search",
+                "matchScore": 88,
+                "matchBand": "green",
+                "matchReason": "技能匹配度高",
+                "favorited": False,
+                "collectedAt": 1760000000000,
+            }
+        ],
+        "total": 1,
+        "page": req.get("page", 1),
+        "pageSize": req.get("pageSize", 20),
+    }
+
+
+def _jobs_favorite_handler(req: dict) -> dict:
+    # 真实实现会按 jobId(path) + action 写收藏/忽略状态（action 幂等）；
+    # 此处只回符合响应契约的占位结构。path 参数 {id} 不在请求体契约内（仅 body 过契约）。
+    action = req.get("action")
+    if action == "favorite":
+        return {"ok": True, "favoriteId": "F-demo-001", "status": "favorited"}
+    return {"ok": True, "favoriteId": None, "status": "ignored"}
+
+
+JOBS_SEARCH = Endpoint(
+    name="A07 jobs-search",
+    request_schema="jobs-search.request.schema.json",
+    response_schema="jobs-list.response.schema.json",
+    handler=_jobs_search_handler,
+)
+
+JOBS_FAVORITE = Endpoint(
+    name="A08 jobs-favorite",
+    request_schema="jobs-favorite.request.schema.json",
+    response_schema="jobs-favorite.response.schema.json",
+    handler=_jobs_favorite_handler,
+)
+
+
+# 全局注册表：已落地 Auth 模块（A01/A02）+ Jobs 模块（A07/A08），后续端点按同模式注册即可。
 API_STUB = ApiStub()
 API_STUB.register(AUTH_LOGIN)
 API_STUB.register(AUTH_REFRESH)
+API_STUB.register(JOBS_SEARCH)
+API_STUB.register(JOBS_FAVORITE)
 
 
 if __name__ == "__main__":
@@ -130,3 +187,17 @@ if __name__ == "__main__":
 
     code4, body4 = API_STUB.dispatch_id("A02 auth-refresh", {})  # 缺 refreshToken
     print("非法刷新 ->", code4, body4)
+
+    code5, body5 = API_STUB.dispatch_id("A07 jobs-search",
+                                        {"page": 1, "pageSize": 20, "keyword": "Java"})
+    print("合法岗位搜索 ->", code5, "items=", len(body5.get("items", [])))
+
+    code6, body6 = API_STUB.dispatch_id("A07 jobs-search",
+                                        {"foo": "bar"})  # 缺 page/pageSize + 额外字段
+    print("非法岗位搜索 ->", code6)
+
+    code7, body7 = API_STUB.dispatch_id("A08 jobs-favorite", {"action": "favorite"})
+    print("合法收藏 ->", code7, body7)
+
+    code8, body8 = API_STUB.dispatch_id("A08 jobs-favorite", {"action": "bad"})  # 非法枚举
+    print("非法收藏(枚举外) ->", code8)
