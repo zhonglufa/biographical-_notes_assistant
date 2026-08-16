@@ -1,0 +1,52 @@
+#!/bin/sh
+# pre-commit hook（版本受控副本，位于 githooks/，由 `git config core.hooksPath githooks` 启用）
+# 双闸门门禁：每次 git commit 前自动运行
+#   闸门1：design/contracts/validate_contracts.py  —— 契约 Schema 自洽 + 样本证伪
+#   闸门2：design/check_prd_hld_traceability.py    —— PRD<->HLD 防漂移对齐
+# 任一闸门 exit!=0 即拦截本次提交并给出提示（可用 git commit --no-verify 临时绕过，不推荐）。
+
+ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
+TRACE_SCRIPT="$ROOT/design/check_prd_hld_traceability.py"
+CONTRACT_SCRIPT="$ROOT/design/contracts/validate_contracts.py"
+
+# 定位 python 解释器：依次尝试 python3 / python / 本机托管版，
+# 并实测"能否真正执行"，跳过 WindowsApps 等不可执行的桩（Permission denied 会误拦所有提交）。
+PYTHON=""
+for cand in "$(command -v python3 2>/dev/null)" "$(command -v python 2>/dev/null)" "$HOME/.workbuddy/binaries/python/versions/3.13.12/python.exe"; do
+  if [ -n "$cand" ] && "$cand" -c "import sys; sys.exit(0)" >/dev/null 2>&1; then
+    PYTHON="$cand"
+    break
+  fi
+done
+
+if [ -z "$PYTHON" ]; then
+  echo "⚠ 未找到可执行的 python 解释器，跳过双闸门校验（提交仍允许）。请安装 python3 后重跑校验。"
+  exit 0
+fi
+
+if [ ! -f "$TRACE_SCRIPT" ]; then
+  echo "⚠ 校验器脚本不存在: $TRACE_SCRIPT，跳过（提交仍允许）。"
+  exit 0
+fi
+
+echo "▶ 运行闸门2: PRD<->HLD 防漂移校验器 ..."
+"$PYTHON" "$TRACE_SCRIPT"
+EC=$?
+if [ "$EC" -ne 0 ]; then
+  echo ""
+  echo "❌ 提交被拦截：PRD 与 HLD 未对齐（详见上方校验输出）。"
+  echo "   请补全 HLD 设计决策与 §1.2 矩阵行，或先在矩阵登记 '不在本档范围'，再提交。"
+  echo "   若确需临时绕过（不推荐），可执行: git commit --no-verify"
+  exit 1
+fi
+
+echo "▶ 运行闸门1: 契约校验器 (design/contracts) ..."
+"$PYTHON" "$CONTRACT_SCRIPT"
+EC2=$?
+if [ "$EC2" -ne 0 ]; then
+  echo "❌ 提交被拦截：接口契约校验未通过（详见上方输出）。"
+  exit 1
+fi
+
+echo "✅ 双闸门全绿（契约自洽 + PRD/HLD 对齐），允许提交。"
+exit 0
