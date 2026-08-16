@@ -34,7 +34,39 @@
 | 多简历版本 | — | — | ✓（§25.2） | ✓ |
 | 优先适配器支持 | — | — | ✓（SLA 量化） | ✓ |
 
-- **判定纪律**：A03 字段级权限校验强制执行；权限码表见 §8 待决 T-UP-1；任何特权接口须持对应 role（Bearer+role，如 A09/A13/A15）。
+- **判定纪律**：A03 字段级权限校验强制执行；权限码表见 **§2.1（T-UP-1 设计态闭环）**；任何特权接口须持对应 role（Bearer+role，如 A09/A13/A15）。
+
+## 2.1 角色枚举与权限码表（T-UP-1 设计态闭环）
+
+> 闭合 §7 待决 T-UP-1：编码期仅做最终命名，设计态角色全集 + 权限码全集 + 判定规则已在此定义（类比其它「默认档」设计留白，不阻塞设计闭环）。
+
+**角色枚举 `role`**（JWT claims `role` 取值）：
+
+| role | 含义 | 权益来源 |
+|------|------|----------|
+| `free` | 免费版 | 权益矩阵免费档（fail-closed 默认） |
+| `pro` | 专业版 | 权益矩阵专业档 |
+| `premium` | 高级版 | 权益矩阵高级档（含优先支持指标） |
+| `admin` | 管理员 | 全功能 + 后台运营 |
+
+**权限码 `perm`**（A03 字段级判定，Bearer 须含对应 role 方可调用特权接口）：
+
+| perm code | 说明 | 要求 role |
+|-----------|------|-----------|
+| `resume:read` `resume:write` | 简历读写 | 任意登录用户 |
+| `resume:version:multi` | 多简历版本 | `pro`/`premium`/`admin` |
+| `apply:execute` | 发起投递 | 任意登录用户（受日上限约束） |
+| `apply:platform:unlimited` | 接入全部平台 | `pro`/`premium`/`admin`（免费 ≤3） |
+| `interview:sim:unlimited` | 无限 AI 面试模拟 | `premium`/`admin`（`pro` 限次） |
+| `voice:practice` | 语音练习 | `pro`/`premium`/`admin` |
+| `adapter:prioritized` | 优先适配器支持 | `premium`/`admin` |
+| `admin:ops` | 后台运营操作 | `admin` |
+| `admin:config` | 配置中心写 | `admin` |
+
+**判定规则**：
+1. 每次接口调用由网关/服务端强制 A03：`required_role(perm) ⊆ user.role` 否则 `403 FORBIDDEN`（错误码 `FORBIDDEN`，见 `error-codes.json`）。
+2. 权益来源不确定（C5 未达 / 解析失败）→ **fail-closed 按 `free` 处理**，不放大权限（§3）。
+3. 字段级隐藏：前端仅做展示隐藏，服务端为唯一权威（防越权）。
 
 ## 3. 会员权益实时生效（C5）
 
@@ -61,7 +93,7 @@
 
 | 项 | 说明 |
 |----|------|
-| T-UP-1 角色枚举与权限码表 | 编码期敲定 role/permission code 全集与判定规则 |
+| T-UP-1 角色枚举与权限码表 | **[已闭环-设计态]** 角色全集 + 权限码全集 + 判定规则已定义于 §2.1；编码期仅做最终命名（不阻塞设计） |
 | T-UP-2 第三方授权细化 | 微信授权码换取会话的 scope / 刷新策略 |
 | T-UP-3 账号安全风控阈值 | 高频/异地/爆破的触发与二次验证阈值 |
 

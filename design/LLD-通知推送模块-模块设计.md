@@ -60,15 +60,31 @@
 - `notification` 表：状态机 `sent → read / deleted`，到期 `archived`（PRD §20.2）；触达统计回写。
 - 与数据库设计 LLD 通知表全对齐；事件 payload 见 HLD §4.6。
 
-## 8. 待决项登记（非静默）
+## 8. 投递语义形式化（at-least-once / 去重 / 幂等 / 重试 / 死信）— 审计缺口①闭环
+
+本条把 §4 重复去重、§5 触发升级为**可验证的投递语义契约**（闭合设计粒度审计缺口①「通知推送投递语义仍散文级」）：
+
+- **投递保证：at-least-once（至少一次）**。通知经 MQ 分发，消费者处理成功才 ack；未 ack 由 MQ 重投，允许重复到达。
+- **去重键 `dedupKey`**：每个通知携带业务去重键（如 `interview.invited:{userId}:{applyId}`、`hr.viewed:{userId}:{jobId}`、`login.invalidated:{userId}`）。消费侧按 `dedupKey` + 状态做幂等：
+  - 登录态失效：5min 内同键不重复推（§4）。
+  - 同岗位 HR 查看：仅首次；投递失败按 `平台+日期` 汇总，避免重复轰炸（§4）。
+- **幂等实现**：通知表 `uk(notification_key)`（= dedupKey 哈希）+ `status`；重复到达时 `ON DUPLICATE` 跳过或合并，不重复落库/不重复触达。
+- **重试与退避**：渠道瞬时失败按指数退避重试 ≤3 次（base 1s，×2，cap 30s）；超过入 **DLQ（死信队列）**，不阻塞主链路；DLQ 人工/定时补偿（告警）。
+- **失败兜底链**：主渠道（APNs/FCM+厂商）→ 失败转站内信（始终可达）→ L0/L1 额外补发邮件（§1 渠道矩阵）。任何单渠道不可用**不得**导致通知丢失。
+- **聚合与免打扰不破坏保证**：L2/L3 延后补推仍在去重窗口内；L0/L1 免打扰豁免，实时必达。
+- **触达统计**：`sent → read/deleted` 状态机（§7），每次状态变更回写，供送达率监控（T-NT-3 阈值触发切备用通道）。
+- **红线**：通知通道与系统信令通道物理隔离（ADR-007 / I3）；at-least-once + DLQ 确保**不静默丢失**；fail-closed 故障时降级站内信而非丢弃。
+
+## 9. 待决项登记（非静默）
 
 | 项 | 说明 |
 |----|------|
 | T-NT-1 各渠道供应商选型 | APNs/FCM/厂商/邮件/微信模板具体厂商 |
 | T-NT-2 聚合窗口默认可配置 | 10 份/2h 阈值经配置中心 |
 | T-NT-3 推送送达率监控阈值 | 跌破阈值切备用通道（§1900） |
+| T-NT-4 投递语义落地 | 本节 §8 已定设计语义；编码期按 `dedupKey` + `uk(notification_key)` + DLQ 落地（不阻塞设计闭环） |
 
-## 9. 机器可读契约索引
+## 10. 机器可读契约索引
 
 - A22 `GET /notifications`（由 outlined 升 detailed，见 `notifications-list.response.schema.json`）、A23 `GET /notifications/ws`（WebSocket，outlined）。
-- 事件契约见 HLD §4.6；统一信封见 `design/contracts/`。
+- 事件契约见 HLD §4.6 与 `design/时序图规范-关键链路.md`（SEQ-3 通知分发时序）；统一信封见 `design/contracts/`。

@@ -258,6 +258,21 @@
         { "payload": { "eventType": "interview.question.asked", "traceId": "t1", "ts": 1, "producer": "interview-service", "payload": { "sessionId": "S1", "questionId": "q1", "turn": 0 } }, "reason": "turn minimum 1 失败 → 该分支 payload 失败，其它分支 eventType 不匹配 → 0 匹配" }
       ]
     },
+    "domain-events.event.schema.json": {
+      "valid": [
+        { "eventType": "apply.status.changed", "traceId": "t1", "ts": 1700000000000, "producer": "java-state-machine", "payload": { "taskId": "T1", "userId": "U1", "platformId": "boss", "jobId": "J1", "fromState": "submitted", "toState": "succeeded" } },
+        { "eventType": "strategy.updated", "traceId": "t2", "ts": 1700000000001, "producer": "java-strategy", "payload": { "userId": "U1", "version": 3, "changedFields": ["daily_limit", "match_threshold"], "effectiveAt": 1700000000001 } },
+        { "eventType": "payment.status.changed", "traceId": "t3", "ts": 1700000000002, "producer": "java-pay", "payload": { "orderNo": "O1", "userId": "U1", "tradeNo": "T-99", "fromState": "created", "toState": "paid", "amount": 29900, "currency": "CNY" } },
+        { "eventType": "daily.report.generated", "traceId": "t4", "ts": 1700000000003, "producer": "java-report", "payload": { "userId": "U1", "date": "2026-08-16", "summary": "今日投递 12 份", "appliedTotal": 12, "success": 10, "failed": 2 } },
+        { "eventType": "member.plan.changed", "traceId": "t5", "ts": 1700000000004, "producer": "java-pay", "payload": { "userId": "U1", "orderNo": "O1", "plan": "premium", "effectiveAt": 1700000000004, "changeType": "activated" } }
+      ],
+      "invalid": [
+        { "payload": { "eventType": "apply.status.changed", "traceId": "t1", "ts": 1, "producer": "p", "payload": { "taskId": "T1", "userId": "U1", "platformId": "unknown", "jobId": "J1", "fromState": "submitted", "toState": "succeeded" } }, "reason": "platformId 不在 enum → 该分支 payload 失败 → 0 匹配" },
+        { "payload": { "eventType": "payment.status.changed", "traceId": "t3", "ts": 1, "producer": "p", "payload": { "orderNo": "O1", "userId": "U1", "fromState": "created", "toState": "paid", "amount": -1 } }, "reason": "amount < 0 minimum 失败 → 0 匹配" },
+        { "payload": { "eventType": "member.plan.changed", "traceId": "t5", "ts": 1, "producer": "p", "payload": { "userId": "U1", "orderNo": "O1", "plan": "vip", "effectiveAt": 1, "changeType": "activated" } }, "reason": "plan 不在 enum → 0 匹配" },
+        { "payload": { "eventType": "unknown.event", "traceId": "t1", "ts": 1, "producer": "p", "payload": {} }, "reason": "eventType 不在顶层 enum（properties 失败）" }
+      ]
+    },
     "jobs-search.request.schema.json": {
       "valid": [
         { "page": 1, "pageSize": 20 },

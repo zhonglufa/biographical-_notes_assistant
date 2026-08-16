@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "domain-events",
+  "title": "领域事件（C 层 RabbitMQ，关键业务事件统一信封 + 定型 payload）",
+  "description": "闭合设计粒度审计缺口②：把模块级领域事件（投递状态流转 / 策略变更 / 支付状态 / 日报生成 / 会员权益）抽成机器可读契约。envelope 同 HLD §4.6 事件信封（eventType/traceId/ts/producer/payload/dedupKey）；payload 按事件类型 oneOf 定型。",
+  "type": "object",
+  "required": ["eventType", "traceId", "ts", "producer", "payload"],
+  "additionalProperties": false,
+  "properties": {
+    "eventType": {
+      "type": "string",
+      "enum": [
+        "apply.status.changed",
+        "strategy.updated",
+        "payment.status.changed",
+        "daily.report.generated",
+        "member.plan.changed"
+      ]
+    },
+    "traceId": { "type": "string", "minLength": 1 },
+    "ts": { "type": "integer", "minimum": 0, "description": "生产者毫秒时间戳，用于顺序判定与重放窗口" },
+    "producer": { "type": "string", "minLength": 1 },
+    "payload": { "type": "object" },
+    "dedupKey": { "type": "string", "description": "可选去重键；缺省由消费侧按业务键去重" }
+  },
+  "oneOf": [
+    { "properties": { "eventType": { "const": "apply.status.changed" }, "payload": { "$ref": "#/$defs/applyStatusChanged" } }, "required": ["eventType", "payload"] },
+    { "properties": { "eventType": { "const": "strategy.updated" }, "payload": { "$ref": "#/$defs/strategyUpdated" } }, "required": ["eventType", "payload"] },
+    { "properties": { "eventType": { "const": "payment.status.changed" }, "payload": { "$ref": "#/$defs/paymentStatusChanged" } }, "required": ["eventType", "payload"] },
+    { "properties": { "eventType": { "const": "daily.report.generated" }, "payload": { "$ref": "#/$defs/dailyReportGenerated" } }, "required": ["eventType", "payload"] },
+    { "properties": { "eventType": { "const": "member.plan.changed" }, "payload": { "$ref": "#/$defs/memberPlanChanged" } }, "required": ["eventType", "payload"] }
+  ],
+  "$defs": {
+    "applyStatusChanged": {
+      "type": "object",
+      "properties": {
+        "taskId": { "type": "string", "minLength": 1 },
+        "userId": { "type": "string", "minLength": 1 },
+        "platformId": { "type": "string", "enum": ["boss", "liepin", "zhaopin", "51job", "lagou"] },
+        "jobId": { "type": "string" },
+        "fromState": { "type": "string", "enum": ["created", "submitted", "pending_retry", "succeeded", "failed"] },
+        "toState": { "type": "string", "enum": ["submitted", "pending_retry", "succeeded", "failed"] },
+        "reason": { "type": "string", "nullable": true }
+      },
+      "required": ["taskId", "userId", "platformId", "jobId", "fromState", "toState"],
+      "additionalProperties": false
+    },
+    "strategyUpdated": {
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1 },
+        "strategyId": { "type": "string" },
+        "version": { "type": "integer", "minimum": 1, "description": "版本向量，防乱序：后写覆盖需带时间戳" },
+        "changedFields": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "effectiveAt": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["userId", "version", "changedFields", "effectiveAt"],
+      "additionalProperties": false
+    },
+    "paymentStatusChanged": {
+      "type": "object",
+      "properties": {
+        "orderNo": { "type": "string", "minLength": 1, "description": "幂等键：同 orderNo 重复回调覆盖" },
+        "userId": { "type": "string", "minLength": 1 },
+        "tradeNo": { "type": "string", "nullable": true },
+        "fromState": { "type": "string", "enum": ["created", "paid", "refunded", "renewing", "grace"] },
+        "toState": { "type": "string", "enum": ["paid", "refunded", "renewing", "grace"] },
+        "amount": { "type": "integer", "minimum": 0, "description": "单位：分" },
+        "currency": { "type": "string", "const": "CNY" }
+      },
+      "required": ["orderNo", "userId", "fromState", "toState", "amount"],
+      "additionalProperties": false
+    },
+    "dailyReportGenerated": {
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1 },
+        "date": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$" },
+        "summary": { "type": "string" },
+        "appliedTotal": { "type": "integer", "minimum": 0 },
+        "success": { "type": "integer", "minimum": 0 },
+        "failed": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["userId", "date"],
+      "additionalProperties": false
+    },
+    "memberPlanChanged": {
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "minLength": 1 },
+        "orderNo": { "type": "string", "minLength": 1, "description": "幂等键" },
+        "plan": { "type": "string", "enum": ["free", "pro", "premium", "admin"] },
+        "effectiveAt": { "type": "integer", "minimum": 0 },
+        "changeType": { "type": "string", "enum": ["activated", "renewed", "downgraded", "expired"] }
+      },
+      "required": ["userId", "orderNo", "plan", "effectiveAt", "changeType"],
+      "additionalProperties": false
+    }
+  }
+}
