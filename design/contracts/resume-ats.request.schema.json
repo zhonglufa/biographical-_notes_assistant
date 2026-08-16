@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resume-ats-request",
+  "title": "A06 触发 ATS 评分 - 请求",
+  "description": "POST /api/v1/resumes/ats-score 请求体（统一信封 data 内）。对指定简历版本触发 ATS 评分（经 AI 编排 b05，异步）。",
+  "type": "object",
+  "properties": {
+    "resumeVersionId": { "type": "string", "minLength": 1, "description": "待评分版本（锁版本，避免评分中内容漂移）" }
+  },
+  "required": ["resumeVersionId"],
+  "additionalProperties": false
+}

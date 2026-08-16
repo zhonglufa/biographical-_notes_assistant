@@ -35,6 +35,7 @@
 | `user` | 用户 | id | uk(email), uk(phone) | 1:N 拥有 resume / platform_account / application / interview_session / strategy_config / member_order |
 | `resume` | 用户 | id | idx(user_id) | 1:N resume_version；1:1 preferred_version |
 | `resume_version` | 用户 | (user_id, id) | uk(resume_id, version_no) | N:1 resume；被 application.resume_version_id 引用 |
+| `ats_report` | 用户 | resume_version_id | — | 1:1 resume_version；ATS 评分报告（A06 → B05 回填，§3.2 简历工作台 LLD） |
 | `platform_account` | 用户/平台 | id | uk(user_id, platform_id) | N:1 user；提供投递身份（登录态） |
 | `member_order` | 用户 | id | uk(order_no) | N:1 user；权益判定 |
 | `strategy_config` | 用户 | id | uk(user_id) | 1:1 user；投递策略快照 |
@@ -133,6 +134,15 @@ CREATE TABLE resume_version (
   UNIQUE KEY uk_resume_ver (resume_id, version_no),
   KEY idx_resume (resume_id)
 ) COMMENT='简历版本快照；投递锁定当时版本';
+
+CREATE TABLE ats_report (
+  resume_version_id BIGINT UNSIGNED NOT NULL,
+  ats_score         TINYINT UNSIGNED NOT NULL COMMENT '0-100',
+  suggestions       JSON NOT NULL COMMENT '改进建议[{section,hint}]',
+  model             VARCHAR(64) NOT NULL COMMENT '评分模型/规则标识',
+  created_at        DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (resume_version_id)
+) COMMENT='ATS 评分报告(§3.2 A06 触发 B05，结果回填，投递前自查；A06 闭环)';
 
 CREATE TABLE member_order (
   id        BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
@@ -473,6 +483,7 @@ CREATE TABLE notification (
 | 浏览记录时序拉取 | job_view | `idx_user_time(user_id, viewed_at)` | 二级 |
 | 账号按平台定位 | platform_account | `uk_user_platform(user_id, platform_id)` | 唯一 |
 | 面试会话列表 | interview_session | `idx_user(user_id)` / `idx_qs(question_set_id)` | 二级 |
+| ATS 报告按版本定位 | ats_report | `PRIMARY KEY(resume_version_id)` | 主键 |
 | 通知未读拉取 | notification | `idx_user_read(user_id, read_flag)` | 二级 |
 | 投递事件溯源 | application_event | `idx_app(application_id)` / `idx_user_created` | 二级 |
 | 会话审计溯源 | interview_session_event | `idx_session(session_id)` | 二级 |

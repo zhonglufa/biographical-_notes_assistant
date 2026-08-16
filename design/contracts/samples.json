@@ -301,6 +301,76 @@
         { "ok": true, "status": "pending", "reason": "status 不在 enum" },
         { "ok": true, "status": "favorited", "x": 1, "reason": "存在未声明额外字段" }
       ]
+    },
+    "resumes-create.request.schema.json": {
+      "valid": [
+        { "title": "后端工程师简历", "content": { "sections": ["education", "experience"] } },
+        { "title": "x", "content": {}, "templateId": "t1" }
+      ],
+      "invalid": [
+        { "content": {}, "reason": "缺必需字段 title" },
+        { "title": "", "content": {}, "reason": "title 空 minLength 失败" },
+        { "title": "x", "content": {}, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "resumes-create.response.schema.json": {
+      "valid": [
+        { "resumeId": "R1", "versionId": "V1", "createdAt": 1700000000000 }
+      ],
+      "invalid": [
+        { "resumeId": "R1", "versionId": "V1", "reason": "缺必需字段 createdAt" },
+        { "resumeId": "R1", "versionId": "V1", "createdAt": 1, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "resume-versions.response.schema.json": {
+      "valid": [
+        { "versions": [ { "versionId": "V1", "versionNo": 1, "createdAt": 1, "isPreferred": true } ], "diffAvailable": false },
+        { "versions": [ { "versionId": "V1", "versionNo": 1, "createdAt": 1, "isPreferred": true }, { "versionId": "V2", "versionNo": 2, "createdAt": 2, "isPreferred": false } ], "diffAvailable": true }
+      ],
+      "invalid": [
+        { "diffAvailable": true, "reason": "缺必需字段 versions" },
+        { "versions": [ { "versionId": "V1", "versionNo": 1, "createdAt": 1 } ], "diffAvailable": true, "reason": "item 缺 isPreferred" },
+        { "versions": [], "diffAvailable": true, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "resume-diff.request.schema.json": {
+      "valid": [
+        { "fromVersionId": "V1", "toVersionId": "V2" }
+      ],
+      "invalid": [
+        { "toVersionId": "V2", "reason": "缺必需字段 fromVersionId" },
+        { "fromVersionId": "V1", "toVersionId": "V2", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "resume-diff.response.schema.json": {
+      "valid": [
+        { "changes": [ { "field": "education", "op": "modified", "from": "A", "to": "B" } ], "generatedAt": 1700000000000 }
+      ],
+      "invalid": [
+        { "changes": [ { "op": "modified" } ], "generatedAt": 1, "reason": "change 缺 field" },
+        { "changes": [ { "field": "x", "op": "unknown" } ], "generatedAt": 1, "reason": "op 不在 enum" },
+        { "changes": [], "generatedAt": 1, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "resume-ats.request.schema.json": {
+      "valid": [
+        { "resumeVersionId": "V1" }
+      ],
+      "invalid": [
+        { "reason": "缺必需字段 resumeVersionId" },
+        { "resumeVersionId": "V1", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "resume-ats.response.schema.json": {
+      "valid": [
+        { "taskId": "T1", "status": "pending" },
+        { "taskId": "T1", "status": "done" }
+      ],
+      "invalid": [
+        { "taskId": "T1", "reason": "缺必需字段 status" },
+        { "taskId": "T1", "status": "queued", "reason": "status 不在 enum" },
+        { "taskId": "T1", "status": "pending", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
     }
   },
   "registryFiles": {

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resume-diff-request",
+  "title": "A05 简历版本 diff - 请求",
+  "description": "POST /api/v1/resumes/{id}/diff 请求体（统一信封 data 内）。指定两版本做字段级结构化 diff（ADR-012）。",
+  "type": "object",
+  "properties": {
+    "fromVersionId": { "type": "string", "minLength": 1 },
+    "toVersionId": { "type": "string", "minLength": 1 }
+  },
+  "required": ["fromVersionId", "toVersionId"],
+  "additionalProperties": false
+}

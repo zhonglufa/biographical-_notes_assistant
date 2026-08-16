@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resumes-create-request",
+  "title": "A04 创建简历 - 请求",
+  "description": "POST /api/v1/resumes 请求体（统一信封 data 内）。content 为解析后结构化简历（与样式分离，ADR-012）；templateId 仅换 CSS 修饰器（前端/模板服务）。",
+  "type": "object",
+  "properties": {
+    "title": { "type": "string", "minLength": 1, "maxLength": 255 },
+    "content": { "type": "object", "description": "结构化简历内容（sections/fields）" },
+    "templateId": { "type": "string", "minLength": 1, "description": "模板标识，可选" }
+  },
+  "required": ["title", "content"],
+  "additionalProperties": false
+}

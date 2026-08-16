@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resume-ats-response",
+  "title": "A06 触发 ATS 评分 - 响应",
+  "description": "POST /api/v1/resumes/ats-score 响应体（统一信封 data 内）。异步触发，返回 taskId + 状态；评分结果经 b05-ats.response 回填 ats_report 后由事件/查询获取。",
+  "type": "object",
+  "properties": {
+    "taskId": { "type": "string", "minLength": 1 },
+    "status": { "type": "string", "enum": ["pending", "running", "done", "failed"] }
+  },
+  "required": ["taskId", "status"],
+  "additionalProperties": false
+}

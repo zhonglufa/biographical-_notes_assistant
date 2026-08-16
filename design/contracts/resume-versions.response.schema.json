@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resume-versions-response",
+  "title": "A05 简历版本列表 - 响应",
+  "description": "GET /api/v1/resumes/{id}/versions 响应体（统一信封 data 内）。快照式版本管理（ADR-012）；diffAvailable 表示可对任意两版做结构化 diff。",
+  "type": "object",
+  "properties": {
+    "versions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "versionId": { "type": "string", "minLength": 1 },
+          "versionNo": { "type": "integer", "minimum": 1 },
+          "createdAt": { "type": "integer", "minimum": 0 },
+          "note": { "type": ["string", "null"] },
+          "isPreferred": { "type": "boolean" }
+        },
+        "required": ["versionId", "versionNo", "createdAt", "isPreferred"],
+        "additionalProperties": false
+      }
+    },
+    "diffAvailable": { "type": "boolean", "description": "版本数≥2 时为 true" }
+  },
+  "required": ["versions", "diffAvailable"],
+  "additionalProperties": false
+}

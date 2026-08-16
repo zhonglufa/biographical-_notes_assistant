@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "resume-diff-response",
+  "title": "A05 简历版本 diff - 响应",
+  "description": "POST /api/v1/resumes/{id}/diff 响应体（统一信封 data 内）。字段级结构化 diff（ADR-012）：逐 section/field 标 added/removed/modified。",
+  "type": "object",
+  "properties": {
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": { "type": "string", "minLength": 1 },
+          "op": { "type": "string", "enum": ["added", "removed", "modified"] },
+          "from": { "type": ["string", "null"] },
+          "to": { "type": ["string", "null"] }
+        },
+        "required": ["field", "op"],
+        "additionalProperties": false
+      }
+    },
+    "generatedAt": { "type": "integer", "minimum": 0, "description": "epoch 毫秒" }
+  },
+  "required": ["changes", "generatedAt"],
+  "additionalProperties": false
+}
