@@ -5,11 +5,15 @@ api_stub.py — 契约优先的接口分发骨架（D 阶段奠基切片）
 这是一个传输无关的「端点」抽象：生产环境把它挂到 FastAPI/Flask/本机 Agent 的
 HTTP 层即可，但「校验规则」与这里完全一致 —— 换 Web 框架不改契约逻辑。
 
-本切片已落地 **Auth 模块 (A01 登录 + A02 刷新令牌)** 与 **Jobs 模块
-(A07 岗位搜索 + A08 收藏/忽略)** 共四个端点，证明模块级 contract-first
-落地模式可行；后续 A 层端点按同模式逐一对齐 schema 即可
-（见 README §3 脚手架顺序）。每个端点都是一个 `Endpoint` 实例，统一由
-`API_STUB` 注册表按 id 分发。
+本切片已落地 **Auth 模块 (A01 登录 + A02 刷新令牌)**、**Jobs 模块
+(A07 岗位搜索 + A08 收藏/忽略)** 与 **User 模块 (A03 当前用户与权益)**
+共五个端点，证明模块级 contract-first 落地模式可行；后续 A 层端点按同模式
+逐一对齐 schema 即可（见 README §3 脚手架顺序）。每个端点都是一个 `Endpoint`
+实例，统一由 `API_STUB` 注册表按 id 分发。
+
+`Endpoint` 同时支持「有请求体」与「无请求体（GET 类，request_schema=None）」
+两类端点：无请求体时跳过入参校验、只校验响应，覆盖 A 层大量 GET 端点
+(A03/A05/A09/A11/A12/A14/A16-A23/A25)，避免为它们造空请求 schema。
 
 ⚠️ 安全边界（REVIEW-3 红线规避）：本文件所有 handler 均为 **demo / mock 桩**，
 只返回符合响应契约结构的占位数据，**不实现任何真实业务逻辑**
@@ -40,10 +44,14 @@ class Endpoint:
           - 请求不合规 -> 422（fail-closed，绝不执行业务）
           - 响应不合规 -> 500（实现偏离契约，暴露而非吞掉）
           - 正常        -> 200 + handler 结果
+
+        无请求体端点（如 GET，`request_schema is None`）跳过入参校验，
+        只校验响应 —— 覆盖 A 层大量 GET 端点。
         """
-        ok, err = validate_payload(self.request_schema, request)
-        if not ok:
-            return 422, {"error": "request_schema_violation", "detail": err}
+        if self.request_schema is not None:
+            ok, err = validate_payload(self.request_schema, request)
+            if not ok:
+                return 422, {"error": "request_schema_violation", "detail": err}
 
         resp = self._handler(request)
 
@@ -164,13 +172,38 @@ JOBS_FAVORITE = Endpoint(
     handler=_jobs_favorite_handler,
 )
 
+# ---- User 模块 demo 桩（仅演示契约，不含真实查询/权限判定业务逻辑）----
 
-# 全局注册表：已落地 Auth 模块（A01/A02）+ Jobs 模块（A07/A08），后续端点按同模式注册即可。
+def _user_me_handler(req: dict) -> dict:
+    # 真实实现会按 Bearer 令牌解析当前用户、回权益上下文（plan/quota/preferences）；
+    # 此处只回符合响应契约的占位结构。响应契约 required：userId/plan/quotaUsed/quotaLimit；
+    # plan 枚举 free|pro|team；email/preferences 可空（nullable）。无请求体（request_schema=None）。
+    return {
+        "userId": "U-demo",
+        "email": "user@x.com",
+        "plan": "free",
+        "quotaUsed": 0,
+        "quotaLimit": 100,
+        "preferences": {"pushTime": "09:00", "doNotDisturb": False},
+    }
+
+
+USER_ME = Endpoint(
+    name="A03 users-me",
+    request_schema=None,  # GET /users/me 无请求体
+    response_schema="user-me.response.schema.json",
+    handler=_user_me_handler,
+)
+
+
+# 全局注册表：已落地 Auth 模块（A01/A02）+ Jobs 模块（A07/A08）+ User 模块（A03），
+# 后续端点按同模式注册即可。
 API_STUB = ApiStub()
 API_STUB.register(AUTH_LOGIN)
 API_STUB.register(AUTH_REFRESH)
 API_STUB.register(JOBS_SEARCH)
 API_STUB.register(JOBS_FAVORITE)
+API_STUB.register(USER_ME)
 
 
 if __name__ == "__main__":
@@ -201,3 +234,10 @@ if __name__ == "__main__":
 
     code8, body8 = API_STUB.dispatch_id("A08 jobs-favorite", {"action": "bad"})  # 非法枚举
     print("非法收藏(枚举外) ->", code8)
+
+    # ---- A03 当前用户与权益（无请求体 GET 端点）----
+    code9, body9 = USER_ME.dispatch({})  # 无请求体，跳过入参校验
+    print("合法当前用户 ->", code9, "plan=", body9.get("plan"))
+
+    code10, body10 = API_STUB.dispatch_id("A03 users-me", {})  # 注册表分发
+    print("注册表分发 A03 ->", code10, "userId=", body10.get("userId"))

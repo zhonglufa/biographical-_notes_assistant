@@ -20,7 +20,7 @@ sys.path.insert(0, os.path.join(_HERE, "..", "src"))
 
 from contract_runtime import validate_payload
 from event_bus import EventBus, build_payment_status_event
-from api_stub import AUTH_LOGIN, AUTH_REFRESH, JOBS_SEARCH, JOBS_FAVORITE, API_STUB
+from api_stub import AUTH_LOGIN, AUTH_REFRESH, JOBS_SEARCH, JOBS_FAVORITE, USER_ME, API_STUB
 
 
 def _check(name: str, cond: bool):
@@ -138,6 +138,32 @@ def test_api_stub_jobs():
            set(API_STUB.endpoint_ids()) >= {"A07 jobs-search", "A08 jobs-favorite"})
 
 
+def test_api_stub_user():
+    print("· api_stub (User 模块 A03 · 无请求体 GET 端点)")
+    # ---- A03 当前用户与权益（GET，无请求体）----
+    code, body = USER_ME.dispatch({})  # 无请求体，跳过入参校验
+    _check("无请求体端点 200 + 响应合规",
+           code == 200 and body.get("userId") == "U-demo")
+
+    # 响应契约 required 字段齐全
+    _check("A03 响应必填字段齐全(userId/plan/quotaUsed/quotaLimit)",
+           all(k in body for k in
+               ("userId", "plan", "quotaUsed", "quotaLimit")))
+    # plan 枚举合法（free|pro|team）
+    _check("A03 plan 在枚举内",
+           body.get("plan") in ("free", "pro", "team"))
+    # additionalProperties:false -> 不能含未声明字段（演示值均声明）
+    _check("A03 响应未含未声明额外字段",
+           set(body.keys()) <= {"userId", "email", "plan",
+                                "quotaUsed", "quotaLimit", "preferences"})
+
+    # ---- 注册表按 id 分发 ----
+    code2, _ = API_STUB.dispatch_id("A03 users-me", {})
+    _check("注册表分发 A03 -> 200", code2 == 200)
+
+    _check("注册表含 A03 端点", "A03 users-me" in API_STUB.endpoint_ids())
+
+
 def main():
     print("=== scaffold 冒烟测试 ===")
     try:
@@ -145,6 +171,7 @@ def main():
         test_event_bus()
         test_api_stub()
         test_api_stub_jobs()
+        test_api_stub_user()
     except AssertionError as e:
         print(f"\n冒烟测试失败：{e}")
         traceback.print_exc()
