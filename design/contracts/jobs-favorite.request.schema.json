@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jobs-favorite-request",
+  "title": "A08 收藏/忽略 - 请求",
+  "description": "POST /api/v1/jobs/{id}/favorite 请求体（统一信封 data 内）。action 幂等：重复同动作无副作用；ignore 用于投递推荐过滤。",
+  "type": "object",
+  "properties": {
+    "action": { "type": "string", "enum": ["favorite", "ignore"], "description": "favorite 收藏 / ignore 忽略" }
+  },
+  "required": ["action"],
+  "additionalProperties": false
+}

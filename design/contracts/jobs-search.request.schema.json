@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jobs-search-request",
+  "title": "A07 岗位搜索/筛选 - 查询参数",
+  "description": "GET /api/v1/jobs 查询串（统一信封 data 内透传 query）。keyword/location/platform/salaryMin 可选；page/pageSize 必填。",
+  "type": "object",
+  "properties": {
+    "keyword": { "type": "string", "maxLength": 128, "description": "职位关键词" },
+    "location": { "type": "string", "maxLength": 64, "description": "城市/地区" },
+    "platform": { "type": "string", "enum": ["boss", "liepin", "zhaopin", "51job", "lagou"], "description": "来源平台过滤" },
+    "salaryMin": { "type": "integer", "minimum": 0, "description": "月薪下限（元/月）" },
+    "page": { "type": "integer", "minimum": 1, "default": 1, "description": "页码，从 1 起" },
+    "pageSize": { "type": "integer", "minimum": 1, "maximum": 100, "default": 20, "description": "每页条数" }
+  },
+  "required": ["page", "pageSize"],
+  "additionalProperties": false
+}

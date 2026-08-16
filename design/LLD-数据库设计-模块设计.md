@@ -39,6 +39,9 @@
 | `member_order` | 用户 | id | uk(order_no) | N:1 user；权益判定 |
 | `strategy_config` | 用户 | id | uk(user_id) | 1:1 user；投递策略快照 |
 | `job` | 平台 | id | uk(platform_id, external_id) | 被 application 引用（投递对象） |
+| `job_match` | 平台/用户 | (user_id, job_id) | idx(user_id, score) | N:1 user / job；匹配度反范式缓存（A07 列表，§3.3 岗位浏览 LLD） |
+| `job_favorite` | 平台/用户 | (user_id, job_id) | uk(user_id, job_id) | N:1 user / job；收藏/忽略/软删（A08） |
+| `job_view` | 平台/用户 | (user_id, id) | idx(job_id) / idx(user_id, viewed_at) | N:1 user / job；浏览记录（§3.3 离线缓存辅助） |
 | `adapter_registry` | 平台 | (platform_id, version) | — | 执行投递动作（代码包元信息） |
 | `application` | 投递枢纽 | (user_id, id) | uk(idempotency_key), uk(user_id,platform_id,job_id,apply_date) | N:1 user / job / platform_account；1:1 application_task；1:N application_event；触发 interview_question_set |
 | `application_task` | 投递枢纽 | (user_id, task_id) | uk(idempotency_key) | 1:1 application（执行单元） |
@@ -181,6 +184,38 @@ CREATE TABLE job (
   PRIMARY KEY (id),
   UNIQUE KEY uk_platform_ext (platform_id, external_id)
 ) COMMENT='适配器采集去重(§4.5 B10/B11；crawler-result schema)';
+
+CREATE TABLE job_match (
+  user_id           BIGINT UNSIGNED NOT NULL,
+  job_id            BIGINT UNSIGNED NOT NULL,
+  resume_version_id BIGINT UNSIGNED NOT NULL COMMENT '匹配基准版本',
+  score             TINYINT UNSIGNED NOT NULL COMMENT '0-100',
+  band              ENUM('green','blue','gray') NOT NULL COMMENT '绿≥80/蓝60-79/灰<60',
+  reason            VARCHAR(512) COMMENT '匹配理由（B01 explanation）',
+  computed_at       BIGINT NOT NULL COMMENT 'epoch ms（TTL 刷新判定）',
+  PRIMARY KEY (user_id, job_id),
+  KEY idx_score (user_id, score)
+) COMMENT='用户×岗位匹配度反范式缓存(A07 列表 O(1)/行读取，异步匹配管道填充；§3.3 岗位浏览 LLD)';
+
+CREATE TABLE job_favorite (
+  user_id    BIGINT UNSIGNED NOT NULL,
+  job_id     BIGINT UNSIGNED NOT NULL,
+  action     ENUM('favorite','ignore','removed') NOT NULL DEFAULT 'favorite',
+  created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (user_id, job_id),
+  KEY idx_job (job_id)
+) COMMENT='岗位收藏/忽略/软删(A08；ignore 供状态机模块 §3.4 推荐过滤；§3.3 岗位浏览 LLD)';
+
+CREATE TABLE job_view (
+  user_id    BIGINT UNSIGNED NOT NULL,
+  id         BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  job_id     BIGINT UNSIGNED NOT NULL,
+  viewed_at  BIGINT NOT NULL COMMENT 'epoch ms',
+  source     VARCHAR(32) COMMENT 'list/detail/recommend',
+  PRIMARY KEY (user_id, id),
+  KEY idx_job (job_id),
+  KEY idx_user_time (user_id, viewed_at)
+) COMMENT='岗位浏览记录(§3.3 离线缓存辅助/最近浏览；时序高增按月分区)';
 
 CREATE TABLE adapter_registry (
   platform_id VARCHAR(32) NOT NULL,
@@ -433,6 +468,9 @@ CREATE TABLE notification (
 | 用户投递列表（按状态筛选） | application | `idx_user_status(user_id, status)` | 二级索引 |
 | 投递/任务幂等去重 | application / application_task | `uk_idem` / `uk_quad` / `uk_tidem` | 唯一 |
 | 岗位采集去重 | job | `uk_platform_ext(platform_id, external_id)` | 唯一 |
+| 岗位匹配度按分排序 | job_match | `idx_score(user_id, score)` | 二级 |
+| 收藏按岗反查 | job_favorite / job_view | `idx_job(job_id)` | 二级 |
+| 浏览记录时序拉取 | job_view | `idx_user_time(user_id, viewed_at)` | 二级 |
 | 账号按平台定位 | platform_account | `uk_user_platform(user_id, platform_id)` | 唯一 |
 | 面试会话列表 | interview_session | `idx_user(user_id)` / `idx_qs(question_set_id)` | 二级 |
 | 通知未读拉取 | notification | `idx_user_read(user_id, read_flag)` | 二级 |
@@ -446,8 +484,8 @@ CREATE TABLE notification (
 ## 6. 分片键预留与冷热分离（§6.15 落地）
 
 - **起步形态**：单主 + 只读副本，时序/大表按月分区；不提前分库分表（模块化单体，ADR-001）。
-- **分片键预留**：`application` / `application_task` / `application_event` / `daily_report` / `resume_version` / `interview_question_set` / `interview_session` 主键或首列分区键含 `user_id`，后期按 `user_id` 哈希分片**零 schema 迁移**。
-- **时间分区**：`application_event` / `daily_report` / `interview_session_event` / `audit_log` 按 `created_at` 月度分区；旧分区转冷（>24 月匿名化，§8.2）。
+- **分片键预留**：`application` / `application_task` / `application_event` / `daily_report` / `resume_version` / `interview_question_set` / `interview_session` / `job_favorite` / `job_match` 主键或首列分区键含 `user_id`，后期按 `user_id` 哈希分片**零 schema 迁移**。
+- **时间分区**：`application_event` / `daily_report` / `interview_session_event` / `audit_log` / `job_view` 按 `created_at`/`viewed_at` 月度分区；旧分区转冷（>24 月匿名化，§8.2）。
 - **⚠ 分区物理约束**：MySQL 要求分区列 `created_at` 出现在所有唯一索引；对含 AUTO_INCREMENT 的分区表，PK 取 `(user_id, created_at, id)` 且 `id` 另建 `uk_id(id)` 满足自增首列要求（见 §3.3 / §3.4 DDL 注释）。编码期建表脚本须落实，避免运行期 `MAXVALUE`/唯一键冲突。
 - **分片触发线**：用户过万时对高增表按 `user_id` 哈希分片，仅路由层 + 数据重分布，无应用层 schema 变更。
 

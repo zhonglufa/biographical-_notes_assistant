@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jobs-favorite-response",
+  "title": "A08 收藏/忽略 - 响应",
+  "description": "POST /api/v1/jobs/{id}/favorite 响应体（统一信封 data 内）。status 反映最终态；removed 为取消收藏软删。",
+  "type": "object",
+  "properties": {
+    "ok": { "type": "boolean" },
+    "favoriteId": { "type": ["string", "null"], "description": "收藏记录 id，removed 时为 null" },
+    "status": { "type": "string", "enum": ["favorited", "ignored", "removed"] }
+  },
+  "required": ["ok", "status"],
+  "additionalProperties": false
+}

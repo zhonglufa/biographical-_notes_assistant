@@ -257,6 +257,50 @@
         { "payload": { "eventType": "interview.unknown", "traceId": "t1", "ts": 1, "producer": "interview-service", "payload": {} }, "reason": "eventType 不在 enum（顶层 properties 失败）" },
         { "payload": { "eventType": "interview.question.asked", "traceId": "t1", "ts": 1, "producer": "interview-service", "payload": { "sessionId": "S1", "questionId": "q1", "turn": 0 } }, "reason": "turn minimum 1 失败 → 该分支 payload 失败，其它分支 eventType 不匹配 → 0 匹配" }
       ]
+    },
+    "jobs-search.request.schema.json": {
+      "valid": [
+        { "page": 1, "pageSize": 20 },
+        { "keyword": "java 后端", "platform": "boss", "salaryMin": 10000, "page": 2, "pageSize": 10 }
+      ],
+      "invalid": [
+        { "pageSize": 20, "reason": "缺必需字段 page" },
+        { "page": 1, "pageSize": 200, "reason": "pageSize > 100" },
+        { "page": 1, "pageSize": 20, "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "jobs-list.response.schema.json": {
+      "valid": [
+        { "items": [ { "jobId": "J1", "title": "后端", "company": "X", "platformId": "boss", "source": "search", "matchScore": 82, "matchBand": "green", "collectedAt": 1700000000000 } ], "total": 1, "page": 1, "pageSize": 20 },
+        { "items": [], "total": 0, "page": 1, "pageSize": 20 }
+      ],
+      "invalid": [
+        { "items": [], "total": 0, "reason": "缺必需字段 page/pageSize" },
+        { "items": [ { "jobId": "J1", "title": "x", "company": "y", "platformId": "boss", "source": "search", "collectedAt": 1, "matchScore": 150 } ], "total": 1, "page": 1, "pageSize": 20, "reason": "matchScore > 100" },
+        { "items": [], "total": 0, "page": 1, "pageSize": 20, "x": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "jobs-favorite.request.schema.json": {
+      "valid": [
+        { "action": "favorite" },
+        { "action": "ignore" }
+      ],
+      "invalid": [
+        { "reason": "缺必需字段 action" },
+        { "action": "bookmark", "reason": "action 不在 enum" },
+        { "action": "favorite", "extra": 1, "reason": "存在未声明额外字段" }
+      ]
+    },
+    "jobs-favorite.response.schema.json": {
+      "valid": [
+        { "ok": true, "status": "favorited", "favoriteId": "F1" },
+        { "ok": true, "status": "removed" }
+      ],
+      "invalid": [
+        { "ok": true, "reason": "缺必需字段 status" },
+        { "ok": true, "status": "pending", "reason": "status 不在 enum" },
+        { "ok": true, "status": "favorited", "x": 1, "reason": "存在未声明额外字段" }
+      ]
     }
   },
   "registryFiles": {

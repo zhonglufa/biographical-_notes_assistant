@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "jobs-list-response",
+  "title": "A07 岗位列表 - 响应",
+  "description": "GET /api/v1/jobs 响应体（统一信封 data 内）。分页列表，jobStub 含来源平台与匹配度（反范式缓存，缺失为 null）。",
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jobId": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "company": { "type": "string", "minLength": 1 },
+          "platformId": { "type": "string", "minLength": 1 },
+          "salaryMin": { "type": ["integer", "null"], "minimum": 0 },
+          "salaryMax": { "type": ["integer", "null"], "minimum": 0 },
+          "location": { "type": ["string", "null"] },
+          "source": { "type": "string", "enum": ["search", "detail"] },
+          "matchScore": { "type": ["integer", "null"], "minimum": 0, "maximum": 100, "description": "0-100，缺失为 null" },
+          "matchBand": { "type": ["string", "null"], "enum": ["green", "blue", "gray"], "description": "绿≥80/蓝60-79/灰<60" },
+          "matchReason": { "type": ["string", "null"] },
+          "favorited": { "type": ["boolean", "null"], "description": "当前用户是否已收藏" },
+          "collectedAt": { "type": "integer", "minimum": 0, "description": "采集时间 epoch 毫秒" }
+        },
+        "required": ["jobId", "title", "company", "platformId", "source", "collectedAt"],
+        "additionalProperties": false
+      }
+    },
+    "total": { "type": "integer", "minimum": 0 },
+    "page": { "type": "integer", "minimum": 1 },
+    "pageSize": { "type": "integer", "minimum": 1 }
+  },
+  "required": ["items", "total", "page", "pageSize"],
+  "additionalProperties": false
+}
