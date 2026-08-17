@@ -36,3 +36,18 @@ jobs:
             python -c "import sys; sys.path[:0]=['.', '../tests']; import runpy; runpy.run_path('../tests/$b.py', run_name='__main__')" || fail=1
           done
           exit $fail
+
+      - name: 设置 JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Java 业务侧编译 (server-java · ADR-002)
+        working-directory: server-java
+        run: mvn -B compile
+
+      - name: Java 业务侧测试 (server-java · ADR-002)
+        working-directory: server-java
+        run: mvn -B test
