@@ -134,10 +134,10 @@ def cmd_health():
     print(f"\n   队列: 待办 {q_pending} / 阻塞 {q_blocked}")
     print(f"   告警: 待拍板 {a_open} / 已闭环 {a_closed}")
     print(f"   日志: 累计运行 {log_runs} 条")
-    # 末次运行时间
-    m = re.search(r"^## \[([^\]]+)\]", l, re.M)
-    if m:
-        print(f"   末次运行: {m.group(1)}")
+    # 末次运行时间（日志按时间追加，取最后一条而非首条）
+    stamps = re.findall(r"^## \[([^\]]+)\]", l, re.M)
+    if stamps:
+        print(f"   末次运行: {stamps[-1]}")
     print("\n   结论: 机制文件齐备 ✅；待拍板项请在 TASK-ALERTS.md 回答后由我沉淀规则。")
 
 
