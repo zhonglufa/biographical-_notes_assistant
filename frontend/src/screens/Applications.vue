@@ -7,7 +7,7 @@
 //   ⚠️ 合同缺口登记：A10 列表响应当前不含 jobTitle/company，列表标题/公司由本地 mock 补全；
 //     真实后端路径回退显示 jobId/platformId。该缺口见 TASK-LOG，非本组件偏离契约。
 import { ref, computed, watch, onUnmounted } from 'vue'
-import { Card, Button, Modal, Toast, Skeleton, EmptyState, ErrorState } from '../components/index.js'
+import { Card, Button, Modal, Toast, Skeleton, EmptyState, ErrorState } from '../components/UI.js'
 import { api } from '../lib/api.js'
 
 const DAILY_LIMIT = 20

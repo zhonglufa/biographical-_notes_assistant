@@ -4,7 +4,7 @@
 //       api.saveDailyPref(A25) 保存偏好 → loading + Toast 反馈；非法时间前端拦截不请求。
 // 交互基线遵循 U11 总纲（加载/错误/空态/无障碍）；响应式 375/768/1280 见下方 <style>。
 import { ref, computed, onMounted } from 'vue'
-import { Card, Button, Toggle, Skeleton, EmptyState, ErrorState, Toast } from '../components/index.js'
+import { Card, Button, Toggle, Skeleton, EmptyState, ErrorState, Toast } from '../components/UI.js'
 import { api } from '../lib/api.js'
 
 const report = ref(null)

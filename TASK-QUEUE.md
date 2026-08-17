@@ -14,7 +14,7 @@
 | Q9 | V3 · 转化 U3 投递与半自动确认闸门（A09/A10/A11）· 产品核心 | V | 工程师 | 已完成（2026-08-17 本轮回填） | 半自动投递闸门（二次确认+10s撤销+限额可见+状态机可视化）；`frontend/src/screens/Applications.jsx`+api.js+mock+路由；未部署（物理动作 Q5） |
 | Q10 | V3 · 转化 U1 简历工作台（A04/A05/A06） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 简历列表/版本时间线/ATS 异步评分环；`frontend/src/screens/Resume.jsx`+api.js(A04_LIST/A04/A05/A05_PREFER/A06)+mock+路由；**合同缺口**：列表与设为首选无契约端点→本地 mock store（与 A10 同处理）；未部署（物理动作 Q5） |
 | Q11 | V3 · 转化 U2 岗位浏览（A07/A08） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 搜索/筛选+平台 chips+matchBand 环+收藏|忽略|详情+分页+U11+响应式；`frontend/src/screens/Jobs.jsx`+api.js(A07/A08 路径修正+同形 mock)+路由；**合同缺口**：jobStub 不含 ignored→前端态 `ignoredSet`(与 A10/A04_LIST 同处理)；未部署（物理动作 Q5） |
-| Q16 | V3 · 前端技术栈回退 Vue3+Element Plus（React→Vue 重写） | V | 工程师 | 待办 | **R2 已拍板（严守 ADR-010）**：脚手架已就位（`main.js`+`router.js`+`package.json`→Vue 依赖+`vite.config`→vue 插件+`index.html`→#app，工作树未提交）；待续：`App.vue` 替换 App.jsx、6 屏 .jsx→.vue（Applications/Resume/Jobs/Notifications/DailyReport/Auth）、`components/UI.vue`、删 React 残留（main.jsx/App.jsx/*.jsx/UI.jsx）、复用 `api.js`；当前 build 断（main.js→App.vue 缺失），完成前不提交前端 |
+| Q16 | V3 · 前端技术栈回退 Vue3+Element Plus（React→Vue 重写） | V | 工程师 | 已完成（2026-08-18 本轮回填） | **R2 已拍板（严守 ADR-010）**：脚手架已就位并补齐 `App.vue`/6 屏 .vue/`components/UI.js`；删除 React 残留；`vite build` ✅ 1620 模块 11.36s；commit a03fe33；下一队首 Q12(U4) |
 | Q12 | V3 · 转化 U4 策略配置（A12/A13） | V | 工程师 | 待办 | 投递策略 |
 | Q13 | V3 · 转化 U5 适配器管理（A14/A15） | V | 工程师 | 待办 | 平台账号适配器（含删除撤销 U11 §5） |
 | Q14 | V3 · 转化 U6 面试模拟（A16–A19） | V | 工程师 | 待办 | AI 面试模拟会话 |

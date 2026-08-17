@@ -3,7 +3,7 @@
 // 范式：api.notifications(A22) 拉取 → 加载(Skeleton)/数据/错误(ErrorState+重试)；
 //       api.notificationWs(A23) 取得 wsUrl → 建连 → 新通知插顶 + 未读+1；断线降级轮询。
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Card, Badge, Skeleton, EmptyState, ErrorState, Modal, Toast } from '../components/index.js'
+import { Card, Badge, Skeleton, EmptyState, ErrorState, Modal, Toast } from '../components/UI.js'
 import { api } from '../lib/api.js'
 
 const LV = { L0: '重要', L1: '重要', L2: '普通', L3: '营销' }

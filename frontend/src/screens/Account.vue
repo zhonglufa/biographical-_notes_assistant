@@ -3,7 +3,7 @@
 // 红线：令牌仅存本机 localStorage（PRD §1012），退出即清除并重载。
 import { ref, onMounted } from 'vue'
 import { api } from '../lib/api.js'
-import { Card, Toggle } from '../components/index.js'
+import { Card, Toggle } from '../components/UI.js'
 
 const me = ref(null)
 onMounted(() => {

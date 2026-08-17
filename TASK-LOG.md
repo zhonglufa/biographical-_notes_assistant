@@ -13,6 +13,14 @@
 - 双闸门：未改动设计/代码，无需重跑（机制文件为新增文档+脚本，pre-commit 三闸门覆盖）。
 - 备注：演示「不知道→问→沉淀」——本次用户新指令（业务逻辑多问/行业标准遵守/不知道就问并完善成规则）已即时沉淀为规则，不再重复询问。
 
+## [2026-08-18T01:44+08:00] tick=auto 阶段=①②③④⑤ 任务=Q16/前端React→Vue重写 状态=OK
+- **①定时触发**：读 PROJECT_BRAIN §2/§7 + TASK-QUEUE(队首待办 Q16) + TASK-ALERTS(A1-A6/A7 已闭环) + 当日日志末条(01:01 Vue 方向已沉淀)；Q16 无活动锁 → 可认领。
+- **②分发**：认领 Q16（前端技术栈回退 Vue3+Element Plus，严守 ADR-010）；写 `.task-claims.json{Q16:2026-08-18T01:44+08:00}` 防 3 条错峰重复认领。
+- **③执行**：补齐 Vue 工程骨架——`App.vue`（应用壳 + 路由守卫，未登录→Auth，已登录→侧栏导航 + router-view）、`main.js`、`router.js`（hash 模式，7 条路由）；新增 `components/UI.js` 共享组件库（Card/Button/Badge/Toggle/Skeleton/EmptyState/ErrorState/Modal/Toast，用 Vue `h()` 渲染函数实现，不依赖 JSX 插件）；重写 6 屏生产组件为 `.vue` SFC：Applications(U3 半自动闸门)/Resume(U1 ATS)/Jobs(U2 搜索筛选收藏忽略)/Notifications(U8 实时/轮询)/DailyReport(U9 日报+偏好)/Auth(U10 登录) + 新增 Account.vue（/account 权益页）；删除全部 React 残留（App.jsx/main.jsx/UI.jsx/6 屏 .jsx）。`npm install` 刷新依赖，`vite build` ✅ 1620 模块 11.36s。
+- **④状态回传**：Q16 → 已完成；PROJECT_BRAIN §2/§7 标注 Vue 回退完成 + 下一队首 Q12(U4)；本条目即状态回传。
+- **⑤日志与告警**：无新增阻塞；R3 业务项 A1–A6 仍在 `TASK-ALERTS.md` 待你复审/调整；物理动作 Q5–Q7 仍仅你可做。合同缺口（A04_LIST/A05_PREFER/A10 jobTitle/company 等）保持既有登记，未臆测补字段。
+- REVIEW-1 双闸门实跑全绿（66/6 schema + PRD-HLD v4.5）；REVIEW-2 自审无偏离（Vue3 对齐 ADR-010/HLD §2.4，未触在途护栏）；REVIEW-3 红线未触发（纯本地 mock、无凭据/部署/PIPL）。本地 commit `a03fe33`，不 push 远端。
+
 ## [2026-08-17T23:45+08:00] tick=manual 阶段=①②③④⑤ 任务=Q8/U9每日日报生产组件 状态=OK
 - **①定时触发**：读 PROJECT_BRAIN §2 + TASK-QUEUE(Q8 队首) + TASK-ALERTS(A1-A6) + 当日日志；确认 resume /goal 已达成、循环已 ACTIVE。
 - **②分发**：认领 Q8（U9 每日日报，纯 R1 技术转化）；写 `.task-claims.json{Q8}` 防重复。

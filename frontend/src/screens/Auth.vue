@@ -2,7 +2,7 @@
 // U10 用户与登录（V 阶段生产组件，接入真实 A01/A02/A03）。
 // 红线：未登录仅展示引导页，不暴露业务数据（PRD §797）；令牌仅存本机 localStorage（§1012）。
 import { ref } from 'vue'
-import { Card, Button } from '../components/index.js'
+import { Card, Button } from '../components/UI.js'
 import { api } from '../lib/api.js'
 
 const emit = defineEmits(['login'])
