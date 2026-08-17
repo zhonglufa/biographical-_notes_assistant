@@ -18,8 +18,8 @@ export const ENDPOINTS = {
   // 以下为 U1 列表/首选的客户端扩展端点（契约无对应定义 → 合同缺口，见 TASK-LOG）
   A04_LIST: { method: 'GET', path: '/resumes' },
   A05_PREFER: { method: 'PATCH', path: '/resumes/{rid}/versions/{vid}/prefer' },
-  A07: { method: 'GET', path: '/jobs/search' },
-  A08: { method: 'POST', path: '/jobs/favorite' },
+  A07: { method: 'GET', path: '/jobs' },
+  A08: { method: 'POST', path: '/jobs/{id}/favorite' },
   A09: { method: 'POST', path: '/applications/batch' },
   A10: { method: 'GET', path: '/applications' },
   A11: { method: 'GET', path: '/applications/{id}' },
@@ -106,6 +106,10 @@ export const api = {
   },
   // A11 投递详情（状态机各态；真实契约 pending，按 interaction-U3.md §4 建模）。
   applicationDetail: (id) => request('A11', { params: { id } }),
+  // A08 收藏/忽略（POST /jobs/{id}/favorite，body={action: 'favorite'|'ignore'}，响应 {ok,favoriteId,status}）
+  favoriteJob: (jobId, action) => request('A08', { params: { id: jobId }, body: { action } }),
+  // A07 岗位列表/筛选（GET /jobs，query={keyword?,location?,platform?,salaryMin?,page,pageSize}）
+  jobsList: (params = {}) => request('A07', { body: { page: 1, pageSize: 20, ...params } }),
   // —— U1 简历工作台（A04/A05/A06）——
   // 简历列表：契约无 GET /resumes 列表端点 → 用本地 mock store（合同缺口见 TASK-LOG）。
   resumeList: () => request('A04_LIST'),
@@ -206,6 +210,46 @@ function mockResponse(id, body, params) {
       return { ok: true };
     },
     A06: (b, p) => ({ taskId: 't-' + ((p && p.id) || 'r1') + '-' + Date.now().toString(36), status: 'pending' }),
+    // —— U2 岗位浏览 mock（A07 列表 / A08 收藏|忽略）——
+    // 完整 8 条岗位数据（覆盖 5 个平台 + 3 个 matchBand + favorited/ignored 状态），与 jobs-list.response.jobStub 同形
+    A07: (b) => {
+      const p = b || {};
+      const all = [
+        { jobId: 'j-2001', title: 'Java 开发工程师', company: '启明科技', platformId: 'boss', salaryMin: 15000, salaryMax: 25000, location: '上海', source: 'search', matchScore: 92, matchBand: 'green', matchReason: '技能 87% 吻合（Java/Spring/微服务）；地点命中偏好', favorited: false, ignored: false, collectedAt: now - 3600000 },
+        { jobId: 'j-2002', title: '后端开发工程师', company: '云途互联', platformId: 'liepin', salaryMin: 18000, salaryMax: 30000, location: '杭州', source: 'search', matchScore: 85, matchBand: 'green', matchReason: '经验符合（2年+）；技术栈重合度高', favorited: true, ignored: false, collectedAt: now - 7200000 },
+        { jobId: 'j-2003', title: '高级前端工程师', company: '小步创研', platformId: 'boss', salaryMin: 20000, salaryMax: 35000, location: '北京', source: 'search', matchScore: 78, matchBand: 'blue', matchReason: '技术栈匹配 React/Vue；需补充项目量化', favorited: false, ignored: false, collectedAt: now - 10800000 },
+        { jobId: 'j-2004', title: '全栈开发', company: '极创科技', platformId: 'zhaopin', salaryMin: null, salaryMax: null, location: '远程', source: 'search', matchScore: 65, matchBand: 'blue', matchReason: '远程命中偏好；薪资需确认', favorited: false, ignored: false, collectedAt: now - 14400000 },
+        { jobId: 'j-2005', title: 'Go 后端开发', company: '速购电商', platformId: 'lagou', salaryMin: 20000, salaryMax: 35000, location: '北京', source: 'search', matchScore: 54, matchBand: 'gray', matchReason: '语言不符（主栈 Go，你主栈 Java）', favorited: false, ignored: false, collectedAt: now - 18000000 },
+        { jobId: 'j-2006', title: 'Python 数据工程师', company: '海纳数科', platformId: 'liepin', salaryMin: 16000, salaryMax: 28000, location: '深圳', source: 'search', matchScore: 71, matchBand: 'blue', matchReason: 'SQL/数据建模加分；语言部分吻合', favorited: false, ignored: false, collectedAt: now - 21600000 },
+        { jobId: 'j-2007', title: 'DevOps 工程师', company: '和光运维', platformId: '51job', salaryMin: 18000, salaryMax: 32000, location: '广州', source: 'search', matchScore: 88, matchBand: 'green', matchReason: 'CI/CD/K8s 经验高度匹配；薪资优', favorited: false, ignored: false, collectedAt: now - 25200000 },
+        { jobId: 'j-2008', title: '初级前端', company: '草创工作室', platformId: 'lagou', salaryMin: 8000, salaryMax: 12000, location: '上海', source: 'search', matchScore: 48, matchBand: 'gray', matchReason: '级别偏低，经验溢出', favorited: false, ignored: true, collectedAt: now - 28800000 },
+      ];
+      // 过滤
+      const kw = (p.keyword || '').trim().toLowerCase();
+      const loc = (p.location || '').trim().toLowerCase();
+      const salMin = (p.salaryMin == null) ? null : Number(p.salaryMin);
+      const pl = p.platform || '';
+      const filtered = all.filter((j) => (
+        (!kw || (j.title + j.company).toLowerCase().includes(kw)) &&
+        (!loc || (j.location || '').toLowerCase().includes(loc)) &&
+        (!pl || j.platformId === pl) &&
+        (salMin == null || (j.salaryMin || 0) >= salMin)
+      ));
+      // 分页（mock：page/pageSize 语义真实）
+      const page = Math.max(1, Number(p.page) || 1);
+      const pageSize = Math.max(1, Math.min(100, Number(p.pageSize) || 20));
+      const start = (page - 1) * pageSize;
+      const items = filtered.slice(start, start + pageSize);
+      return { items, total: filtered.length, page, pageSize };
+    },
+    A08: (b, p) => {
+      const action = (b && b.action) || 'favorite';
+      const jobId = (p && p.id) || 'j-2001';
+      // 真实契约 ok/favoriteId/status；mock 直接返回最终态
+      if (action === 'ignore') return { ok: true, favoriteId: null, status: 'ignored' };
+      if (action === 'favorite') return { ok: true, favoriteId: 'fav-' + jobId + '-' + now.toString(36), status: 'favorited' };
+      return { ok: true, favoriteId: null, status: 'removed' };
+    },
   };
   const fn = store[id];
   if (!fn) throw new ApiError('NOT_MOCKED', `端点 ${id} 未提供 mock`);

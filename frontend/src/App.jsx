@@ -7,6 +7,7 @@ import Notifications from './screens/Notifications.jsx';
 import DailyReport from './screens/DailyReport.jsx';
 import Applications from './screens/Applications.jsx';
 import Resume from './screens/Resume.jsx';
+import Jobs from './screens/Jobs.jsx';
 import { api } from './lib/api.js';
 import { Card, Toggle } from './components/UI.jsx';
 
@@ -41,6 +42,7 @@ function Shell({ user }) {
         <strong style={{ padding: '8px 10px' }}>简历投递助手</strong>
         <a href="#/applications" style={nav}>投递管理</a>
         <a href="#/resume" style={nav}>简历工作台</a>
+        <a href="#/jobs" style={nav}>岗位浏览</a>
         <a href="#/notifications" style={nav}>通知中心</a>
         <a href="#/daily" style={nav}>每日日报</a>
         <a href="#/account" style={nav}>我的</a>
@@ -49,6 +51,7 @@ function Shell({ user }) {
         <Routes>
           <Route path="/applications" element={<Applications />} />
           <Route path="/resume" element={<Resume />} />
+          <Route path="/jobs" element={<Jobs />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/daily" element={<DailyReport />} />
           <Route path="/account" element={<Account />} />
