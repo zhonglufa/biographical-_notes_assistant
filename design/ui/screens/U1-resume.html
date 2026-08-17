@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>U1 简历工作台 · 简历 / 版本 / ATS 评分（A04/A05/A06）</title>
+<style>
+  :root{
+    --c-primary:#4F46E5; --c-primary-hover:#4338CA; --c-primary-soft:#EEF2FF;
+    --c-accent:#7C3AED; --c-success:#16A34A; --c-success-soft:#ECFDF3; --c-success-border:#ABEFC6;
+    --c-danger:#DC2626; --c-danger-soft:#FEF3F2; --c-danger-border:#FECDCA;
+    --c-warning:#D97706; --c-warning-soft:#FFFAEB; --c-warning-border:#FDE68A;
+    --c-info:#2563EB; --c-info-soft:#EFF6FF; --c-info-border:#BFDBFE;
+    --c-ink:#0F172A; --c-body:#334155; --c-muted:#64748B; --c-faint:#94A3B8;
+    --c-border:#E2E8F0; --c-subtle:#F1F5F9; --c-page:#F8FAFC; --c-surface:#FFFFFF;
+    --r-sm:6px; --r-md:8px; --r-lg:12px; --r-full:999px;
+    --f-base:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--f-base);background:var(--c-page);color:var(--c-body);font-size:14px;line-height:1.55;}
+  .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh;}
+  .side{background:var(--c-surface);border-right:1px solid var(--c-border);display:flex;flex-direction:column;}
+  .brand{display:flex;align-items:center;gap:8px;padding:18px 16px;font-weight:700;color:var(--c-ink);font-size:15px;border-bottom:1px solid var(--c-border);}
+  .brand .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--c-primary),var(--c-accent));color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .nav{padding:10px;overflow:auto;flex:1;}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-sm);color:var(--c-body);text-decoration:none;font-size:14px;margin-bottom:2px;cursor:pointer;}
+  .nav a:hover{background:var(--c-subtle);}
+  .nav a.active{background:var(--c-primary-soft);color:var(--c-primary);font-weight:600;}
+  .nav .ic{width:18px;text-align:center;opacity:.85;}
+  .nav .tag{margin-left:auto;font-size:11px;background:var(--c-danger);color:#fff;border-radius:var(--r-full);padding:1px 7px;}
+  .side-foot{padding:12px 16px;border-top:1px solid var(--c-border);font-size:12px;color:var(--c-faint);}
+  .main{display:flex;flex-direction:column;min-width:0;}
+  .top{height:56px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:16px;padding:0 20px;}
+  .top .search{flex:1;max-width:420px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-sm);color:var(--c-muted);font-size:13px;}
+  .top .spacer{flex:1;}
+  .top .plan{font-size:12px;background:var(--c-primary-soft);color:var(--c-primary);padding:4px 10px;border-radius:var(--r-full);font-weight:600;}
+  .top .bell{position:relative;font-size:18px;cursor:pointer;}
+  .top .bell .dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--c-danger);}
+  .top .avatar{width:30px;height:30px;border-radius:50%;background:var(--c-subtle);color:var(--c-muted);display:flex;align-items:center;justify-content:center;font-size:13px;}
+  .content{padding:24px;overflow:auto;max-width:1100px;}
+  .page-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+  .page-head h1{font-size:20px;margin:0;color:var(--c-ink);}
+  .page-head .sub{color:var(--c-muted);font-size:13px;margin-top:4px;}
+  .btn{font-family:var(--f-base);font-size:14px;font-weight:500;border-radius:var(--r-sm);padding:8px 14px;border:1px solid transparent;cursor:pointer;}
+  .btn-primary{background:var(--c-primary);color:#fff;}
+  .btn-primary:hover{background:var(--c-primary-hover);}
+  .btn-secondary{background:var(--c-surface);color:var(--c-body);border-color:var(--c-border);}
+  .btn-secondary:hover{background:var(--c-subtle);}
+  .btn-ghost{background:transparent;color:var(--c-primary);}
+  .btn-danger{background:var(--c-danger);color:#fff;}
+  .btn-sm{padding:5px 12px;font-size:13px;}
+  .card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;}
+  .badge{display:inline-flex;font-size:12px;font-weight:600;padding:2px 10px;border-radius:var(--r-full);}
+  .badge-success{background:var(--c-success-soft);color:var(--c-success);border:1px solid var(--c-success-border);}
+  .badge-neutral{background:var(--c-subtle);color:var(--c-muted);border:1px solid var(--c-border);}
+  .badge-info{background:var(--c-info-soft);color:var(--c-info);border:1px solid var(--c-info-border);}
+  .badge-warning{background:var(--c-warning-soft);color:var(--c-warning);border:1px solid var(--c-warning-border);}
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .count{color:var(--c-muted);font-size:13px;margin-left:auto;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:920px){.grid2{grid-template-columns:1fr;}}
+  .resume{display:flex;gap:14px;align-items:flex-start;}
+  .resume .ic{width:44px;height:44px;border-radius:10px;background:var(--c-primary-soft);color:var(--c-primary);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+  .resume .info{flex:1;min-width:0;}
+  .resume .info .title{font-weight:600;color:var(--c-ink);font-size:15px;}
+  .resume .info .meta{color:var(--c-muted);font-size:13px;margin:2px 0 8px;}
+  .resume .acts{display:flex;gap:6px;flex-wrap:wrap;}
+  .sec{font-size:13px;font-weight:600;color:var(--c-ink);margin:0 0 8px;border-left:3px solid var(--c-primary);padding-left:8px;}
+  .ver{display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-md);margin-bottom:6px;background:var(--c-surface);}
+  .ver.preferred{border-color:var(--c-primary);background:var(--c-primary-soft);}
+  .ver .vno{font-weight:600;color:var(--c-ink);}
+  .ver .vmeta{color:var(--c-muted);font-size:12px;flex:1;}
+  .ats-task{margin-top:8px;padding:10px 12px;border:1px dashed var(--c-border);border-radius:var(--r-md);font-size:13px;}
+  .progress{height:8px;background:var(--c-subtle);border-radius:var(--r-full);overflow:hidden;margin-top:8px;}
+  .progress>i{display:block;height:100%;background:var(--c-primary);width:0%;transition:width .4s;}
+  .score-ring{width:78px;height:78px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--c-ink);font-size:20px;border:8px solid var(--c-success);}
+  .dim{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--c-subtle);font-size:13px;}
+  .dim b{color:var(--c-ink);}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--c-ink);color:#fff;font-size:13px;padding:10px 16px;border-radius:var(--r-sm);opacity:0;transition:opacity .25s;pointer-events:none;z-index:50;}
+  .toast.show{opacity:1;}
+  .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;padding-top:80px;z-index:40;}
+  .modal-bg.show{display:flex;}
+  .modal{background:var(--c-surface);border-radius:var(--r-lg);padding:20px;width:460px;max-width:92vw;box-shadow:0 16px 48px rgba(15,23,42,.2);}
+  .input,.select,.textarea{font-family:var(--f-base);font-size:14px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);width:100%;color:var(--c-ink);}
+  .textarea{min-height:90px;resize:vertical;}
+  .input:focus,.select:focus,.textarea:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0 0 3px var(--c-primary-soft);}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:13px;color:var(--c-body);margin-bottom:5px;font-weight:500;}
+  .note{font-size:12px;color:var(--c-faint);}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px 10px;border-radius:var(--r-full);background:var(--c-subtle);color:var(--c-body);}
+  .empty{border:2px dashed var(--c-border);border-radius:var(--r-lg);padding:36px;text-align:center;color:var(--c-faint);}
+  .tag-a{font-size:11px;background:var(--c-accent);color:#fff;border-radius:var(--r-full);padding:1px 8px;margin-left:6px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="logo">简</span> 简投 · AI 助手</div>
+    <nav class="nav" id="nav">
+      <a data-page="home"><span class="ic">🏠</span> 首页 / 待确认投递 <span class="tag">3</span></a>
+      <a class="active" data-page="resume"><span class="ic">📄</span> 简历工作台</a>
+      <a data-page="jobs"><span class="ic">🔍</span> 岗位浏览</a>
+      <a data-page="apps"><span class="ic">📨</span> 投递管理</a>
+      <a data-page="strategy"><span class="ic">⚙️</span> 策略配置</a>
+      <a data-page="adapter"><span class="ic">🔌</span> 适配器</a>
+      <a data-page="interview"><span class="ic">💬</span> 面试模拟</a>
+      <a data-page="notify"><span class="ic">🔔</span> 通知中心</a>
+      <a data-page="report"><span class="ic">📊</span> 每日日报</a>
+      <a data-page="member"><span class="ic">⭐</span> 会员</a>
+      <a data-page="settings"><span class="ic">🧰</span> 设置</a>
+    </nav>
+    <div class="side-foot">本机 Agent · v1.3<br>账号状态：<span style="color:var(--c-success)">正常</span></div>
+  </aside>
+
+  <section class="main">
+    <header class="top">
+      <div class="search">搜索岗位、公司、技能…</div>
+      <div class="spacer"></div>
+      <span class="plan">Pro 会员</span>
+      <span class="bell">🔔<span class="dot"></span></span>
+      <span class="avatar">钟</span>
+    </header>
+
+    <div class="content">
+      <div class="page-head">
+        <div>
+          <h1>简历工作台</h1>
+          <div class="sub">管理你的简历与多版本快照，并触发 ATS（ applicant tracking system）通过率评分，提前发现被机器筛掉的风险。<span class="tag-a">A04 / A05 / A06</span></div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <button class="btn btn-primary btn-sm" onclick="openCreate()">＋ 新建简历</button>
+        <span class="count" id="resumeCount">共 2 份简历</span>
+      </div>
+
+      <div class="grid2">
+        <!-- 左：简历列表 -->
+        <div>
+          <p class="sec">我的简历</p>
+          <div id="resumeList"></div>
+        </div>
+        <!-- 右：版本 + ATS -->
+        <div>
+          <p class="sec">版本管理 <span class="note">（点击左侧「查看版本」展开）</span></p>
+          <div id="versionPanel"><div class="empty">尚未选择简历</div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- 新建简历弹窗（A04） -->
+<div class="modal-bg" id="createBg">
+  <div class="modal">
+    <p class="sec">新建简历 <span class="note">（A04 POST /resumes）</span></p>
+    <div class="field"><label>简历标题</label><input class="input" id="fTitle" placeholder="如：Java 后端-突出微服务经验" /></div>
+    <div class="field"><label>简历正文（粘贴或导入）</label><textarea class="textarea" id="fContent" placeholder="粘贴简历全文，或导入 Word/PDF 由本地解析…"></textarea></div>
+    <div class="field"><label>模板</label>
+      <select class="select" id="fTpl">
+        <option value="default">默认模板</option>
+        <option value="tech">技术岗模板</option>
+        <option value="campus">应届生模板</option>
+      </select>
+    </div>
+    <div class="note">创建即落首个版本快照（version_no=1）。数据仅存本机，不上传原始 PII。</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+      <button class="btn btn-secondary btn-sm" onclick="closeCreate()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="submitCreate()">创建</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Mock 数据（语义对齐契约 schema，非真实数据）=====
+const NOW = Date.now();
+let resumes = [
+  { resumeId:'r-1001', title:'钟璐发-Java后端-主投', templateId:'tech',
+    versions:[
+      { versionId:'v-1001-3', versionNo:3, createdAt:NOW-86400000*2, note:'补充 Spring Cloud 项目', isPreferred:true },
+      { versionId:'v-1001-2', versionNo:2, createdAt:NOW-86400000*9, note:'调整项目排序', isPreferred:false },
+      { versionId:'v-1001-1', versionNo:1, createdAt:NOW-86400000*20, note:'初版', isPreferred:false },
+    ]},
+  { resumeId:'r-1002', title:'钟璐发-应届生-校招', templateId:'campus',
+    versions:[
+      { versionId:'v-1002-1', versionNo:1, createdAt:NOW-86400000*5, note:'初版', isPreferred:true },
+    ]},
+];
+let selectedId = null;
+
+function fmtDate(ms){ const d=new Date(ms); return `${d.getMonth()+1}月${d.getDate()}日`; }
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),1800); }
+
+function renderResumes(){
+  const box=document.getElementById('resumeList');
+  document.getElementById('resumeCount').textContent=`共 ${resumes.length} 份简历`;
+  box.innerHTML='';
+  resumes.forEach(r=>{
+    const pref=r.versions.find(v=>v.isPreferred);
+    const card=document.createElement('div'); card.className='card';
+    card.innerHTML=`
+      <div class="resume">
+        <div class="ic">📄</div>
+        <div class="info">
+          <div class="title">${r.title}</div>
+          <div class="meta">模板：${r.templateId} · 版本 ${r.versions.length} 个 · 首选 v${pref?pref.versionNo:'-'} ${pref&&pref.isPreferred?'<span class="badge badge-success">首选</span>':''}</div>
+          <div class="acts">
+            <button class="btn btn-secondary btn-sm" onclick="selectResume('${r.resumeId}')">查看版本</button>
+            <button class="btn btn-secondary btn-sm" onclick="triggerAts('${r.resumeId}')">触发 ATS 评分</button>
+            <button class="btn btn-ghost btn-sm" onclick="goMatch('${r.resumeId}')">去匹配 →</button>
+          </div>
+          <div class="ats-task" id="ats-${r.resumeId}" style="display:none"></div>
+        </div>
+      </div>`;
+    box.appendChild(card);
+  });
+}
+
+function selectResume(id){
+  selectedId=id;
+  const r=resumes.find(x=>x.resumeId===id);
+  const box=document.getElementById('versionPanel');
+  const diff = r.versions.length>=2;
+  let html=`<div class="card"><div style="font-weight:600;color:var(--c-ink);margin-bottom:8px">${r.title}</div>`;
+  r.versions.slice().sort((a,b)=>b.versionNo-a.versionNo).forEach(v=>{
+    html+=`<div class="ver ${v.isPreferred?'preferred':''}">
+      <span class="vno">v${v.versionNo}</span>
+      <span class="vmeta">${fmtDate(v.createdAt)} · ${v.note||'—'} ${v.isPreferred?'<span class="badge badge-success">首选</span>':''}</span>
+      ${v.isPreferred?'':`<button class="btn btn-ghost btn-sm" onclick="setPreferred('${r.resumeId}','${v.versionId}')">设为首选</button>`}
+    </div>`;
+  });
+  html+=`</div>`;
+  if(diff) html+=`<div class="note" style="margin-top:8px">✅ 支持对任意两版做结构化 diff（A05 diffAvailable=true）。<button class="btn btn-secondary btn-sm" onclick="toast('已打开版本对比（mock）')">对比两版</button></div>`;
+  else html+=`<div class="note" style="margin-top:8px">仅 1 个版本，diff 暂不可用（A05 diffAvailable=false）。</div>`;
+  box.innerHTML=html;
+  toast('已展开版本列表');
+}
+
+function setPreferred(rid,vid){
+  const r=resumes.find(x=>x.resumeId===rid);
+  r.versions.forEach(v=>v.isPreferred=(v.versionId===vid));
+  selectResume(rid); renderResumes();
+  toast('已设为首选版本');
+}
+
+// A06 触发 ATS 评分（异步：pending → running → done）
+function triggerAts(rid){
+  const r=resumes.find(x=>x.resumeId===rid);
+  const pref=r.versions.find(v=>v.isPreferred)||r.versions[0];
+  const taskId='ats-'+Math.random().toString(36).slice(2,9);
+  const box=document.getElementById('ats-'+rid);
+  box.style.display='block';
+  box.innerHTML=`<div>🤖 ATS 评分任务 <code>${taskId}</code></div>
+    <div class="progress"><i id="pb-${taskId}"></i></div>
+    <div id="st-${taskId}" style="margin-top:6px;color:var(--c-muted)">状态：pending（已提交）</div>`;
+  // 模拟状态机推进
+  setTimeout(()=>{ const s=document.getElementById('st-'+taskId); if(s) s.innerHTML='状态：running（解析中…）'; const p=document.getElementById('pb-'+taskId); if(p) p.style.width='45%'; }, 700);
+  setTimeout(()=>{
+    const s=document.getElementById('st-'+taskId); const p=document.getElementById('pb-'+taskId);
+    if(s) s.innerHTML='状态：done ✅';
+    if(p) p.style.width='100%';
+    // mock 评分结果（真实结果经 b05-ats.response 回填，此处仅演示展示）
+    box.innerHTML+=`<div style="margin-top:10px;display:flex;gap:14px;align-items:center">
+        <div class="score-ring" style="border-color:var(--c-success)">82</div>
+        <div style="flex:1">
+          <div class="dim"><span>关键词匹配度</span><b>88</b></div>
+          <div class="dim"><span>格式规范</span><b>79</b></div>
+          <div class="dim"><span>经历完整性</span><b>80</b></div>
+          <div class="note" style="margin-top:6px">建议：量化项目成果、补足「分布式」关键词可提升至 88+。</div>
+        </div></div>`;
+    toast('ATS 评分完成');
+  }, 1900);
+}
+
+function goMatch(rid){ toast('跳转首页待确认投递（mock）'); }
+
+// A04 新建简历
+function openCreate(){ document.getElementById('createBg').classList.add('show'); }
+function closeCreate(){ document.getElementById('createBg').classList.remove('show'); }
+function submitCreate(){
+  const title=document.getElementById('fTitle').value.trim();
+  const content=document.getElementById('fContent').value.trim();
+  const tpl=document.getElementById('fTpl').value;
+  if(!title){ toast('请填写简历标题'); return; }
+  const rid='r-'+Math.random().toString(36).slice(2,7);
+  const vid='v-'+rid+'-1';
+  resumes.unshift({ resumeId:rid, title, templateId:tpl,
+    versions:[{ versionId:vid, versionNo:1, createdAt:Date.now(), note:'初版', isPreferred:true }]});
+  // 契约响应语义：返回 resumeId / versionId / createdAt
+  closeCreate();
+  renderResumes();
+  toast(`已创建：${title}（resumeId=${rid}）`);
+  document.getElementById('fTitle').value=''; document.getElementById('fContent').value='';
+}
+
+// 导航（仅高亮；真实内容见各 Ux 原型）
+document.getElementById('nav').addEventListener('click', e=>{
+  const a=e.target.closest('a'); if(!a) return; e.preventDefault();
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');
+  const p=a.dataset.page;
+  if(p!=='resume') toast('该页面交互原型在对应 U 阶段交付（mock 导航）');
+});
+
+renderResumes();
+</script>
+</body>
+</html>
