@@ -143,6 +143,19 @@
     <h2>4. 交付约定</h2>
     <p>每个用户面（U1–U11）交付：① 可交互 HTML 原型（本设计系统组件）置于 <code>design/ui/screens/</code>；② 交互规格（状态/转场/空态/错误/确认闸门）内联或 <code>design/ui/interaction-*.md</code>。原型仅用 mock 数据，不接真实后端与凭据。</p>
   </div>
+
+  <div class="section">
+    <h2>5. 动效 / Motion</h2>
+    <p>统一动效规范（token + 现场示例）见 <b><code>02-motion-system.html</code></b>，由 U-动效 工作包交付。原则：克制、有目的、可关闭。核心动效：</p>
+    <ul>
+      <li><b>确认投递（招牌交互）</b>：勾选绘制 → 卡片高亮 → 收起并计数 + Toast，强化"人确认后才发起"的半自动心智。</li>
+      <li><b>导航过渡</b>：内容区 200ms 淡入，不大幅位移。</li>
+      <li><b>状态脉冲</b>：待确认 / 投递中等需被注意的状态点。</li>
+      <li><b>骨架屏</b>：AI 匹配等异步加载占位。</li>
+      <li><b>无障碍</b>：尊重系统 <code>prefers-reduced-motion</code>，开启后降级为瞬时切换。</li>
+    </ul>
+    <p>所有时长/缓动 token（<code>--d-fast/base/slow/slower</code>、<code>--e-out/e-std</code>）在 01/02 中保持一致，禁止各屏私自定义动画时长。</p>
+  </div>
 </div>
 </body>
 </html>
