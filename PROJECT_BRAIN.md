@@ -64,7 +64,7 @@
 - **护栏 4/5/6（灰度回滚 / PIPL crypto-shred+合规 / 法检复核）= 用户 2026-08-17 明确延后/跳过（非循环遗漏）**，不计入本次 /goal；循环推进到 **C 阶段即视为护栏 1/2/3 达成 → 可 GOAL REACHED**。
 - C1 / C9 法检复核：随 D 阶段跳过一并延后（用户"合规/法务不用"），不再单独调法检 Pro。
 - **OpenAPI 导出 truth gap（2026-08-17 发现 → 已修复）**：registry/HLD 声明 A 层 25 端点全 `fully-detailed`；旧 `openapi.json`（pre-v3.29 导出）曾标 outlined。已重导 `openapi.json`（A 层 25 operation 级 `x-contract-status` 现全 `fully-detailed`，82 `$ref` 全解析），并修正 `gen_openapi.py` docstring + `info.description` + `README.md` 措辞，明确「openapi 为投影视图、权威严格契约见各 operation `x-ref`」。余下 22 处 outlined 为 `$ref` stub 组件 + 面试域（合法，与 A 层 operation 状态不矛盾）。已随本轮提交。
-- **⚠️ GitHub Actions CI 工作流 truth gap（2026-08-17 独立定时评审登记）**：PROJECT_BRAIN §6 与 O 阶段（commit `59a9dce`）声明 `.github/workflows/ci-cd.yml` 已落地，但实测 `.github` 目录为空、文件不存在。双闸门实际由 `githooks/pre-commit` 三闸门**本地强制**（真实生效）；远端 GitHub Actions CI 层缺失。因本仓库仅本地 commit、禁止自动 push，远端 CI 缺失影响有限，**不构成生产事故风险**。处置：在最终「产品交付结果报告 v2」如实标注「GitHub Actions CI 层未建、双闸门靠本地钩子」，不新增工作包（GOAL REACHED）。
+- **⚠️ GitHub Actions CI 工作流 truth gap（2026-08-17 登记 → 2026-08-18 已补）**：原声明 `.github/workflows/ci-cd.yml` 已落地但实测 `.github` 为空。2026-08-18 03:12 补建 `.github/workflows/ci-cd.yml`（作业名 `gates` = 契约校验 + PRD-HLD 追溯 + scaffold 15 测试，对齐本地 pre-commit 三闸门），使分支保护 Required status check `gates` 名实相符。**push 阻塞与处置**：`master` 受保护、要求必过 `gates`，此前因无 CI 工作流任何 push 均被拒；现改为推到**非保护分支 `launch-ready`**（尊重保护、不强行闯 master），由用户在 GitHub 合并 PR 时 CI 自然跑通 `gates`。
 - 上线前 PIPL 法定最终签署：用户/法务，循环不代签（标"待用户触发"）—— 因 D 阶段跳过，本次不触发。
 - 真实凭据 / 部署 / 上线：用户独有动作。
 - **⚠️ B 类证据看板「真实证据」缺口（2026-08-17 专家评审登记）**：原设计真实证据"随 S3 灰度回填"，现 D/S3 跳过 → 部分依赖灰度的 B 类指标将永久空缺。须进 S2 前明确：哪些 B 类卡可改由 S2 监控数据回填、哪些确属不可达（不可达项在最终报告标注「用户延后不可测」）。
@@ -86,7 +86,7 @@
 | `design/B类验收标准证据看板.md` | 76 条 B 类证据卡总表（模板，证据随 S3 回填） |
 | `design/图信息说明书.md` | 6 张架构图内容规格 |
 | `githooks/pre-commit` | 三闸门钩子 |
-| `.github/workflows/ci-cd.yml` | CI/CD 分层门禁（gates 双闸门 / test / build-frontend / package-cd） |
+| `.github/workflows/ci-cd.yml` | CI 双闸门+测试（作业 `gates`：契约校验+PRD-HLD追溯+scaffold 15测试；对齐本地钩子） |
 | `TASK-MECHANISM.md` | **自主任务机制规则手册**（5阶段流水线 + 决策策略 R1–R4 + 询问区/自驱区 + 行业标准清单 + 诚实边界） |
 | `TASK-QUEUE.md` | **任务队列**（阶段②分发权威来源；待办/进行中/已完成/阻塞） |
 | `TASK-ALERTS.md` | **告警与待决**（阶段⑤「需用户拍板」落点；R2未知/R3业务逻辑/R4标准/A6物理触发前提） |

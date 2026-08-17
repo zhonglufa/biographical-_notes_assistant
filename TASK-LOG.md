@@ -155,3 +155,9 @@
 - **④状态回传**：Q18/Q19/Q20 → 已完成；PROJECT_BRAIN §2/§7 标「可上线就绪(代码+容器+手册)」；本条目即状态回传。
 - **⑤日志与告警**：无新增阻塞。诚实边界：Q5(部署)/Q6(真实凭据)/Q7(PIPL签字) 仍仅用户(不伪造)；3 条自动调度保持 PAUSED(省积分)，本次为手动执行。A1–A6 已代拍板待你复审。
 - REVIEW-1 双闸门全绿；REVIEW-2 无偏离；REVIEW-3 红线未触发（仅本地服务+容器+文档，无部署/凭据/PIPL/生图）。本地 commit + 沙箱代推 push（用户 2026-08-17 授权 PAT，免本机 GFW 重置）；push 后提醒于 GitHub 设 dual-gate 为 Required status check。
+
+## [2026-08-18T03:30+08:00] tick=manual 阶段=③④⑤ 任务=补 CI 工作流 + 绕开分支保护推送 状态=OK(部分·远端分支)
+- **③执行**：补建 `.github/workflows/ci-cd.yml`（作业名 `gates` = 契约校验 + PRD-HLD 追溯 + scaffold 15 测试，对齐本地 pre-commit 三闸门）——关闭 PROJECT_BRAIN §5 登记的「GitHub Actions CI 层 truth gap」，使分支保护 Required status check `gates` 名实相符。
+- **④状态回传**：PROJECT_BRAIN §5/§6 更新（CI 已建 + push 阻塞处置）。
+- **⑤日志与告警**：**push 阻塞**——`master` 受保护、要求必过 `gates`，但此前无 CI 工作流 → 任何 push 被拒（远端 rejected: Required status check "gates"）。处置：**不绕过保护**，改为推到非保护分支 `launch-ready`（含 cbe13b6 上线就绪 + CI 工作流），由用户在 GitHub 合并 PR 时 CI 自然跑通 `gates` 后入 master。本地双闸门 + pre-commit 三闸门均绿。
+- 诚实边界：合并 PR / 点上线 / 真实凭据 / PIPL 签署仍仅用户。
