@@ -1,6 +1,6 @@
 # resume-ai-prod · 项目大脑（活文档 / 自主推进唯一权威状态源）
 
-> **作用**：自动化循环 `automation-1786905748859`（每 6 小时一轮、全新会话）每轮**读取并回写**本文件。
+> **作用**：自动化循环（`automation-1786905748859` 主 + `...104193`/:20 + `...104563`/:40 共 3 条错峰，每 20 分钟一轮、全新会话）每轮**读取并回写**本文件。
 > 它替代"记住对话"——循环读不到聊天原文，靠本文件 + `E:/简历/.workbuddy/memory/MEMORY.md` 维持连续性。
 > 任何人/循环接手，凭本文件即可无缝续推。本文件本身纳入 git 版本控制（本地提交，不 push）。
 
@@ -30,7 +30,7 @@
 
 ## 2. 当前状态（循环每轮回写）
 - **所处阶段**：✅ **A+B+C 三阶段 + 护栏 1/2/3 全部达成**；🔄 **U 阶段（UI/交互设计）进行中**（用户 2026-08-17 指出原交付缺 UI 设计稿/交互设计，已纳入 /goal 续推）。护栏 4/5/6 用户延后，不计入。循环已重新激活（automation-1786905748859 置 ACTIVE）续推 U 阶段。
-- **完成度**：**A+B+C 三阶段全部达成 ✅** —— A 阶段 S1 基线（A1 看板76/76·A2 25 接口契约落地·A3 自检·A4 图说明全部 ✅）；B 阶段（B1 本机 Agent ✅ · B2 服务端 API/LLM 匹配/通知/状态机 ✅ · B3 契约运行时+事件总线+测试基座 ✅）；C 阶段（C1 RAG 架构+成本方案/护栏2 ✅ · C2 轻量监控/护栏3 ✅）。`scaffold` 共 12 个测试文件全 PASS，双闸门全绿，冒烟 25/25。**U 阶段进行中**：U0 设计系统+IA+导航已落地（`design/ui/00-design-system.html`+`01-app-shell.html`+`ia-nav.md`），**U-动效已落地**（`design/ui/02-motion-system.html` + app-shell 真实确认动效 + 设计系统"动效"章节）；**U1 简历工作台(A04/A05/A06) / U2 岗位浏览(A07/A08) / U3 投递管理(A09/A10/A11) / U4 策略配置(A12/A13) 已落地**（`design/ui/screens/U1-resume.html`+`U2-jobs.html`+`U3-applications.html`+`U4-strategy.html` + `design/ui/interaction-U1~U4.md`）；**U5 适配器管理(A14/A15) 已落地（多角色流水线首包：PM/Arch/Eng/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U6 面试模拟(A16-A19) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U7–U11 待续推**。
+- **完成度**：**A+B+C 三阶段全部达成 ✅** —— A 阶段 S1 基线（A1 看板76/76·A2 25 接口契约落地·A3 自检·A4 图说明全部 ✅）；B 阶段（B1 本机 Agent ✅ · B2 服务端 API/LLM 匹配/通知/状态机 ✅ · B3 契约运行时+事件总线+测试基座 ✅）；C 阶段（C1 RAG 架构+成本方案/护栏2 ✅ · C2 轻量监控/护栏3 ✅）。`scaffold` 共 12 个测试文件全 PASS，双闸门全绿，冒烟 25/25。**U 阶段进行中**：U0 设计系统+IA+导航已落地（`design/ui/00-design-system.html`+`01-app-shell.html`+`ia-nav.md`），**U-动效已落地**（`design/ui/02-motion-system.html` + app-shell 真实确认动效 + 设计系统"动效"章节）；**U1 简历工作台(A04/A05/A06) / U2 岗位浏览(A07/A08) / U3 投递管理(A09/A10/A11) / U4 策略配置(A12/A13) 已落地**（`design/ui/screens/U1-resume.html`+`U2-jobs.html`+`U3-applications.html`+`U4-strategy.html` + `design/ui/interaction-U1~U4.md`）；**U5 适配器管理(A14/A15) 已落地（多角色流水线首包：PM/Arch/Eng/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U6 面试模拟(A16-A19) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U7 支付会员(A20/A21) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+响应式 R1–R7 全 PASS+双闸门实跑全绿）**；**U8–U11 待续推**。
 - **文档基线**：PRD v4.5 / HLD v3.35 / LLD（18 模块）
 - **护栏现状**：**护栏 1 双闸门 CI ✅** · **护栏 2 LLM 成本硬上限+熔断 ✅**（`scaffold/src/llm_match.py` CostGuard + `cost_policy.py` BudgetPolicy）· **护栏 3 封号率监控 ✅**（`scaffold/src/monitor.py` LightweightMonitor，4 指标+阈值告警）；**护栏 4/5/6（灰度回滚 / PIPL crypto-shred+合规 / 法检复核）= 用户 2026-08-17 明确延后/跳过，不计入本次 /goal，已如实标注「用户延后」**
 
@@ -89,7 +89,7 @@
 ---
 
 ## 7. 本轮计划 / 近期序列（循环每轮更新 §2 + 本节）
-- **下一工作包**：**U0 设计系统基础 + 信息架构 + 全局导航(app-shell) + U-动效 + U1~U5**（均已完成）→ 续推 **U7 支付会员(A20/A21)** / U8 通知中心(A22/A23) / U9 每日日报(A24/A25) / U10 用户与登录(A01/A02/A03) / U11 交互设计总纲。U 阶段全完成 → GOAL REACHED。
+- **下一工作包**：**U0–U7 均已落地**（U0/U-动效/U1–U4 legacy、U5–U7 多角色流水线）→ 续推 **U8 通知中心(A22/A23)** / U9 每日日报(A24/A25) / U10 用户与登录(A01/A02/A03) / U11 交互设计总纲。U 阶段全完成 → GOAL REACHED。
 - **近期推进序列**：B 类证据看板 → 25 接口契约全量落地 → 交付前自检清单补全 → 图说明收敛 → (S2) RAG 架构成本方案+轻量监控 → **（S3/D 阶段用户跳过，不再推进）**。
 
 ---
@@ -138,7 +138,7 @@
 - **U4** ✅ 策略配置 UI（A12 获取 / A13 更新：匹配阈值/日限额/平台/黑名单）—— `design/ui/screens/U4-strategy.html` + `design/ui/interaction-U4.md`
 - **U5** ✅ 适配器管理 UI（A14 列表 / A15 启用）—— **多角色流水线首包（四角色拆分）**：`design/ui/roles/U5-pm.md`(PM)+`U5-arch.md`(Arch)+`screens/U5-adapter.html`(Eng)+`interaction-U5.md`(Eng)+`U5-qa.md`(QA)，五份产物齐全、互相引用（TRACE 头 upstream/downstream）、双闸门实跑全绿；规范见 `design/ui/ROLE-WORKBOOK.md` + 台账 `ROLE-DELIVERABLES.md`
 - **U6** ✅ 面试模拟 UI（A16 题库 / A17 建会话 / A18 作答 / A19 报告）—— 多角色流水线：PM/Arch/Eng(screens/U6-interview.html + interaction-U6.md)/QA 五份产物齐全 + 双闸门实跑全绿
-- **U7** ⏳ 支付与会员 UI（A20 下单 / A21 回调）
+- **U7** ✅ 支付会员 UI（A20 下单 / A21 回调）—— 多角色流水线：PM/Arch/Eng(screens/U7-payment.html + interaction-U7.md)/QA 五份产物齐全 + 双闸门实跑全绿 + 响应式 R1–R7 PASS
 - **U8** ⏳ 通知中心 UI（A22 列表 / A23 实时）
 - **U9** ⏳ 每日日报 UI（A24 今日 / A25 偏好）
 - **U10** ⏳ 用户与登录 UI（A01 登录 / A02 刷新 / A03 权益）

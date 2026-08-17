@@ -24,7 +24,7 @@ status: DONE
 | U4 策略配置 | A12/13 | legacy | legacy | [screens/U4-strategy.html](screens/U4-strategy.html) | [interaction-U4.md](interaction-U4.md) | legacy | 绿 | ✅ |
 | **U5 适配器管理** | **A14/15** | [roles/U5-pm.md](roles/U5-pm.md) | [roles/U5-arch.md](roles/U5-arch.md) | [screens/U5-adapter.html](screens/U5-adapter.html) | [interaction-U5.md](interaction-U5.md) | [roles/U5-qa.md](roles/U5-qa.md) | ✅ 绿(实跑) | ✅ 四角色齐全 |
 | **U6 面试模拟** | **A16-19** | [roles/U6-pm.md](roles/U6-pm.md) | [roles/U6-arch.md](roles/U6-arch.md) | [screens/U6-interview.html](screens/U6-interview.html) | [interaction-U6.md](interaction-U6.md) | [roles/U6-qa.md](roles/U6-qa.md) | ✅ 绿(实跑) | ✅ 四角色齐全 |
-| U7 支付会员 | A20/21 | — | — | — | — | — | — | ⏳ |
+| **U7 支付会员** | **A20/21** | [roles/U7-pm.md](roles/U7-pm.md) | [roles/U7-arch.md](roles/U7-arch.md) | [screens/U7-payment.html](screens/U7-payment.html) | [interaction-U7.md](interaction-U7.md) | [roles/U7-qa.md](roles/U7-qa.md) | ✅ 绿(实跑) | ✅ 四角色齐全 |
 | U8 通知中心 | A22/23 | — | — | — | — | — | — | ⏳ |
 | U9 每日日报 | A24/25 | — | — | — | — | — | — | ⏳ |
 | U10 用户登录 | A01/02/03 | — | — | — | — | — | — | ⏳ |

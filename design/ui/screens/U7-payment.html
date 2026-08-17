@@ -1,0 +1,256 @@
+<!-- TRACE
+role: Engineer | software-engineer
+package: U7 支付与会员 UI (A20/A21)
+agent_run: 2026-08-17T22:13
+author_of_record: software-engineer（本轮子 agent 调度瞬断风险，由 Team Lead 代笔）
+upstream_read: [design/ui/roles/U7-pm.md, design/ui/roles/U7-arch.md, design/ui/00-design-system.html, design/ui/01-app-shell.html, design/ui/02-motion-system.html, design/ui/ROLE-WORKBOOK.md §4, design/ui/UI-SELFCHECK.md §3/§5]
+downstream_write: [design/ui/roles/U7-qa.md]
+decisions: mock 数据，纯前端态，不接真实 A20/A21；金额前端仅展示(分→元换算，不计算)；A21 用 MockPay 按钮模拟回调驱动订单状态机+权益刷新；OrderStateBadge/PlanCompareCard 两新组件；含降级横幅与重复支付幂等；@media 响应式(窄屏卡片堆叠/按钮≥40px/弹窗≤90vw)；尊重 prefers-reduced-motion。
+status: DONE
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我的会员 · U7 支付与会员（mock 原型）</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#fff; --ink:#1f2733; --muted:#6b7686; --line:#e6e9ef;
+    --accent:#6c5ce7; --green:#16a34a; --red:#dc2626; --yellow:#d97706; --gray:#9aa3b2; --blue:#2563eb;
+    --radius:14px; --shadow:0 1px 3px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+  .shell{max-width:1000px;margin:0 auto;padding:24px 20px 60px}
+  header.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
+  header.top h1{font-size:22px;margin:0}
+  .badge{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:5px 12px;border-radius:999px;border:1px solid var(--line)}
+  .badge .d{width:8px;height:8px;border-radius:50%}
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:18px}
+  section.block h2{font-size:15px;margin:0 0 12px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+  .plan-card{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid var(--line);border-radius:12px;margin-bottom:10px}
+  .plan-card .meta{flex:1;min-width:0}
+  .plan-card .name{font-weight:600}
+  .plan-card .sub{font-size:12px;color:var(--muted);margin-top:3px}
+  .compare{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .pc{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:8px}
+  .pc.current{border-color:var(--accent);box-shadow:0 0 0 2px rgba(108,92,231,.15)}
+  .pc .t{font-weight:700;font-size:15px}
+  .pc .p{color:var(--accent);font-size:18px;font-weight:700}
+  .pc ul{margin:4px 0;padding-left:18px;font-size:13px;color:var(--muted)}
+  button{font:inherit;border:1px solid var(--line);background:#fff;color:var(--ink);padding:9px 14px;border-radius:9px;cursor:pointer;transition:transform .12s,background .15s;min-height:40px}
+  button:hover{background:#f0f2f6}
+  button:active{transform:scale(.97)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .downgrade{background:#fff7ed;border:1px solid #fed7aa;color:#9a3412;border-radius:12px;padding:12px 14px;font-size:13px;margin-bottom:14px}
+  .orders{display:flex;flex-direction:column;gap:10px}
+  .orow{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px}
+  .orow .id{font-size:12px;color:var(--muted);font-family:ui-monospace,monospace}
+  .ostate{margin-left:auto;font-size:12px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line)}
+  .mask{position:fixed;inset:0;background:rgba(16,24,40,.4);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .mask.show{display:flex}
+  .dialog{background:#fff;border-radius:16px;padding:22px;width:380px;max-width:90vw;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+  .dialog h3{margin:0 0 10px}
+  .dialog p{color:var(--muted);font-size:14px;margin:0 0 14px}
+  .seg{display:flex;gap:8px;margin:10px 0}
+  .seg button{flex:1;min-height:40px}
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .row{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+  .qr{width:150px;height:150px;margin:10px auto;border:1px dashed var(--line);border-radius:10px;display:flex;align-items:center;justify-content:center;color:var(--gray);font-size:12px;text-align:center}
+  .count{font-variant-numeric:tabular-nums;color:var(--muted);font-size:13px;text-align:center;margin-top:6px}
+  .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(20px);background:#1f2733;color:#fff;padding:12px 18px;border-radius:12px;opacity:0;transition:opacity .2s,transform .2s;z-index:60;font-size:14px;display:flex;gap:14px;align-items:center;max-width:90vw}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .sim{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+  /* ===== 响应式 R1-R7（UI-SELFCHECK §3）===== */
+  @media (max-width:768px){
+    .compare{grid-template-columns:1fr}
+    .pc.current{box-shadow:none}
+    header.top h1{font-size:19px}
+    .plan-card{flex-wrap:wrap}
+    .orow{flex-wrap:wrap}
+    .orow .ostate{margin-left:0}
+  }
+  @media (max-width:480px){
+    .shell{padding:16px 12px 48px}
+    button{width:100%}
+    .seg{flex-wrap:wrap}
+    .seg button{flex:1 1 40%}
+    .row{flex-direction:column}
+    .row button{width:100%}
+    .dialog{width:100%}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <h1>我的会员</h1>
+    <span class="badge" id="planBadge"><span class="d" style="background:var(--gray)"></span><span id="planText">免费版</span></span>
+  </header>
+
+  <div class="downgrade" id="downgrade" style="display:none">⚠️ 会员已过期，已自动降级为免费版：原有配置已保留但不可修改，超限的在途投递任务允许执行完毕。升级后可重新激活。</div>
+
+  <section class="block">
+    <h2>当前套餐</h2>
+    <div class="plan-card">
+      <div class="meta">
+        <div class="name" id="curName">免费版</div>
+        <div class="sub" id="curSub">每日投递上限 30 份 · ≤3 平台 · AI 面试每日 3 次</div>
+      </div>
+      <button class="primary" onclick="openOrder('pro')">升级专业版</button>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>套餐对比</h2>
+    <div class="compare">
+      <div class="pc current">
+        <div class="t">免费版</div><div class="p">¥0</div>
+        <ul><li>日投递 30 份</li><li>≤3 平台</li><li>AI 面试 3 次/日</li></ul>
+        <button disabled>当前套餐</button>
+      </div>
+      <div class="pc">
+        <div class="t">专业版</div><div class="p">¥29/月</div>
+        <ul><li>日投递 100 份</li><li>全平台</li><li>AI 面试 10 次/日</li></ul>
+        <button class="primary" onclick="openOrder('pro')">升级</button>
+      </div>
+      <div class="pc">
+        <div class="t">团队版</div><div class="p">¥99/月</div>
+        <ul><li>专业版全部</li><li>多版本简历</li><li>AI 面试无限次</li></ul>
+        <button class="primary" onclick="openOrder('team')">升级</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="block">
+    <h2>我的订单</h2>
+    <div class="orders" id="orders">
+      <div class="orow"><span class="id">ORD-20260817-0001</span><span>专业版 · 3 个月</span><span class="ostate" style="color:var(--green);border-color:#bbf7d0;background:#f0fdf4">已开通</span></div>
+    </div>
+    <div class="sim">
+      <button onclick="simulateExpired()">模拟：订单过期</button>
+      <button onclick="simulateDowngrade()">模拟：会员降级</button>
+    </div>
+  </section>
+</div>
+
+<!-- 下单面板 -->
+<div class="mask" id="orderMask">
+  <div class="dialog">
+    <h3>升级 <span id="ordPlan">专业版</span></h3>
+    <p>选择订购周期（金额由服务端计算，前端不取价）</p>
+    <div class="seg" id="periodSeg">
+      <button data-m="1" class="on" onclick="pickPeriod(1,this)">1 个月</button>
+      <button data-m="3" onclick="pickPeriod(3,this)">3 个月</button>
+      <button data-m="6" onclick="pickPeriod(6,this)">6 个月</button>
+      <button data-m="12" onclick="pickPeriod(12,this)">12 个月</button>
+    </div>
+    <div class="row">
+      <button onclick="closeOrder()">取消</button>
+      <button class="primary" onclick="createOrder()">确认下单 (A20)</button>
+    </div>
+  </div>
+</div>
+
+<!-- 支付弹窗 -->
+<div class="mask" id="payMask">
+  <div class="dialog">
+    <h3>扫码支付</h3>
+    <div class="qr">支付二维码占位<br>（payUrl 仅展示，不真实跳转）</div>
+    <div style="text-align:center;font-size:13px" id="payMeta"></div>
+    <div class="count" id="countdown"></div>
+    <p style="text-align:center">完成支付后点击下方模拟回调（A21）</p>
+    <div class="row">
+      <button onclick="closePay()">稍后支付</button>
+      <button class="primary" id="mockPayBtn" onclick="mockCallback()">模拟支付完成 (A21)</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let curPlan='free', curMonths=1, curTarget='pro', curOrderNo=null, timer=null;
+  const planName={free:'免费版',pro:'专业版',team:'团队版',premium:'团队版'};
+  const planPrice={pro:{1:29,3:79,6:149,12:279},team:{1:99,3:269,6:519,12:999}};
+  const planQuota={free:'每日投递上限 30 份 · ≤3 平台 · AI 面试每日 3 次',
+    pro:'每日投递上限 100 份 · 全平台 · AI 面试 10 次/日',
+    team:'专业版全部 · 多版本简历 · AI 面试无限次'};
+
+  function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+  function setPlan(p){
+    curPlan=p;
+    document.getElementById('planText').textContent=planName[p]||p;
+    document.getElementById('curName').textContent=planName[p]||p;
+    document.getElementById('curSub').textContent=planQuota[p]||'';
+    const dot=document.querySelector('#planBadge .d');
+    dot.style.background = p==='free'?'var(--gray)':(p==='pro'?'var(--accent)':'var(--blue)');
+  }
+  function openOrder(target){
+    curTarget=target;
+    document.getElementById('ordPlan').textContent=planName[target];
+    pickPeriod(1,document.querySelector('#periodSeg button'));
+    document.getElementById('orderMask').classList.add('show');
+  }
+  function closeOrder(){document.getElementById('orderMask').classList.remove('show');}
+  function pickPeriod(m,el){curMonths=m;[...document.querySelectorAll('#periodSeg button')].forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+  function createOrder(){
+    // A20 mock: 仅传 plan/months，金额由"服务端"返回
+    const amount=planPrice[curTarget][curMonths]*100; // 分
+    curOrderNo='ORD-'+Date.now().toString().slice(-10);
+    const expireAt=Date.now()+24*3600*1000;
+    closeOrder();
+    document.getElementById('payMeta').textContent='订单号 '+curOrderNo+' ｜ ¥'+(amount/100)+' ｜ 24h 内有效';
+    startCount(expireAt);
+    document.getElementById('mockPayBtn').disabled=false;
+    document.getElementById('payMask').classList.add('show');
+    addOrder(curOrderNo,planName[curTarget]+' · '+curMonths+' 个月','待支付','var(--blue)','#dbeafe','#eff6ff');
+  }
+  function startCount(expireAt){
+    clearInterval(timer);
+    timer=setInterval(()=>{
+      const left=Math.max(0,expireAt-Date.now());
+      const h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000),s=Math.floor(left%60000/1000);
+      document.getElementById('countdown').textContent='剩余 '+h+'h '+m+'m '+s+'s';
+      if(left<=0){clearInterval(timer);document.getElementById('countdown').textContent='订单已过期';}
+    },1000);
+  }
+  function closePay(){
+    if(timer)clearInterval(timer);
+    document.getElementById('payMask').classList.remove('show');
+  }
+  function mockCallback(){
+    // A21 mock: paymentStatusChanged.paid -> memberPlanChanged.<plan>
+    if(document.getElementById('mockPayBtn').disabled)return;
+    document.getElementById('mockPayBtn').disabled=true;
+    updateOrder(curOrderNo,'已开通','var(--green)','#bbf7d0','#f0fdf4');
+    setPlan(curTarget);
+    closePay();
+    toast('已升级为'+planName[curTarget]+'，权益已生效');
+  }
+  function addOrder(id,desc,state,color,bc,bg){
+    const o=document.getElementById('orders');
+    const d=document.createElement('div');d.className='orow';
+    d.innerHTML='<span class="id">'+id+'</span><span>'+desc+'</span><span class="ostate" style="color:'+color+';border-color:'+bc+';background:'+bg+'">'+state+'</span>';
+    o.insertBefore(d,o.firstChild);
+  }
+  function updateOrder(id,state,color,bc,bg){
+    [...document.querySelectorAll('.orow')].forEach(r=>{
+      if(r.querySelector('.id').textContent===id){const s=r.querySelector('.ostate');s.textContent=state;s.style.color=color;s.style.borderColor=bc;s.style.background=bg;}
+    });
+  }
+  function simulateExpired(){
+    addOrder('ORD-EXP-'+Date.now().toString().slice(-6),'专业版 · 3 个月','已过期','var(--gray)','#e5e7eb','#f9fafb');
+    toast('订单已过期（24h 内未支付）');
+  }
+  function simulateDowngrade(){
+    document.getElementById('downgrade').style.display='block';
+    setPlan('free');
+    toast('会员已降级为免费版');
+  }
+</script>
+</body>
+</html>
