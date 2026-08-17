@@ -2,6 +2,12 @@ server:
   port: 8080
 
 spring:
+  # P0 阶段排除 Spring Security 默认拦截链（占位鉴权见 ApplicationController.extractUserId）
+  # TODO(P0→生产): 改为接入 JwtProperties 的真实 JWT 过滤器，而非整体排除
+  autoconfigure:
+    exclude: >
+      org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration,
+      org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration
   application:
     name: resume-ai-server-java
   datasource:

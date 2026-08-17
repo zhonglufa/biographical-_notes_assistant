@@ -91,7 +91,7 @@
 | `githooks/pre-commit` | 三闸门钩子 |
 | `.github/workflows/ci-cd.yml` | CI 双闸门+测试（作业 `gates`：契约校验+PRD-HLD追溯+scaffold 15测试+**server-java mvn compile/test**；对齐本地钩子） |
 | `design/项目结构与目录规范.md` | **架构师前置设计**（2026-08-18 重做起点）：双语言目录树/Java 10 模块/Python AI 侧/数据层落点/现状差距/多角色交接 |
-| `server-java/` | **Java 业务侧工程（ADR-002，2026-08-18 启动）**：Spring Boot 3.2 + Java 17 模块化单体；P0 `module.user`(A01–A03) 骨架 |
+| `server-java/` | **Java 业务侧工程（ADR-002，2026-08-18 启动）**：Spring Boot 3.2 + Java 17 模块化单体；P0 `module.user`(A01–A03) + `module.application`(A09–A11 十态机/双层幂等/数据层 entity+repo+Flyway V1) 骨架落地，CI `mvn compile/test` 验证中 |
 | `TASK-MECHANISM.md` | **自主任务机制规则手册**（5阶段流水线 + 决策策略 R1–R4 + 询问区/自驱区 + 行业标准清单 + 诚实边界） |
 | `TASK-QUEUE.md` | **任务队列**（阶段②分发权威来源；待办/进行中/已完成/阻塞） |
 | `TASK-ALERTS.md` | **告警与待决**（阶段⑤「需用户拍板」落点；R2未知/R3业务逻辑/R4标准/A6物理触发前提） |
@@ -103,7 +103,7 @@
 
 ## 7. 本轮计划 / 近期序列（循环每轮更新 §2 + 本节）
 - **下一工作包**：2026-08-18 03:12 更新——3 条错峰自动化**因省积分已 PAUSED**（用户 03:09 暂停定时调度）；本轮按用户「推进至上线 / 直接干」**手动一次性执行**循环 backlog，完成 Q18/Q19/Q20 上线就绪技术件（代码+容器+手册），现已**「可上线就绪」**；R1 自驱 backlog 仅余 **Q1(RAG 阶段二·C1 设计已定·按 A4 延后)**；**Q5(部署)/Q6(真实凭据)/Q7(PIPL签字) 物理动作仅用户**。A1–A6 已按用户「不懂听建议」授权代拍板。待你触发 Q5–Q7 或向 `TASK-QUEUE.md` 投放新 R1 任务后继续。
-- **近期推进序列**：Q8(U9) ✅ → Q9(U3) ✅ → Q10(U1) ✅ → Q11(U2) ✅ → Q16(React→Vue) ✅ → Q12(U4) ✅ → Q13(U5) ✅ → Q14(U6) ✅ → Q15(U7) ✅ → Q2/Q3/Q4(护栏基座) ✅ → Q17/Q18/Q19/Q20(上线就绪) ✅ → 〔可上线就绪：代码+容器+手册〕→ **⚠️ 2026-08-18 用户质询「未按软件工程过程/双语言偏离」→ 已拍板 A 严格补 Java，重做启动**：架构师前置设计 ✅ → **server-java P0 `module.user`(A01–A03) 骨架 ✅** → 待续 P0 `module.application`+数据层 / P1 resume·jobs·strategy·adapter / P2 interview·payment·notification / P3 dailyreport / Python 侧 `server-python` FastAPI 升级。Q5-Q7(物理·仅用户触发) 仍待你。
+- **近期推进序列**：Q8(U9) ✅ → Q9(U3) ✅ → Q10(U1) ✅ → Q11(U2) ✅ → Q16(React→Vue) ✅ → Q12(U4) ✅ → Q13(U5) ✅ → Q14(U6) ✅ → Q15(U7) ✅ → Q2/Q3/Q4(护栏基座) ✅ → Q17/Q18/Q19/Q20(上线就绪) ✅ → 〔可上线就绪：代码+容器+手册〕→ **⚠️ 2026-08-18 用户质询「未按软件工程过程/双语言偏离」→ 已拍板 A 严格补 Java，重做启动**：架构师前置设计 ✅ → **server-java P0 `module.user`(A01–A03) 骨架 ✅** → **server-java P0 `module.application`(A09–A11)+数据层(Flyway V1) ✅**（本批：对齐 HLD §3.4/§4.2/§4.3，10 态机/双层幂等/限额/202/timeline/数据隔离，单测覆盖）→ 待续 P1 resume·jobs·strategy·adapter / P2 interview·payment·notification / P3 dailyreport / Python 侧 `server-python` FastAPI 升级。Q5-Q7(物理·仅用户触发) 仍待你。
 
 ---
 
