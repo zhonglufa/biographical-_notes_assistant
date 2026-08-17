@@ -63,5 +63,5 @@
 ## 关联文档
 - PRD-简历自动投递与面试模拟-最终版.md
 - ADR-001 ~ ADR-023
-- prototypes-v2.html / prototypes-v3.html
+- 旧高保真原型 prototypes-v2.html / prototypes-v3.html（**已废弃，2026-08-17 删除**，由 `design/ui/` 新版交互原型取代）
 - resume-ai-system.html
