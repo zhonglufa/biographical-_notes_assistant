@@ -6,8 +6,9 @@ api_stub.py — 契约优先的接口分发骨架（D 阶段奠基切片）
 HTTP 层即可，但「校验规则」与这里完全一致 —— 换 Web 框架不改契约逻辑。
 
 本切片已落地 **Auth 模块 (A01 登录 + A02 刷新令牌)**、**Jobs 模块
-(A07 岗位搜索 + A08 收藏/忽略)** 与 **User 模块 (A03 当前用户与权益)**
-共五个端点，证明模块级 contract-first 落地模式可行；后续 A 层端点按同模式
+(A07 岗位搜索 + A08 收藏/忽略)**、**User 模块 (A03 当前用户与权益)** 与
+**Resume 模块 (A04 创建简历 + A05 版本列表 + A06 触发 ATS 评分)**
+共八个端点，证明模块级 contract-first 落地模式可行；后续 A 层端点按同模式
 逐一对齐 schema 即可（见 README §3 脚手架顺序）。每个端点都是一个 `Endpoint`
 实例，统一由 `API_STUB` 注册表按 id 分发。
 
@@ -196,14 +197,81 @@ USER_ME = Endpoint(
 )
 
 
-# 全局注册表：已落地 Auth 模块（A01/A02）+ Jobs 模块（A07/A08）+ User 模块（A03），
-# 后续端点按同模式注册即可。
+# ---- Resume 模块 demo 桩（仅演示契约，不含真实写库/ATS 业务逻辑）----
+
+def _resumes_create_handler(req: dict) -> dict:
+    # 真实实现会落库结构化 content、生成首个版本快照(version_no=1)、回填 resumeId/versionId；
+    # 此处只回符合响应契约的占位结构。响应契约 required：resumeId/versionId/createdAt；
+    # createdAt 为 epoch 毫秒（minimum:0）；additionalProperties:false。
+    return {
+        "resumeId": "R-demo-001",
+        "versionId": "RV-demo-001",
+        "createdAt": 1760000000000,
+    }
+
+
+def _resume_versions_handler(req: dict) -> dict:
+    # 真实实现会按 {id} 查该简历的全部版本快照；此处只回符合响应契约的占位结构。
+    # 响应契约 required：versions[]/diffAvailable；versionStub required：
+    # versionId/versionNo/createdAt/isPreferred；note 可空(nullable)。
+    # 单版本场景 diffAvailable=false（版本数<2 不可 diff）。
+    return {
+        "versions": [
+            {
+                "versionId": "RV-demo-001",
+                "versionNo": 1,
+                "createdAt": 1760000000000,
+                "note": "初始版本",
+                "isPreferred": True,
+            }
+        ],
+        "diffAvailable": False,
+    }
+
+
+def _resume_ats_handler(req: dict) -> dict:
+    # 真实实现会锁版本(resumeVersionId)并派发异步 ATS 评分任务(经 AI 编排 b05)；
+    # 此处只回符合响应契约的占位结构。响应契约 required：taskId/status；
+    # status 枚举 pending|running|done|failed（占位取 pending）。
+    return {
+        "taskId": "T-ats-demo-001",
+        "status": "pending",
+    }
+
+
+RESUMES_CREATE = Endpoint(
+    name="A04 resumes-create",
+    request_schema="resumes-create.request.schema.json",
+    response_schema="resumes-create.response.schema.json",
+    handler=_resumes_create_handler,
+)
+
+RESUME_VERSIONS = Endpoint(
+    name="A05 resumes-versions",
+    request_schema=None,  # GET /resumes/{id}/versions 无请求体
+    response_schema="resume-versions.response.schema.json",
+    handler=_resume_versions_handler,
+)
+
+RESUME_ATS = Endpoint(
+    name="A06 resumes-ats",
+    request_schema="resume-ats.request.schema.json",
+    response_schema="resume-ats.response.schema.json",
+    handler=_resume_ats_handler,
+)
+
+
+# 全局注册表：已落地 Auth 模块（A01/A02）+ Jobs 模块（A07/A08）+ User 模块（A03）
+# + Resume 模块（A04/A05/A06），后续端点按同模式注册即可。
 API_STUB = ApiStub()
 API_STUB.register(AUTH_LOGIN)
 API_STUB.register(AUTH_REFRESH)
 API_STUB.register(JOBS_SEARCH)
 API_STUB.register(JOBS_FAVORITE)
 API_STUB.register(USER_ME)
+API_STUB.register(RESUMES_CREATE)
+API_STUB.register(RESUME_VERSIONS)
+API_STUB.register(RESUME_ATS)
 
 
 if __name__ == "__main__":
@@ -241,3 +309,31 @@ if __name__ == "__main__":
 
     code10, body10 = API_STUB.dispatch_id("A03 users-me", {})  # 注册表分发
     print("注册表分发 A03 ->", code10, "userId=", body10.get("userId"))
+
+    # ---- Resume 模块（A04/A05/A06）----
+    code11, body11 = RESUMES_CREATE.dispatch(
+        {"title": "Java 工程师简历", "content": {"sections": {}}, "templateId": "tpl-01"})
+    print("合法创建简历 A04 ->", code11, "resumeId=", body11.get("resumeId"))
+
+    code12, _ = RESUMES_CREATE.dispatch({"foo": "bar"})  # 缺 required + 额外字段
+    print("非法创建简历 A04(缺 title/content) ->", code12)
+
+    code13, body13 = RESUME_VERSIONS.dispatch({})  # 无请求体 GET 端点
+    print("合法版本列表 A05 ->", code13,
+          "versions=", len(body13.get("versions", [])),
+          "diffAvailable=", body13.get("diffAvailable"))
+
+    code14, body14 = RESUME_ATS.dispatch({"resumeVersionId": "RV-demo-001"})
+    print("合法触发 ATS A06 ->", code14, "status=", body14.get("status"))
+
+    code15, _ = RESUME_ATS.dispatch({})  # 缺 resumeVersionId
+    print("非法触发 ATS A06(缺 resumeVersionId) ->", code15)
+
+    code16, _ = API_STUB.dispatch_id("A04 resumes-create",
+                                     {"title": "x", "content": {}})
+    print("注册表分发 A04 ->", code16)
+    code17, _ = API_STUB.dispatch_id("A05 resumes-versions", {})
+    print("注册表分发 A05 ->", code17)
+    code18, _ = API_STUB.dispatch_id("A06 resumes-ats",
+                                     {"resumeVersionId": "RV-demo-001"})
+    print("注册表分发 A06 ->", code18)

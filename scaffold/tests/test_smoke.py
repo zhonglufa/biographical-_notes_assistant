@@ -20,7 +20,8 @@ sys.path.insert(0, os.path.join(_HERE, "..", "src"))
 
 from contract_runtime import validate_payload
 from event_bus import EventBus, build_payment_status_event
-from api_stub import AUTH_LOGIN, AUTH_REFRESH, JOBS_SEARCH, JOBS_FAVORITE, USER_ME, API_STUB
+from api_stub import (AUTH_LOGIN, AUTH_REFRESH, JOBS_SEARCH, JOBS_FAVORITE, USER_ME,
+                      RESUMES_CREATE, RESUME_VERSIONS, RESUME_ATS, API_STUB)
 
 
 def _check(name: str, cond: bool):
@@ -164,6 +165,56 @@ def test_api_stub_user():
     _check("注册表含 A03 端点", "A03 users-me" in API_STUB.endpoint_ids())
 
 
+def test_api_stub_resume():
+    print("· api_stub (Resume 模块 A04/A05/A06)")
+    # ---- A04 创建简历 ----
+    code, body = RESUMES_CREATE.dispatch(
+        {"title": "Java 工程师简历", "content": {"sections": {}}, "templateId": "tpl-01"})
+    _check("合法创建简历 200 + 响应含 resumeId/versionId/createdAt",
+           code == 200 and body.get("resumeId")
+           and body.get("versionId") and isinstance(body.get("createdAt"), int)
+           and body["createdAt"] >= 0)
+
+    code2, _ = RESUMES_CREATE.dispatch({"foo": "bar"})  # 缺 title/content + 额外字段
+    _check("非法创建简历(缺 title/content) 422(fail-closed)", code2 == 422)
+
+    # ---- A05 版本列表（无请求体 GET 端点）----
+    code3, body3 = RESUME_VERSIONS.dispatch({})  # 无请求体，跳过入参校验
+    _check("无请求体版本列表 200 + 响应合规",
+           code3 == 200 and isinstance(body3.get("versions"), list))
+    # versionStub required 字段齐全 + diffAvailable 布尔
+    v0 = body3["versions"][0] if body3.get("versions") else {}
+    _check("A05 versionStub 必填字段齐全",
+           all(k in v0 for k in
+               ("versionId", "versionNo", "createdAt", "isPreferred")))
+    _check("A05 diffAvailable 为布尔", isinstance(body3.get("diffAvailable"), bool))
+
+    # ---- A06 触发 ATS 评分 ----
+    code4, body4 = RESUME_ATS.dispatch({"resumeVersionId": "RV-demo-001"})
+    _check("合法触发 ATS 200 + status 在枚举内",
+           code4 == 200 and body4.get("taskId")
+           and body4.get("status") in ("pending", "running", "done", "failed"))
+
+    code5, _ = RESUME_ATS.dispatch({})  # 缺 resumeVersionId
+    _check("非法触发 ATS(缺 resumeVersionId) 422(fail-closed)", code5 == 422)
+
+    # ---- 注册表按 id 分发 ----
+    code6, _ = API_STUB.dispatch_id("A04 resumes-create",
+                                    {"title": "x", "content": {}})
+    _check("注册表分发 A04 -> 200", code6 == 200)
+
+    code7, _ = API_STUB.dispatch_id("A05 resumes-versions", {})
+    _check("注册表分发 A05 -> 200", code7 == 200)
+
+    code8, _ = API_STUB.dispatch_id("A06 resumes-ats",
+                                    {"resumeVersionId": "RV-demo-001"})
+    _check("注册表分发 A06 -> 200", code8 == 200)
+
+    _check("注册表含 A04/A05/A06 三端点",
+           set(API_STUB.endpoint_ids()) >=
+           {"A04 resumes-create", "A05 resumes-versions", "A06 resumes-ats"})
+
+
 def main():
     print("=== scaffold 冒烟测试 ===")
     try:
@@ -172,6 +223,7 @@ def main():
         test_api_stub()
         test_api_stub_jobs()
         test_api_stub_user()
+        test_api_stub_resume()
     except AssertionError as e:
         print(f"\n冒烟测试失败：{e}")
         traceback.print_exc()
