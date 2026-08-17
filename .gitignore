@@ -12,3 +12,6 @@ build/
 Thumbs.db
 *.swp
 *.swo
+scaffold/src/__pycache__/
+design/contracts/__pycache__/
+scaffold/tests/__pycache__/

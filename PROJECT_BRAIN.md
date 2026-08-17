@@ -29,7 +29,7 @@
 ---
 
 ## 2. 当前状态（循环每轮回写）
-- **所处阶段**：✅ **A+B+C 三阶段 + 护栏 1/2/3 全部达成**；✅ **U 阶段（UI/交互设计，U0/U-动效/U1–U11 共 13 包）全部完成**；✅ **V 阶段（原型→生产前端转化）完成**（V1 脚手架 / V2 U8·U10 真实组件转化范式）；✅ **T 阶段（真实测试闭环）完成**（T1 功能 / T2 集成 / T3 契约回归，44 断言全 PASS，13 测试文件全绿）；🔄 **O 阶段（运维就绪）进行中**（O1 CI/CD / O2 轻量 CD / O3 监控接入代码，本地不部署）。护栏 4/5/6 用户延后，不计入。循环已重新激活续推 O 阶段。
+- **所处阶段**：✅ **A+B+C+U+V+T+O 七阶段全部达成**；✅ **护栏 1/2/3 全部达成**。O 阶段（O1 CI/CD / O2 轻量 CD / O3 监控接入）完成，全部「生产就绪、不真部署」。→ **GOAL REACHED**：产出「产品交付结果报告 v2」，循环停止。护栏 4/5/6 用户延后，不计入。
 - **完成度**：**A+B+C 三阶段全部达成 ✅** —— A 阶段 S1 基线（A1 看板76/76·A2 25 接口契约落地·A3 自检·A4 图说明全部 ✅）；B 阶段（B1 本机 Agent ✅ · B2 服务端 API/LLM 匹配/通知/状态机 ✅ · B3 契约运行时+事件总线+测试基座 ✅）；C 阶段（C1 RAG 架构+成本方案/护栏2 ✅ · C2 轻量监控/护栏3 ✅）。`scaffold` 共 12 个测试文件全 PASS，双闸门全绿，冒烟 25/25。**U 阶段进行中**：U0 设计系统+IA+导航已落地（`design/ui/00-design-system.html`+`01-app-shell.html`+`ia-nav.md`），**U-动效已落地**（`design/ui/02-motion-system.html` + app-shell 真实确认动效 + 设计系统"动效"章节）；**U1 简历工作台(A04/A05/A06) / U2 岗位浏览(A07/A08) / U3 投递管理(A09/A10/A11) / U4 策略配置(A12/A13) 已落地**（`design/ui/screens/U1-resume.html`+`U2-jobs.html`+`U3-applications.html`+`U4-strategy.html` + `design/ui/interaction-U1~U4.md`）；**U5 适配器管理(A14/A15) 已落地（多角色流水线首包：PM/Arch/Eng/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U6 面试模拟(A16-A19) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U7 支付会员(A20/A21) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+响应式 R1–R7 全 PASS+双闸门实跑全绿）**；**U8 通知中心(A22/A23) / U9 每日日报(A24/A25) / U10 用户与登录(A01/A02/A03) / U11 交互设计总纲（全局交互模式：加载/错误/空态/确认闸门/撤销/无障碍）已全部落地（多角色流水线五/三产物齐全+响应式 R1–R7 全 PASS+双闸门实跑全绿）**；**U 阶段（U0/U-动效/U1–U11，共 13 包）全部完成 ✅**。
 - **文档基线**：PRD v4.5 / HLD v3.35 / LLD（18 模块）
 - **护栏现状**：**护栏 1 双闸门 CI ✅** · **护栏 2 LLM 成本硬上限+熔断 ✅**（`scaffold/src/llm_match.py` CostGuard + `cost_policy.py` BudgetPolicy）· **护栏 3 封号率监控 ✅**（`scaffold/src/monitor.py` LightweightMonitor，4 指标+阈值告警）；**护栏 4/5/6（灰度回滚 / PIPL crypto-shred+合规 / 法检复核）= 用户 2026-08-17 明确延后/跳过，不计入本次 /goal，已如实标注「用户延后」**
@@ -84,12 +84,12 @@
 | `design/B类验收标准证据看板.md` | 76 条 B 类证据卡总表（模板，证据随 S3 回填） |
 | `design/图信息说明书.md` | 6 张架构图内容规格 |
 | `githooks/pre-commit` | 三闸门钩子 |
-| `.github/workflows/dual-gate.yml` | CI 双闸门（job 名 `gates`） |
+| `.github/workflows/ci-cd.yml` | CI/CD 分层门禁（gates 双闸门 / test / build-frontend / package-cd） |
 
 ---
 
 ## 7. 本轮计划 / 近期序列（循环每轮更新 §2 + 本节）
-- **下一工作包**：**U 阶段（U0–U11，13 包）已全部完成 ✅**；**V 阶段（原型→生产前端转化）完成 ✅**（V1 脚手架 + V2 U8·U10 转化范式）；**T 阶段（真实测试闭环）完成 ✅**（T1/T2/T3 全绿）。→ 进入 **O 阶段（运维就绪）**：O1 扩 CI/CD 配置（复用 githooks 三闸门 + dual-gate.yml，含构建+测试+轻量 CD）/ O2 轻量 CD 脚本（合并后自动部署单机器·小容器，不真部署）/ O3 监控接入代码（LightweightMonitor 生产接入点）。O 完成 → GOAL REACHED + 产品交付结果报告 v2。
+- **下一工作包**：**GOAL REACHED** — A+B+C+U+V+T+O 七阶段 + 护栏 1/2/3 全部达成。产出「产品交付结果报告 v2」后停止循环（不再续推新阶段）。护栏 4/5/6 用户延后，不在本次交付范围，最终报告如实标注「用户延后」。
 - **近期推进序列**：B 类证据看板 → 25 接口契约全量落地 → 交付前自检清单补全 → 图说明收敛 → (S2) RAG 架构成本方案+轻量监控 → **（S3/D 阶段用户跳过，不再推进）**。
 
 ---
@@ -157,11 +157,11 @@
 - **T3** ✅ 契约回归：25 端点 example 全过 response_schema + 响应侧 fail-closed 机制验证
 - 角色：QA(`software-qa-engineer`) 主导；工程师配合修 bug（A22 后端桩补 body/channel 字段对齐前端）；Team Lead 汇总。产物 `scaffold/tests/test_t_stage.py` + `design/t-stage.md`，13 测试文件全绿。
 
-### O 阶段 · 运维就绪（补强 B 新增，DevOps/SRE 视角）🔄 待 T 完成后续推
-- **O1** ⏳ CI/CD 配置（复用 `githooks/pre-commit` 三闸门 + `.github/workflows/dual-gate.yml`，扩为含构建+测试+轻量 CD）
-- **O2** ⏳ 轻量 CD 脚本（合并后自动部署单机器/小容器，不真部署）
-- **O3** ⏳ 监控接入代码（LLM 成本/封号率/投递成功率/错误率 → LightweightMonitor 已建，补生产接入点）
-- 角色：DevOps（general-purpose 代理，SoftwareCompany 无 DevOps agent）主导；Team Lead 复核。**部署上线/真实用户仍属用户独有动作**。
+### O 阶段 · 运维就绪（补强 B 新增，DevOps/SRE 视角）✅ 已完成
+- **O1** ✅ CI/CD 配置：`.github/workflows/ci-cd.yml` 分层门禁（gates 双闸门 / test 13文件 / build-frontend Vite / package-cd 轻量CD门控）；复用 `githooks/pre-commit` 三闸门。
+- **O2** ✅ 轻量 CD 脚本：`scripts/cd-deploy.sh`（构建前端+打包服务端为单机器/小容器部署包，DEPLOY_TOKEN 门控，无凭据仅本地打包不触达生产）。
+- **O3** ✅ 监控接入代码：`scaffold/src/monitor_hooks.py`（LightweightMonitor 接入 apply.status.changed 事件流自动累计成功率 + record_llm_cost/record_ban 接入点）+ `scripts/export_metrics.py`（Prometheus 文本导出，零依赖）。
+- 角色：DevOps（general-purpose 代理，SoftwareCompany 无 DevOps agent）主导；Team Lead 复核。**部署上线/真实用户仍属用户独有动作，循环标「待用户触发」不伪造完成**。产物 `design/o-stage.md`。
 
 ### D 阶段 · 合规 + 灰度（S3）⏸ **用户 2026-08-17 跳过，循环不再推进**
 - **D1** ⏸ 跳过：PIPL 合规设计（crypto-shred + 待专家复核接口）—— 用户"合规/法务不用，直接跳过"
