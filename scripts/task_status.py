@@ -62,13 +62,17 @@ def cmd_queue():
     _hr("任务队列（状态分组）")
     buckets = {}
     for r in rows:
-        status = r[3] if len(r) > 3 else "未知"
+        # 状态列：所有队列表（待办/阻塞）均为「… | 状态 | 备注」结构，状态恒为倒数第二格。
+        status = r[-2] if len(r) >= 2 else "未知"
         buckets.setdefault(status, []).append(r)
     for status in ["待办", "进行中", "已完成", "阻塞(待用户拍板)", "阻塞(物理动作·用户)"]:
         items = buckets.get(status, [])
         print(f"\n◆ [{status}] {len(items)} 项")
         for r in items:
-            print(f"   - {r[0]} | {r[1]} | 阶段={r[2]}" + (f" | {r[4]}" if len(r) > 4 else ""))
+            # 阶段=倒数第三格，备注=最后一格（兼容待办表多一列「角色」的偏移）
+            stage = r[-3] if len(r) >= 3 else (r[2] if len(r) > 2 else "")
+            note = r[-1] if len(r) >= 2 else ""
+            print(f"   - {r[0]} | {r[1]} | 阶段={stage}" + (f" | {note}" if note else ""))
 
 
 def cmd_log(n=15):
@@ -121,8 +125,9 @@ def cmd_health():
     q_rows = _parse_rows(_read(QUEUE))
     a_rows = _parse_rows(_read(ALERTS))
     l = _read(LOG)
-    q_pending = sum(1 for r in q_rows if len(r) > 3 and "待办" in r[3])
-    q_blocked = sum(1 for r in q_rows if len(r) > 3 and "阻塞" in r[3])
+    # 状态列：所有队列表均为「… | 状态 | 备注」，状态恒为倒数第二格（兼容待办表多一列「角色」）。
+    q_pending = sum(1 for r in q_rows if len(r) >= 2 and "待办" in r[-2])
+    q_blocked = sum(1 for r in q_rows if len(r) >= 2 and "阻塞" in r[-2])
     a_open = sum(1 for r in a_rows if "待拍板" in r[-1])
     a_closed = sum(1 for r in a_rows if "已闭环" in r[-1])
     log_runs = len(re.findall(r"^## \[", l, re.M))

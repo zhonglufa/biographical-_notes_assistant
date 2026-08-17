@@ -28,3 +28,8 @@
 - **④状态回传**：Q9 → 已完成；PROJECT_BRAIN §2/§7 标注 U3 转化完成 + V 阶段续推序列；本条目即状态回传。
 - **⑤日志与告警**：登记合同缺口——**A10 列表响应当前不含 jobTitle/company**（仅 applicationId/jobId/platformId/status/appliedAt，additionalProperties:false），列表标题/公司由本地 mock 补全、真实路径回退 jobId/platformId；该缺口非本组件偏离契约，已 code comment + 本条目登记，未臆测补字段。R3 业务项 A1-A6 仍 `TASK-ALERTS.md` 待你拍板。
 - 备注：R1 自驱——设计稿(U3-applications.html + interaction-U3.md)与契约枚举齐备，无需询问直接落地；物理部署仍标 Q5 仅你可做。A09/A11 契约 pending，按 interaction-U3.md 半自动闸门语义建模（A09 支持 confirm/revert），已注明假设。
+
+## [2026-08-17T23:55+08:00] tick=auto 阶段=⑤ 任务=机制工具修复(scripts/task_status.py) 状态=OK
+- **⑤机制自检发现并修复**：`scripts/task_status.py` 的 `health`/`queue` 计数硬编码 `r[3]` 为状态列；但 `TASK-QUEUE.md` 待办表多一列「角色」，状态实际在 `cells[-2]`（所有队列表均为「…|状态|备注」结构）。导致 health 误报「待办 0」、queue 分组错位 → 可能误导后续 tick 误判「无待办」停摆。
+- **修复**：状态列改为 `r[-2]`（倒数第二格），阶段= `r[-3]`、备注= `r[-1]`；alerts 计数本就用 `r[-1]` 不受影响。修复后 health 正确报「待办 7 / 阻塞 6」，queue 正确列出 Q10–Q15/Q1。
+- 未改任何任务状态/文档逻辑，纯机制工具正确性修复；本地 commit，不 push。
