@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>U4 策略配置 · 匹配阈值/日限额/平台/黑名单（A12/A13）</title>
+<style>
+  :root{
+    --c-primary:#4F46E5; --c-primary-hover:#4338CA; --c-primary-soft:#EEF2FF;
+    --c-accent:#7C3AED; --c-success:#16A34A; --c-success-soft:#ECFDF3; --c-success-border:#ABEFC6;
+    --c-danger:#DC2626; --c-danger-soft:#FEF3F2; --c-danger-border:#FECDCA;
+    --c-warning:#D97706; --c-warning-soft:#FFFAEB; --c-warning-border:#FDE68A;
+    --c-info:#2563EB; --c-info-soft:#EFF6FF; --c-info-border:#BFDBFE;
+    --c-ink:#0F172A; --c-body:#334155; --c-muted:#64748B; --c-faint:#94A3B8;
+    --c-border:#E2E8F0; --c-subtle:#F1F5F9; --c-page:#F8FAFC; --c-surface:#FFFFFF;
+    --r-sm:6px; --r-md:8px; --r-lg:12px; --r-full:999px;
+    --f-base:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--f-base);background:var(--c-page);color:var(--c-body);font-size:14px;line-height:1.55;}
+  .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh;}
+  .side{background:var(--c-surface);border-right:1px solid var(--c-border);display:flex;flex-direction:column;}
+  .brand{display:flex;align-items:center;gap:8px;padding:18px 16px;font-weight:700;color:var(--c-ink);font-size:15px;border-bottom:1px solid var(--c-border);}
+  .brand .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--c-primary),var(--c-accent));color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .nav{padding:10px;overflow:auto;flex:1;}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-sm);color:var(--c-body);text-decoration:none;font-size:14px;margin-bottom:2px;cursor:pointer;}
+  .nav a:hover{background:var(--c-subtle);}
+  .nav a.active{background:var(--c-primary-soft);color:var(--c-primary);font-weight:600;}
+  .nav .ic{width:18px;text-align:center;opacity:.85;}
+  .nav .tag{margin-left:auto;font-size:11px;background:var(--c-danger);color:#fff;border-radius:var(--r-full);padding:1px 7px;}
+  .side-foot{padding:12px 16px;border-top:1px solid var(--c-border);font-size:12px;color:var(--c-faint);}
+  .main{display:flex;flex-direction:column;min-width:0;}
+  .top{height:56px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:16px;padding:0 20px;}
+  .top .search{flex:1;max-width:420px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-sm);color:var(--c-muted);font-size:13px;}
+  .top .spacer{flex:1;}
+  .top .plan{font-size:12px;background:var(--c-primary-soft);color:var(--c-primary);padding:4px 10px;border-radius:var(--r-full);font-weight:600;}
+  .top .bell{position:relative;font-size:18px;cursor:pointer;}
+  .top .bell .dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--c-danger);}
+  .top .avatar{width:30px;height:30px;border-radius:50%;background:var(--c-subtle);color:var(--c-muted);display:flex;align-items:center;justify-content:center;font-size:13px;}
+  .content{padding:24px;overflow:auto;max-width:920px;}
+  .page-head h1{font-size:20px;margin:0;color:var(--c-ink);}
+  .page-head .sub{color:var(--c-muted);font-size:13px;margin-top:4px;}
+  .btn{font-family:var(--f-base);font-size:14px;font-weight:500;border-radius:var(--r-sm);padding:8px 14px;border:1px solid transparent;cursor:pointer;}
+  .btn-primary{background:var(--c-primary);color:#fff;}
+  .btn-primary:hover{background:var(--c-primary-hover);}
+  .btn-secondary{background:var(--c-surface);color:var(--c-body);border-color:var(--c-border);}
+  .btn-secondary:hover{background:var(--c-subtle);}
+  .btn-sm{padding:5px 12px;font-size:13px;}
+  .card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:18px;margin-bottom:14px;}
+  .sec{font-size:13px;font-weight:600;color:var(--c-ink);margin:0 0 10px;border-left:3px solid var(--c-primary);padding-left:8px;}
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:13px;color:var(--c-body);margin-bottom:6px;font-weight:500;}
+  .field .hint{font-size:12px;color:var(--c-faint);margin-top:4px;}
+  .input{font-family:var(--f-base);font-size:14px;padding:8px 10px;border:1px solid var(--c-border);border-radius:var(--r-sm);width:200px;color:var(--c-ink);}
+  .input:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0 0 3px var(--c-primary-soft);}
+  .slider{width:320px;vertical-align:middle;}
+  .thr-val{font-weight:700;color:var(--c-primary);font-size:18px;margin-left:10px;}
+  .chip{font-size:13px;padding:7px 14px;border-radius:var(--r-full);border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-body);cursor:pointer;user-select:none;}
+  .chip.on{background:var(--c-primary-soft);color:var(--c-primary);border-color:var(--c-primary);font-weight:600;}
+  .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  .tagbox{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .tagx{display:inline-flex;align-items:center;gap:6px;background:var(--c-subtle);color:var(--c-body);font-size:13px;padding:4px 8px;border-radius:var(--r-full);border:1px solid var(--c-border);}
+  .tagx b{color:var(--c-danger);cursor:pointer;font-weight:700;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--c-ink);color:#fff;font-size:13px;padding:10px 16px;border-radius:var(--r-sm);opacity:0;transition:opacity .25s;pointer-events:none;z-index:50;}
+  .toast.show{opacity:1;}
+  .warn{background:var(--c-warning-soft);border:1px solid var(--c-warning-border);color:var(--c-warning);border-radius:var(--r-sm);padding:10px 12px;font-size:13px;margin-top:8px;display:none;}
+  .warn.show{display:block;}
+  .meta{color:var(--c-muted);font-size:12px;margin-top:6px;}
+  .tag-a{font-size:11px;background:var(--c-accent);color:#fff;border-radius:var(--r-full);padding:1px 8px;margin-left:6px;vertical-align:middle;}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="logo">简</span> 简投 · AI 助手</div>
+    <nav class="nav" id="nav">
+      <a data-page="home"><span class="ic">🏠</span> 首页 / 待确认投递 <span class="tag">3</span></a>
+      <a data-page="resume"><span class="ic">📄</span> 简历工作台</a>
+      <a data-page="jobs"><span class="ic">🔍</span> 岗位浏览</a>
+      <a data-page="apps"><span class="ic">📨</span> 投递管理</a>
+      <a class="active" data-page="strategy"><span class="ic">⚙️</span> 策略配置</a>
+      <a data-page="adapter"><span class="ic">🔌</span> 适配器</a>
+      <a data-page="interview"><span class="ic">💬</span> 面试模拟</a>
+      <a data-page="notify"><span class="ic">🔔</span> 通知中心</a>
+      <a data-page="report"><span class="ic">📊</span> 每日日报</a>
+      <a data-page="member"><span class="ic">⭐</span> 会员</a>
+      <a data-page="settings"><span class="ic">🧰</span> 设置</a>
+    </nav>
+    <div class="side-foot">本机 Agent · v1.3<br>账号状态：<span style="color:var(--c-success)">正常</span></div>
+  </aside>
+
+  <section class="main">
+    <header class="top">
+      <div class="search">搜索岗位、公司、技能…</div>
+      <div class="spacer"></div>
+      <span class="plan">Pro 会员</span>
+      <span class="bell">🔔<span class="dot"></span></span>
+      <span class="avatar">钟</span>
+    </header>
+
+    <div class="content">
+      <div class="page-head">
+        <div>
+          <h1>策略配置</h1>
+          <div class="sub">设定 AI 匹配门槛、每日投递上限、启用平台与黑名单。保存即生效（PC 端为准）。<span class="tag-a">A12 / A13</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="sec">匹配阈值（A12 matchThreshold · 0–1）</p>
+        <div class="field">
+          <label>进入「待确认投递」的最低匹配度</label>
+          <input type="range" min="0" max="100" value="80" class="slider" id="thr" oninput="onThr()" />
+          <span class="thr-val" id="thrVal">80%</span>
+          <div class="hint">≥80%（绿）优先确认；60–79%（蓝）可纳入；低于阈值不进队列。对应本机 Agent `plan()` 过滤 low 匹配。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="sec">每日投递限额（A12 dailyLimit · 整数 ≥0）</p>
+        <div class="field">
+          <label>单日最多发起投递数</label>
+          <input type="number" min="0" max="200" value="20" class="input" id="limit" oninput="onLimit()" />
+          <div class="hint">该限额与「护栏 2（LLM 成本/投递量硬上限）」联动；达限额时 U3 确认按钮禁用。建议新手 ≤20。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="sec">启用平台（A12 platforms · 数组）</p>
+        <div class="field">
+          <label>仅在勾选的平台采集与投递</label>
+          <div class="row" id="platRow">
+            <span class="chip on" data-p="boss">Boss直聘</span>
+            <span class="chip on" data-p="liepin">猎聘</span>
+            <span class="chip on" data-p="zhaopin">智联</span>
+            <span class="chip" data-p="51job">前程无忧</span>
+            <span class="chip" data-p="lagou">拉勾</span>
+          </div>
+          <div class="warn" id="platWarn">⚠️ 至少启用一个平台，否则不会采集任何岗位。</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="sec">黑名单（A12 blacklist · 数组）</p>
+        <div class="field">
+          <label>不投的公司 / 关键词（回车添加）</label>
+          <div class="tagbox" id="blTags"></div>
+          <input type="text" class="input" id="blInput" placeholder="如：某保险 / 996 / 销售性质" style="width:280px" onkeydown="if(event.key==='Enter')addBl()" />
+          <button class="btn btn-secondary btn-sm" onclick="addBl()">添加</button>
+          <div class="hint">命中黑名单的岗位在匹配阶段直接过滤，不会进入待确认队列。</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:6px">
+        <button class="btn btn-primary" onclick="save()">保存策略</button>
+        <button class="btn btn-secondary" onclick="resetDef()">恢复默认</button>
+        <span class="meta" id="savedAt"></span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== Mock 当前策略（语义对齐 strategies.response / request）=====
+const DEF={matchThreshold:0.8, dailyLimit:20, platforms:['boss','liepin','zhaopin'], blacklist:['某保险','996']};
+let cur={...DEF, blacklist:[...DEF.blacklist]};
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2000);}
+
+function onThr(){ document.getElementById('thrVal').textContent=document.getElementById('thr').value+'%'; }
+function onLimit(){ const v=parseInt(document.getElementById('limit').value); /* 仅读取，保存时校验 */ }
+
+function selectedPlatforms(){ return [...document.querySelectorAll('#platRow .chip.on')].map(c=>c.dataset.p); }
+document.querySelectorAll('#platRow .chip').forEach(c=>c.addEventListener('click',()=>{
+  c.classList.toggle('on');
+  const ps=selectedPlatforms();
+  document.getElementById('platWarn').classList.toggle('show', ps.length===0);
+}));
+
+function renderBl(){
+  const box=document.getElementById('blTags'); box.innerHTML='';
+  cur.blacklist.forEach((t,i)=>{
+    const s=document.createElement('span'); s.className='tagx';
+    s.innerHTML=`${t} <b onclick="delBl(${i})">×</b>`; box.appendChild(s);
+  });
+}
+function addBl(){ const v=document.getElementById('blInput').value.trim(); if(!v)return; if(!cur.blacklist.includes(v))cur.blacklist.push(v); document.getElementById('blInput').value=''; renderBl(); }
+function delBl(i){ cur.blacklist.splice(i,1); renderBl(); }
+
+function save(){
+  const thr=parseInt(document.getElementById('thr').value)/100;
+  const limit=parseInt(document.getElementById('limit').value);
+  const ps=selectedPlatforms();
+  if(thr<0||thr>1){ toast('匹配阈值需在 0–100%'); return; }
+  if(isNaN(limit)||limit<0){ toast('每日限额须为非负整数'); return; }
+  if(ps.length===0){ toast('至少启用一个平台'); document.getElementById('platWarn').classList.add('show'); return; }
+  cur={matchThreshold:thr, dailyLimit:limit, platforms:ps, blacklist:cur.blacklist};
+  // A13 PUT /strategies → 响应 ok + updatedAt
+  const updatedAt=Date.now();
+  document.getElementById('savedAt').textContent=`已保存（A13 ok）· updatedAt=${new Date(updatedAt).toLocaleString('zh-CN')}`;
+  toast('策略已保存并生效');
+}
+function resetDef(){ cur={...DEF,blacklist:[...DEF.blacklist]}; document.getElementById('thr').value=DEF.matchThreshold*100; onThr(); document.getElementById('limit').value=DEF.dailyLimit;
+  document.querySelectorAll('#platRow .chip').forEach(c=>c.classList.toggle('on', DEF.platforms.includes(c.dataset.p)));
+  document.getElementById('platWarn').classList.remove('show'); renderBl(); toast('已恢复默认策略'); }
+
+document.getElementById('nav').addEventListener('click', e=>{
+  const a=e.target.closest('a'); if(!a) return; e.preventDefault();
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');
+  if(a.dataset.page!=='strategy') toast('该页面交互原型在对应 U 阶段交付（mock 导航）');
+});
+
+// 初始渲染（A12 读取）
+document.getElementById('thr').value=cur.matchThreshold*100; onThr();
+document.getElementById('limit').value=cur.dailyLimit;
+renderBl();
+</script>
+</body>
+</html>
