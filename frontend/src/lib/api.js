@@ -52,7 +52,7 @@ async function request(id, { params, body, auth = true } = {}) {
   const headers = { 'Content-Type': 'application/json' };
   if (auth && token()) headers['Authorization'] = `Bearer ${token()}`;
 
-  if (USE_MOCK) return mockResponse(id, body);
+  if (USE_MOCK) return mockResponse(id, body, params);
 
   const res = await fetch(url, {
     method: ep.method,
@@ -93,6 +93,16 @@ export const api = {
   notificationWs: () => request('A23'),
   dailyReport: () => request('A24'),
   saveDailyPref: (pushTime, enabled) => request('A25', { body: { pushTime, enabled } }),
+  // A09 批量确认闸门（半自动投递核心）：confirm=提交选中项(pending_confirm→submitted)；revert=10s 撤销回滚。
+  batchApplications: (applicationIds, action = 'confirm') => request('A09', { body: { applicationIds, action } }),
+  // A10 投递列表（status 可选单值过滤；真实契约 applications-list.response）。
+  applicationsList: (status, page = 1, pageSize = 20) => {
+    const body = { page, pageSize };
+    if (status) body.status = status;
+    return request('A10', { body });
+  },
+  // A11 投递详情（状态机各态；真实契约 pending，按 interaction-U3.md §4 建模）。
+  applicationDetail: (id) => request('A11', { params: { id } }),
   // …其余 A04–A21 按同一模式补充
 };
 
@@ -101,7 +111,7 @@ export class ApiError extends Error {
 }
 
 // —— 本地 mock（仅 VITE_USE_MOCK，联调用；与契约同形）——
-function mockResponse(id, body) {
+function mockResponse(id, body, params) {
   const now = Date.now();
   const store = {
     A22: () => ({ items: [
@@ -114,8 +124,40 @@ function mockResponse(id, body) {
     A03: () => ({ userId: 'u1', email: 'you@example.com', plan: 'pro', quotaUsed: 32, quotaLimit: 100, preferences: { pushTime: '20:00', doNotDisturb: false } }),
     A01: () => ({ accessToken: 'at-demo', refreshToken: 'rt-demo', expiresIn: 3600, userId: 'u1', plan: 'pro' }),
     A25: () => ({ ok: true, updatedAt: now }),
+    // A09 批量确认闸门（mock 支持 confirm/revert 动作）
+    A09: (b) => {
+      const { applicationIds = [], action = 'confirm' } = b || {};
+      if (action === 'revert') return { reverted: applicationIds, at: now };
+      return { accepted: applicationIds, rejected: [], at: now };
+    },
+    // A10 投递列表（与 applications-list.response 同形；mock 额外带 title/company 仅供本地联调，
+    //   真实契约不含此二字段，组件已做回退显示——合同缺口见 TASK-LOG）
+    A10: () => {
+      const h = 3600 * 1000, d = 24 * h;
+      const sample = [
+        { applicationId: 'a1', jobId: 'j-bytedance-fe', jobTitle: '前端工程师 · 字节跳动', company: '字节跳动', platformId: 'Boss直聘', status: 'pending_confirm', appliedAt: now - 1 * h },
+        { applicationId: 'a2', jobId: 'j-tencent-be', jobTitle: '后端开发 · 腾讯', company: '腾讯', platformId: '猎聘', status: 'submitted', appliedAt: now - 2 * h },
+        { applicationId: 'a3', jobId: 'j-alibaba-pm', jobTitle: '产品经理 · 阿里', company: '阿里巴巴', platformId: 'Boss直聘', status: 'viewed', appliedAt: now - 3 * h },
+        { applicationId: 'a4', jobId: 'j-meituan-fe', jobTitle: '资深前端 · 美团', company: '美团', platformId: '智联招聘', status: 'interview_invited', appliedAt: now - 5 * h },
+        { applicationId: 'a5', jobId: 'j-baidu-algo', jobTitle: '算法工程师 · 百度', company: '百度', platformId: '猎聘', status: 'rejected', appliedAt: now - 26 * h },
+        { applicationId: 'a6', jobId: 'j-xiaohongshu-op', jobTitle: '运营 · 小红书', company: '小红书', platformId: 'Boss直聘', status: 'pending_confirm', appliedAt: now - 30 * 60000 },
+        { applicationId: 'a7', jobId: 'j-didi-be', jobTitle: 'Go 后端 · 滴滴', company: '滴滴', platformId: 'Boss直聘', status: 'offer', appliedAt: now - 50 * h },
+        { applicationId: 'a8', jobId: 'j-kuaishou-fe', jobTitle: '前端架构 · 快手', company: '快手', platformId: '智联招聘', status: 'contacting', appliedAt: now - 4 * h },
+      ];
+      return { items: sample, total: sample.length };
+    },
+    // A11 投递详情（真实契约 pending；mock 构造状态机详情）
+    A11: (b, p) => {
+      const id = (p && p.id) || 'a1';
+      const status = { a1: 'pending_confirm', a2: 'submitted', a3: 'viewed', a4: 'interview_invited', a5: 'rejected', a6: 'pending_confirm', a7: 'offer', a8: 'contacting' }[id] || 'pending_confirm';
+      return {
+        applicationId: id, jobId: 'j-' + id, jobTitle: '示例岗位 · ' + id, company: '示例公司', platformId: 'Boss直聘',
+        status, appliedAt: now - 3600 * 1000,
+        history: [{ status, at: now - 3600 * 1000 }],
+      };
+    },
   };
   const fn = store[id];
   if (!fn) throw new ApiError('NOT_MOCKED', `端点 ${id} 未提供 mock`);
-  return Promise.resolve(fn());
+  return Promise.resolve(fn(body, params));
 }

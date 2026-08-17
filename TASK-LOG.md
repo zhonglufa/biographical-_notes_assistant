@@ -20,3 +20,11 @@
 - **④状态回传**：Q8 → 已完成；PROJECT_BRAIN §2 标注 V3 在途；本条目即状态回传。
 - **⑤日志与告警**：无新增阻塞；R3 业务项 A1-A6 仍在 `TASK-ALERTS.md` 待你拍板，未臆测。
 - 备注：R1 自驱示范——设计稿(U9-daily.html + arch/pm/qa)与契约已齐备，无需询问直接落地；物理部署仍标 Q5 仅你可做。
+
+## [2026-08-17T23:55+08:00] tick=auto 阶段=①②③④⑤ 任务=Q9/U3投递闸门生产组件 状态=OK
+- **①定时触发**：读 PROJECT_BRAIN §2 + TASK-QUEUE(队首待办 Q9) + TASK-ALERTS(A1-A6) + 当日日志末条(23:45 Q8)；`.task-claims.json={}` 无活动锁 → 可认领。
+- **②分发**：认领 Q9（U3 投递与半自动确认闸门，产品核心，A09/A10/A11）；写 `.task-claims.json{Q9:2026-08-17T23:55+08:00}` 防 3 条错峰重复认领。
+- **③执行**：新建 `frontend/src/screens/Applications.jsx`（状态筛选 chips + 列表 A10 + 详情状态机 A11 + **半自动确认闸门**：二次确认弹窗显示数量/平台分布 + 10s 撤销窗口 + 今日限额可见 + 单条确认；严守「无静默自动投递」红线；U11 加载/错误/空态/无障碍 + 响应式 375/768/1280）；`frontend/src/lib/api.js` 加 `applicationsList(A10)`/`applicationDetail(A11)`/`batchApplications(A09, confirm/revert)` + 同形 mock（mock 转发 params 供 A11）；`frontend/src/components/UI.jsx` Modal 增强 `confirmLabel`/`hideConfirm`（视图型弹窗，向后兼容）；`frontend/src/App.jsx` 加 `/applications` 路由 + 导航「投递管理」(核心屏置顶) + 默认落地。REVIEW-1 双闸门实跑全绿（66/6 + PRD-HLD v4.5）；REVIEW-2 自审无偏离；REVIEW-3 红线：纯本地 mock、无凭据/部署/PIPL、未自动 push。前端 `vite build` ✅ 40 模块 2.92s。
+- **④状态回传**：Q9 → 已完成；PROJECT_BRAIN §2/§7 标注 U3 转化完成 + V 阶段续推序列；本条目即状态回传。
+- **⑤日志与告警**：登记合同缺口——**A10 列表响应当前不含 jobTitle/company**（仅 applicationId/jobId/platformId/status/appliedAt，additionalProperties:false），列表标题/公司由本地 mock 补全、真实路径回退 jobId/platformId；该缺口非本组件偏离契约，已 code comment + 本条目登记，未臆测补字段。R3 业务项 A1-A6 仍 `TASK-ALERTS.md` 待你拍板。
+- 备注：R1 自驱——设计稿(U3-applications.html + interaction-U3.md)与契约枚举齐备，无需询问直接落地；物理部署仍标 Q5 仅你可做。A09/A11 契约 pending，按 interaction-U3.md 半自动闸门语义建模（A09 支持 confirm/revert），已注明假设。

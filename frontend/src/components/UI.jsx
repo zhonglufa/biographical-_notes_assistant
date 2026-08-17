@@ -36,14 +36,14 @@ export function ErrorState({ message, onRetry }) {
   return <div role="alert" aria-live="polite" style={{ color: 'var(--c-bad)', padding: 16, textAlign: 'center' }}>{message}{onRetry && <div style={{ marginTop: 10 }}><Button onClick={onRetry}>重试</Button></div>}</div>;
 }
 
-export function Modal({ open, title, body, onCancel, onConfirm }) {
+export function Modal({ open, title, body, onCancel, onConfirm, confirmLabel = '确认', hideConfirm = false }) {
   if (!open) return null;
   return <div className="modal-mask" style={{ position: 'fixed', inset: 0, background: 'rgba(20,30,50,.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, zIndex: 20 }} onClick={onCancel}>
-    <div className="modal" style={{ background: '#fff', borderRadius: 'var(--r-lg)', padding: 22, maxWidth: 340, width: '100%' }} onClick={e => e.stopPropagation()}>
+    <div className="modal" style={{ background: '#fff', borderRadius: 'var(--r-lg)', padding: 22, maxWidth: 360, width: '100%', maxHeight: '90vh', overflowY: 'auto' }} onClick={e => e.stopPropagation()}>
       <h3 style={{ margin: '0 0 8px', fontSize: 16 }}>{title}</h3>
-      <p style={{ color: 'var(--c-muted)', fontSize: 14, margin: '0 0 18px' }}>{body}</p>
+      <div style={{ color: 'var(--c-muted)', fontSize: 14, margin: '0 0 18px' }}>{body}</div>
       <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-        <Button onClick={onCancel}>取消</Button><Button variant="primary" onClick={onConfirm}>确认</Button>
+        <Button onClick={onCancel}>取消</Button>{!hideConfirm && <Button variant="primary" onClick={onConfirm}>{confirmLabel}</Button>}
       </div>
     </div>
   </div>;

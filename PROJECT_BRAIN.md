@@ -29,7 +29,7 @@
 ---
 
 ## 2. 当前状态（循环每轮回写）
-- **所处阶段**：✅ **A+B+C+U+V+T+O 七阶段全部达成**；✅ **护栏 1/2/3 全部达成**。O 阶段（O1 CI/CD / O2 轻量 CD / O3 监控接入）完成，全部「生产就绪、不真部署」。→ **GOAL REACHED**：产出「产品交付结果报告 v2」。护栏 4/5/6 用户延后，不计入。**V3 屏幕转化（U9 已回填，U1/U3/U2/U4/U5/U6/U7 在途）**：用户 2026-08-17 启用自主循环（3 条错峰自动化 ACTIVE），按 `TASK-QUEUE.md` 认领推进，本地不部署。
+- **所处阶段**：✅ **A+B+C+U+V+T+O 七阶段全部达成**；✅ **护栏 1/2/3 全部达成**。O 阶段（O1 CI/CD / O2 轻量 CD / O3 监控接入）完成，全部「生产就绪、不真部署」。→ **GOAL REACHED**：产出「产品交付结果报告 v2」。护栏 4/5/6 用户延后，不计入。**V3 屏幕转化（U9 每日日报 ✅、U3 投递闸门 ✅ 已回填；U1/U2/U4/U5/U6/U7 在途）**：用户 2026-08-17 启用自主循环（3 条错峰自动化 ACTIVE），按 `TASK-QUEUE.md` 认领推进，本地不部署。
 - **完成度**：**A+B+C 三阶段全部达成 ✅** —— A 阶段 S1 基线（A1 看板76/76·A2 25 接口契约落地·A3 自检·A4 图说明全部 ✅）；B 阶段（B1 本机 Agent ✅ · B2 服务端 API/LLM 匹配/通知/状态机 ✅ · B3 契约运行时+事件总线+测试基座 ✅）；C 阶段（C1 RAG 架构+成本方案/护栏2 ✅ · C2 轻量监控/护栏3 ✅）。`scaffold` 共 12 个测试文件全 PASS，双闸门全绿，冒烟 25/25。**U 阶段进行中**：U0 设计系统+IA+导航已落地（`design/ui/00-design-system.html`+`01-app-shell.html`+`ia-nav.md`），**U-动效已落地**（`design/ui/02-motion-system.html` + app-shell 真实确认动效 + 设计系统"动效"章节）；**U1 简历工作台(A04/A05/A06) / U2 岗位浏览(A07/A08) / U3 投递管理(A09/A10/A11) / U4 策略配置(A12/A13) 已落地**（`design/ui/screens/U1-resume.html`+`U2-jobs.html`+`U3-applications.html`+`U4-strategy.html` + `design/ui/interaction-U1~U4.md`）；**U5 适配器管理(A14/A15) 已落地（多角色流水线首包：PM/Arch/Eng/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U6 面试模拟(A16-A19) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U7 支付会员(A20/A21) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+响应式 R1–R7 全 PASS+双闸门实跑全绿）**；**U8 通知中心(A22/A23) / U9 每日日报(A24/A25) / U10 用户与登录(A01/A02/A03) / U11 交互设计总纲（全局交互模式：加载/错误/空态/确认闸门/撤销/无障碍）已全部落地（多角色流水线五/三产物齐全+响应式 R1–R7 全 PASS+双闸门实跑全绿）**；**U 阶段（U0/U-动效/U1–U11，共 13 包）全部完成 ✅**。
 - **文档基线**：PRD v4.5 / HLD v3.35 / LLD（18 模块）
 - **护栏现状**：**护栏 1 双闸门 CI ✅** · **护栏 2 LLM 成本硬上限+熔断 ✅**（`scaffold/src/llm_match.py` CostGuard + `cost_policy.py` BudgetPolicy）· **护栏 3 封号率监控 ✅**（`scaffold/src/monitor.py` LightweightMonitor，4 指标+阈值告警）；**护栏 4/5/6（灰度回滚 / PIPL crypto-shred+合规 / 法检复核）= 用户 2026-08-17 明确延后/跳过，不计入本次 /goal，已如实标注「用户延后」**
@@ -64,6 +64,7 @@
 - **护栏 4/5/6（灰度回滚 / PIPL crypto-shred+合规 / 法检复核）= 用户 2026-08-17 明确延后/跳过（非循环遗漏）**，不计入本次 /goal；循环推进到 **C 阶段即视为护栏 1/2/3 达成 → 可 GOAL REACHED**。
 - C1 / C9 法检复核：随 D 阶段跳过一并延后（用户"合规/法务不用"），不再单独调法检 Pro。
 - **OpenAPI 导出 truth gap（2026-08-17 发现 → 已修复）**：registry/HLD 声明 A 层 25 端点全 `fully-detailed`；旧 `openapi.json`（pre-v3.29 导出）曾标 outlined。已重导 `openapi.json`（A 层 25 operation 级 `x-contract-status` 现全 `fully-detailed`，82 `$ref` 全解析），并修正 `gen_openapi.py` docstring + `info.description` + `README.md` 措辞，明确「openapi 为投影视图、权威严格契约见各 operation `x-ref`」。余下 22 处 outlined 为 `$ref` stub 组件 + 面试域（合法，与 A 层 operation 状态不矛盾）。已随本轮提交。
+- **⚠️ GitHub Actions CI 工作流 truth gap（2026-08-17 独立定时评审登记）**：PROJECT_BRAIN §6 与 O 阶段（commit `59a9dce`）声明 `.github/workflows/ci-cd.yml` 已落地，但实测 `.github` 目录为空、文件不存在。双闸门实际由 `githooks/pre-commit` 三闸门**本地强制**（真实生效）；远端 GitHub Actions CI 层缺失。因本仓库仅本地 commit、禁止自动 push，远端 CI 缺失影响有限，**不构成生产事故风险**。处置：在最终「产品交付结果报告 v2」如实标注「GitHub Actions CI 层未建、双闸门靠本地钩子」，不新增工作包（GOAL REACHED）。
 - 上线前 PIPL 法定最终签署：用户/法务，循环不代签（标"待用户触发"）—— 因 D 阶段跳过，本次不触发。
 - 真实凭据 / 部署 / 上线：用户独有动作。
 - **⚠️ B 类证据看板「真实证据」缺口（2026-08-17 专家评审登记）**：原设计真实证据"随 S3 灰度回填"，现 D/S3 跳过 → 部分依赖灰度的 B 类指标将永久空缺。须进 S2 前明确：哪些 B 类卡可改由 S2 监控数据回填、哪些确属不可达（不可达项在最终报告标注「用户延后不可测」）。
@@ -95,8 +96,8 @@
 ---
 
 ## 7. 本轮计划 / 近期序列（循环每轮更新 §2 + 本节）
-- **下一工作包**：**GOAL REACHED** — A+B+C+U+V+T+O 七阶段 + 护栏 1/2/3 全部达成。产出「产品交付结果报告 v2」后停止循环（不再续推新阶段）。护栏 4/5/6 用户延后，不在本次交付范围，最终报告如实标注「用户延后」。
-- **近期推进序列**：B 类证据看板 → 25 接口契约全量落地 → 交付前自检清单补全 → 图说明收敛 → (S2) RAG 架构成本方案+轻量监控 → **（S3/D 阶段用户跳过，不再推进）**。
+- **下一工作包**：**V 阶段原型→生产前端转化（ACTIVE）**——A+B+C+U+V+T+O + 护栏1/2/3 已 GOAL REACHED；V 阶段为循环启用后新增待办（`TASK-QUEUE.md` Q9–Q15/Q1），本地不部署。本次 tick 完成 **Q9 = U3 投递闸门**（A09/A10/A11 生产组件）。续推队首待办 Q10(U1)→Q11(U2)→Q12(U4)→Q13(U5)→Q14(U6)→Q15(U7)→Q1(RAG，用户延后优先级)。
+- **近期推进序列**：Q9(U3 投递闸门) ✅ → Q10(U1 简历工作台) → Q11(U2 岗位浏览) → Q12(U4 策略配置) → Q13(U5 适配器) → Q14(U6 面试) → Q15(U7 支付) → Q1(RAG 检索管线，用户延后优先级) → 护栏 4/5/6 用户延后不计入。
 
 ---
 
