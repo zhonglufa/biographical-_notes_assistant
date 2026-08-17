@@ -74,6 +74,16 @@
 
   **✅ 2026-08-18 纠正启动（用户选「先补前置设计再分工编码」= 选项 A 严格按设计补 Java）**：① 架构师已产出前置设计 `design/项目结构与目录规范.md`（技术栈锁定表/整体目录树/Java 10 业务模块划分+负责端点/Python AI 侧/本机 Agent/数据层落点/现状差距清单/多角色交接点）；② 已启动 `server-java/`（Spring Boot 3.2 + Java 17 模块化单体），**P0 首批 `module.user`（A01–A03 认证链路：controller/service/dto/entity/repository + 纯单测）骨架落地、可编译**（CI `mvn compile/test` 验证，沙箱无 Maven 故本地不编译、由 GitHub runner 验）；③ CI 双闸门已扩展覆盖 Java（`.github/workflows/ci-cd.yml` gates job 加 JDK17 + `mvn compile` + `mvn test`）；④ 多角色分工已重启（Team Lead 编排，架构师卡技术栈，工程师交付，QA 验证，不再单一 agent 独断）。后续批次：**P0** `module.application`(A09–A11 十态机+幂等+孤儿清扫)+数据层(Flyway 18 表) → **P1** resume/jobs/strategy/adapter → **P2** interview/payment/notification → **P3** dailyreport；**Python 侧** `server-python/` 由 scaffold 护栏升级为 FastAPI（B01–B05/B10/B11）。现状：`scaffold/` 保留为参考与 Python AI 侧起点（偏离态草稿，不计入「按设计完成」）。
 
+  **✅ 2026-08-18 P1 四模块全部落地（按设计文档逐字段对齐契约，未另起炉灶）**：`module.strategy`(A12/A13)+`module.jobs`(A07/A08)+`module.resume`(A04–A06)+`module.adapter`(A14/A15) 共 ~70 个 Java 文件（entity/repository/Service 接口+Impl/Controller/DTO/Flyway V2–V5/单测），严格模仿 P0 分层与测试 profile（H2 create-drop、排除 Security/Redis/RabbitMQ）。红线遵守：adapter 模块仅编排（内存桩 `InMemoryAgentRpcClient` 替代 WSS RPC，**服务端绝不直连平台/不碰 Cookie**）；resume 模块不调 LLM 润色（交 Python B04）；jobs 模块只读岗位。响应统一 `ApiResponse` 信封（符合契约统一信封）。**仍待续**：P2 interview/payment/notification、P3 dailyreport、Python 侧 `server-python` FastAPI 升级、以及下列已登记偏差须在上线前对齐。
+
+  **⚠️ P1 期间登记的设计符合性偏差（显式，不隐藏，待上线前对齐）**：
+  - **userId 类型偏差**：Java 实体 `user_id` 沿用 P0 约定为 `String(36)`，与 LLD-数据库设计 BIGINT UNSIGNED 不一致；Flyway V2–V5 统一用 `VARCHAR(36)`。→ 待决：统一为 String 还是 BIGINT（建议与数据库设计 LLD 对齐为 BIGINT，或反向修订 LLD，须架构师拍板）。
+  - **响应信封不一致（待对齐 P0）**：strategy/jobs/resume/adapter 已统一 `ApiResponse` 信封（符合契约「统一信封 data 内」），但 P0 `module.user`/`module.application` 控制器返回**裸 DTO**，前端联调前须把 P0 也包成 `ApiResponse` 以全栈统一。
+  - **A14 适配器列表响应无契约 schema**：contracts 仅 `adapter-enable.*` 有 schema，A14 列表响应（adapters-list.response）缺失 → 已登记缺口，待补 schema 并纳入校验器。
+  - **adapter_registry 填充机制未定**：Java 仅编排，包元数据（platform/version/status）来源 TODO（配置中心/部署清单/应用启动 seed），当前 A14 在无 seed 时返回空列表。
+  - **A07 jobId 语义待明确**：列表 `jobId` 暂用内部 `job.id` 字符串形式；A26/A27 细节端明确外部平台 id 语义前，前端以此为准。
+  - **时间戳类型**：Java 实体时间戳统一用 `Long epoch ms`（与 `job.collected_at` 对齐），与 LLD 部分表 `DATETIME(3)` 表述不同，Flyway 统一用 `BIGINT`；属实现简化，已自洽。
+
 ---
 
 ## 6. 文档地图（当前版本与状态 · 循环改动后须同步本表）
@@ -91,7 +101,7 @@
 | `githooks/pre-commit` | 三闸门钩子 |
 | `.github/workflows/ci-cd.yml` | CI 双闸门+测试（作业 `gates`：契约校验+PRD-HLD追溯+scaffold 15测试+**server-java mvn compile/test**；对齐本地钩子） |
 | `design/项目结构与目录规范.md` | **架构师前置设计**（2026-08-18 重做起点）：双语言目录树/Java 10 模块/Python AI 侧/数据层落点/现状差距/多角色交接 |
-| `server-java/` | **Java 业务侧工程（ADR-002，2026-08-18 启动）**：Spring Boot 3.2 + Java 17 模块化单体；P0 `module.user`(A01–A03) + `module.application`(A09–A11 十态机/双层幂等/数据层 entity+repo+Flyway V1) 骨架落地，CI `mvn compile/test` 验证中 |
+| `server-java/` | **Java 业务侧工程（ADR-002，2026-08-18 启动）**：Spring Boot 3.2 + Java 17 模块化单体；**P0** `module.user`(A01–A03) + `module.application`(A09–A11 十态机/双层幂等/Flyway V1) ✅；**P1** `module.strategy`(A12/A13)+`module.jobs`(A07/A08)+`module.resume`(A04–A06)+`module.adapter`(A14/A15) 全落地（entity/repo/Service/Controller/Flyway V2–V5/单测），响应统一 `ApiResponse` 信封，CI `mvn compile/test` 待 GitHub runner 验证 |
 | `TASK-MECHANISM.md` | **自主任务机制规则手册**（5阶段流水线 + 决策策略 R1–R4 + 询问区/自驱区 + 行业标准清单 + 诚实边界） |
 | `TASK-QUEUE.md` | **任务队列**（阶段②分发权威来源；待办/进行中/已完成/阻塞） |
 | `TASK-ALERTS.md` | **告警与待决**（阶段⑤「需用户拍板」落点；R2未知/R3业务逻辑/R4标准/A6物理触发前提） |
@@ -103,7 +113,7 @@
 
 ## 7. 本轮计划 / 近期序列（循环每轮更新 §2 + 本节）
 - **下一工作包**：2026-08-18 03:12 更新——3 条错峰自动化**因省积分已 PAUSED**（用户 03:09 暂停定时调度）；本轮按用户「推进至上线 / 直接干」**手动一次性执行**循环 backlog，完成 Q18/Q19/Q20 上线就绪技术件（代码+容器+手册），现已**「可上线就绪」**；R1 自驱 backlog 仅余 **Q1(RAG 阶段二·C1 设计已定·按 A4 延后)**；**Q5(部署)/Q6(真实凭据)/Q7(PIPL签字) 物理动作仅用户**。A1–A6 已按用户「不懂听建议」授权代拍板。待你触发 Q5–Q7 或向 `TASK-QUEUE.md` 投放新 R1 任务后继续。
-- **近期推进序列**：Q8(U9) ✅ → Q9(U3) ✅ → Q10(U1) ✅ → Q11(U2) ✅ → Q16(React→Vue) ✅ → Q12(U4) ✅ → Q13(U5) ✅ → Q14(U6) ✅ → Q15(U7) ✅ → Q2/Q3/Q4(护栏基座) ✅ → Q17/Q18/Q19/Q20(上线就绪) ✅ → 〔可上线就绪：代码+容器+手册〕→ **⚠️ 2026-08-18 用户质询「未按软件工程过程/双语言偏离」→ 已拍板 A 严格补 Java，重做启动**：架构师前置设计 ✅ → **server-java P0 `module.user`(A01–A03) 骨架 ✅** → **server-java P0 `module.application`(A09–A11)+数据层(Flyway V1) ✅**（本批：对齐 HLD §3.4/§4.2/§4.3，10 态机/双层幂等/限额/202/timeline/数据隔离，单测覆盖）→ 待续 P1 resume·jobs·strategy·adapter / P2 interview·payment·notification / P3 dailyreport / Python 侧 `server-python` FastAPI 升级。Q5-Q7(物理·仅用户触发) 仍待你。
+- **近期推进序列**：Q8(U9) ✅ → Q9(U3) ✅ → Q10(U1) ✅ → Q11(U2) ✅ → Q16(React→Vue) ✅ → Q12(U4) ✅ → Q13(U5) ✅ → Q14(U6) ✅ → Q15(U7) ✅ → Q2/Q3/Q4(护栏基座) ✅ → Q17/Q18/Q19/Q20(上线就绪) ✅ → 〔可上线就绪：代码+容器+手册〕→ **⚠️ 2026-08-18 用户质询「未按软件工程过程/双语言偏离」→ 已拍板 A 严格补 Java，重做启动**：架构师前置设计 ✅ → **server-java P0 `module.user`(A01–A03) 骨架 ✅** → **server-java P0 `module.application`(A09–A11)+数据层(Flyway V1) ✅**（本批：对齐 HLD §3.4/§4.2/§4.3，10 态机/双层幂等/限额/202/timeline/数据隔离，单测覆盖）→ **P1 `module.strategy`+`module.jobs`+`module.resume`+`module.adapter`（A04–A15）✅ 全部落地**（逐字段对齐契约、红线合规、单测覆盖、响应统一信封）→ 待续 P2 interview·payment·notification / P3 dailyreport / Python 侧 `server-python` FastAPI 升级。Q5-Q7(物理·仅用户触发) 仍待你。
 
 ---
 
