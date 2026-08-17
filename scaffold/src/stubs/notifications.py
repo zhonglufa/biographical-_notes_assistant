@@ -6,14 +6,17 @@ from .core import Endpoint
 
 
 def _notifications_list_handler(req: dict) -> dict:
+    # 与 notifications-list.response.schema.json 对齐：item 含 body / channel（前端 U8 组件读取）。
     return {
         "items": [
             {
                 "id": "NTF-demo-001",
                 "level": "L1",
                 "title": "投递成功",
+                "body": "你的简历已成功投递至目标岗位。",
                 "read": False,
                 "createdAt": 1760000000000,
+                "channel": "站内",
             }
         ],
         "unread": 1,
