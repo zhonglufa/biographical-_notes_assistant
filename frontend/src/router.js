@@ -6,6 +6,7 @@ import Resume from './screens/Resume.vue';
 import Jobs from './screens/Jobs.vue';
 import Notifications from './screens/Notifications.vue';
 import DailyReport from './screens/DailyReport.vue';
+import Strategy from './screens/Strategy.vue';
 import Account from './screens/Account.vue';
 
 const routes = [
@@ -13,6 +14,7 @@ const routes = [
   { path: '/applications', name: 'applications', component: Applications },
   { path: '/resume', name: 'resume', component: Resume },
   { path: '/jobs', name: 'jobs', component: Jobs },
+  { path: '/strategy', name: 'strategy', component: Strategy },
   { path: '/notifications', name: 'notifications', component: Notifications },
   { path: '/daily', name: 'daily', component: DailyReport },
   { path: '/account', name: 'account', component: Account },

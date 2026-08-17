@@ -96,6 +96,10 @@ export const api = {
   notificationWs: () => request('A23'),
   dailyReport: () => request('A24'),
   saveDailyPref: (pushTime, enabled) => request('A25', { body: { pushTime, enabled } }),
+  // A12 读取当前投递策略（matchThreshold/dailyLimit/platforms/blacklist）
+  getStrategy: () => request('A12'),
+  // A13 更新投递策略（PUT /strategies）
+  saveStrategy: (strategy) => request('A13', { body: strategy }),
   // A09 批量确认闸门（半自动投递核心）：confirm=提交选中项(pending_confirm→submitted)；revert=10s 撤销回滚。
   batchApplications: (applicationIds, action = 'confirm') => request('A09', { body: { applicationIds, action } }),
   // A10 投递列表（status 可选单值过滤；真实契约 applications-list.response）。
@@ -130,6 +134,12 @@ export class ApiError extends Error {
 // —— 本地 mock（仅 VITE_USE_MOCK，联调用；与契约同形）——
 // 简历列表/首选无契约端点 → 客户端 store（合同缺口见 TASK-LOG）
 let _rid = 0;
+let _strategy = {
+  matchThreshold: 0.8,
+  dailyLimit: 20,
+  platforms: ['boss', 'liepin', 'zhaopin'],
+  blacklist: ['某保险', '996'],
+};
 const _resumeStore = [
   { resumeId: 'r-se', title: '高级前端工程师 · 标准版', template: 'standard', versions: [
     { versionId: 'v-se-1', versionNo: 1, createdAt: Date.now() - 9 * 86400000, note: '初稿', isPreferred: false },
@@ -153,6 +163,19 @@ function mockResponse(id, body, params) {
     A03: () => ({ userId: 'u1', email: 'you@example.com', plan: 'pro', quotaUsed: 32, quotaLimit: 100, preferences: { pushTime: '20:00', doNotDisturb: false } }),
     A01: () => ({ accessToken: 'at-demo', refreshToken: 'rt-demo', expiresIn: 3600, userId: 'u1', plan: 'pro' }),
     A25: () => ({ ok: true, updatedAt: now }),
+    // A12/A13 投递策略（U4 策略配置）
+    A12: () => ({ ..._strategy, updatedAt: now }),
+    A13: (b) => {
+      if (b) {
+        _strategy = {
+          matchThreshold: Number(b.matchThreshold) ?? _strategy.matchThreshold,
+          dailyLimit: Number.isInteger(Number(b.dailyLimit)) ? Number(b.dailyLimit) : _strategy.dailyLimit,
+          platforms: Array.isArray(b.platforms) ? b.platforms : _strategy.platforms,
+          blacklist: Array.isArray(b.blacklist) ? b.blacklist : _strategy.blacklist,
+        };
+      }
+      return { ok: true, updatedAt: now };
+    },
     // A09 批量确认闸门（mock 支持 confirm/revert 动作）
     A09: (b) => {
       const { applicationIds = [], action = 'confirm' } = b || {};
@@ -250,6 +273,21 @@ function mockResponse(id, body, params) {
       if (action === 'favorite') return { ok: true, favoriteId: 'fav-' + jobId + '-' + now.toString(36), status: 'favorited' };
       return { ok: true, favoriteId: null, status: 'removed' };
     },
+    // —— U4 策略配置 mock（A12 读取 / A13 更新）——
+    // 契约 strategies.response / strategies.request（matchThreshold 0–1 / dailyLimit int≥0 / platforms[] / blacklist[]）。
+    // 真实响应为 strategies.request/response 同形 4 字段；A13 写响应为 {ok, updatedAt}（registry line 22 已 fully-detailed）。
+    // 合同缺口：NONE（registry 4 字段全 + 写响应 ok+updatedAt 全）。
+    _strat: (() => {
+      const s = { matchThreshold: 0.8, dailyLimit: 20, platforms: ['boss', 'liepin', 'zhaopin'], blacklist: ['某保险', '996'] };
+      let updatedAt = now;
+      return {
+        get: () => ({ matchThreshold: s.matchThreshold, dailyLimit: s.dailyLimit, platforms: [...s.platforms], blacklist: [...s.blacklist] }),
+        set: (next) => { s.matchThreshold = Number(next.matchThreshold); s.dailyLimit = parseInt(next.dailyLimit, 10); s.platforms = Array.isArray(next.platforms) ? [...next.platforms] : []; s.blacklist = Array.isArray(next.blacklist) ? [...next.blacklist] : []; updatedAt = Date.now(); },
+        updatedAt: () => updatedAt,
+      };
+    })(),
+    A12: () => store._strat.get(),
+    A13: (b) => { store._strat.set(b || {}); return { ok: true, updatedAt: store._strat.updatedAt() }; },
   };
   const fn = store[id];
   if (!fn) throw new ApiError('NOT_MOCKED', `端点 ${id} 未提供 mock`);

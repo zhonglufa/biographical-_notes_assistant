@@ -129,7 +129,8 @@ export const Toast = defineComponent({
   name: 'RuiToast',
   props: { message: { type: String, default: '' }, show: { type: Boolean, default: false } },
   emits: ['undo'],
-  setup(props, { emit }) {
+  setup(props, { emit, attrs }) {
+    const hasUndo = typeof attrs.onUndo === 'function';
     return () => h('div', {
       class: `toast ${props.show ? 'show' : ''}`,
       style: {
@@ -141,7 +142,7 @@ export const Toast = defineComponent({
       }
     }, [
       props.message,
-      emit('undo') ? h('span', {
+      hasUndo ? h('span', {
         class: 'undo',
         onClick: () => emit('undo'),
         style: { color: '#7eb0ff', marginLeft: '12px', cursor: 'pointer', fontWeight: 600 }

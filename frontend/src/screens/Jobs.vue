@@ -184,12 +184,12 @@ function chipStyle(on) {
             <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap">
               <strong style="font-size: 15px; color: var(--c-strong)">{{ j.title }}</strong>
               <span v-if="j.favorited" style="font-size: 11px; background: var(--c-accent); color: #fff; border-radius: var(--r-full); padding: 1px 8px">已收藏</span>
-              <span v-if="ignoredSet.has(j.jobId)" style="font-size: 11px; background: var(--c-bg); color: var(--c-muted); border: '1px solid var(--c-border)'; borderRadius: var(--r-full); padding: 1px 8px">已忽略</span>
+              <span v-if="ignoredSet.has(j.jobId)" :style="{ fontSize: '11px', background: 'var(--c-bg)', color: 'var(--c-muted)', border: '1px solid var(--c-border)', borderRadius: 'var(--r-full)', padding: '1px 8px' }">已忽略</span>
             </div>
             <div style="font-size: 13px; color: var(--c-muted); margin: 4px 0">
               {{ j.company }} · {{ PLAT[j.platformId] || j.platformId }} · {{ j.location || '—' }} · {{ fmtSalary(j) }} · {{ j.source === 'detail' ? '详情采集' : '搜索采集' }}
             </div>
-            <div style="font-size: 13px; color: var(--c-body); background: var(--c-bg); borderRadius: var(--r-sm); padding: 8px 10px">
+            <div :style="{ fontSize: '13px', color: 'var(--c-body)', background: 'var(--c-bg)', borderRadius: 'var(--r-sm)', padding: '8px 10px' }">
               匹配理由：<b style="color: var(--c-accent)">{{ j.matchReason || '—' }}</b>
             </div>
           </div>
