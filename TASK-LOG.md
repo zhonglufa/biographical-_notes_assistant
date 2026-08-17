@@ -47,3 +47,19 @@
 - **④状态回传**：Q10 → 已完成；PROJECT_BRAIN §2/§7 标注 U1 转化完成 + V 阶段续推序列；本条目即状态回传。
 - **⑤日志与告警**：登记合同缺口——**U1 简历列表(GET /resumes) 与 设为首选(PATCH /resumes/{id}/versions/{vid}/prefer) 无契约端点定义**（external-api.registry 仅 A04 POST /resume / A05 GET /resume/versions / A06 GET /resume/ats-score，无列表/首选专用端点）；组件走本地 mock store 直改，真实后端需补 `resumes-list` + `resume-prefer` 两契约（建议 A04_LIST/A05_PREFER 入 registry）。该缺口与 A10 同性质，已 code comment + 本条目登记，未臆测补契约字段。A1-A6 已由 00:09 轮代拍板固化，无新增待决。
 - 备注：R1 自驱——U1 设计稿(U1-resume.html + interaction-U1.md)与契约枚举齐备，无需询问直接落地；物理部署仍标 Q5 仅你可做。
+
+## [2026-08-18T00:42+08:00] tick=auto 阶段=①②③④⑤ 任务=Q11/U2岗位浏览生产组件 状态=OK
+- **①定时触发**：读 PROJECT_BRAIN §2 + TASK-QUEUE(队首待办 Q11) + TASK-ALERTS(A1-A6 已代拍板) + 当日日志末条(00:20 Q10)；`.task-claims.json={}` 无活动锁 → 可认领。
+- **②分发**：认领 Q11（U2 岗位浏览，A07/A08）；`.task-claims.json` + `.u-claims.json` 写入 Q11 锁防 3 条错峰重复认领。
+- **③执行**：
+  - **修正 `frontend/src/lib/api.js` A07/A08 端点路径与 registry 对齐**：A07 由 `/jobs/search` → `/jobs`、A08 由 `/jobs/favorite` → `/jobs/{id}/favorite`（之前是 V 阶段初版的占位路径，与 `external-api.registry.json` 不一致，本轮按 truth 校正）。
+  - **新增业务方法**：`jobsList(params)` 走 A07 query 拼接（`{keyword?, location?, platform?, salaryMin?, page, pageSize}`），`favoriteJob(jobId, action)` 走 A08 POST 携 body=`{action: 'favorite'|'ignore'}`，params 替换 `{id}`。
+  - **新增 A07/A08 mock**：A07 8 条岗位覆盖 5 平台 × 3 matchBand（green/blue/gray）+ 1 ignored 演示，分页/筛选/排序语义真实；A08 三态返回 `{ok, favoriteId, status: 'favorited'|'ignored'|'removed'}`。
+  - **新建 `frontend/src/screens/Jobs.jsx`**：① 筛选条(关键词/城市/月薪下限/搜索/清空) + 平台 chips(全部/Boss/猎聘/智联/51job/拉勾)；② 岗位列表卡 = 匹配度环(matchBand 着色，green/blue/gray) + 标题/已收藏徽标/已忽略徽标 + 公司·平台·城市·薪资·来源 meta + 匹配理由块(高亮关键词) + 操作列(收藏→/取消收藏/忽略/详情/撤销忽略)；③ 分页器(上一页/下一页/页码); ④ U11 基线（Skeleton 加载、ErrorState 重试、EmptyState 引导放宽筛选、Toast 含撤销回调、aria-label、响应式 375/768/1280 grid wrap）；⑤ 前端态 `ignoredSet` 维护 ignore（合同缺口，与 A10/A04_LIST 同处理）；⑥ 防御：过期请求 token 丢弃、薪资下限非法输入提示而非报错、忽略不可直接收藏（需先撤销）。
+  - `frontend/src/App.jsx` + `/jobs` 路由 + 侧栏导航「岗位浏览」(置简历工作台后)。
+- **REVIEW-1 双闸门**：实跑全绿（66 schema/6 registry + PRD-HLD v4.5 一致）；`vite build` ✅ 42 模块 3.43s。
+- **REVIEW-2 自审**：未偏离 PRD/HLD；未触 3 道在途护栏（双闸门/成本熔断/封号监控）。
+- **REVIEW-3 红线**：纯本地 mock、未引入部署/真实凭据/PIPL/上线开关；不自动 push；本地 commit b72d16e。
+- **④状态回传**：Q11 → 已完成；本条目即状态回传。
+- **⑤日志与告警**：登记合同缺口——**A07 jobStub 字段集不含 `ignored` 字段**（`additionalProperties: false`，仅 `favorited`），但 UI 需表达「忽略」状态以衔接「忽略后不再推送」语义。组件以**前端 `ignoredSet`** 维护 ignore 集合（加入 → 卡片降透明度 0.55 + 徽标 + 操作变「撤销忽略」；撤销 → 移出集合 + Toast 反馈）。真实后端应将 ignored 持久化到 `user_job_ignore` 表或扩 jobStub 字段；本组件未臆造契约字段。A1-A6 仍为上线前置，00:09 轮代拍板固化。
+- 备注：R1 自驱——U2 设计稿(`U2-jobs.html` + `interaction-U2.md`)与契约(`jobs-list.response`/`jobs-search.request`/`jobs-favorite.{request,response}`)齐备，无须询问直接落地；物理部署仍标 Q5 仅你可做。
