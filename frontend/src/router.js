@@ -9,6 +9,8 @@ import DailyReport from './screens/DailyReport.vue';
 import Strategy from './screens/Strategy.vue';
 import Account from './screens/Account.vue';
 import Adapter from './screens/Adapter.vue';
+import Interview from './screens/Interview.vue';
+import Payment from './screens/Payment.vue';
 
 const routes = [
   { path: '/', redirect: '/applications' },
@@ -17,6 +19,8 @@ const routes = [
   { path: '/jobs', name: 'jobs', component: Jobs },
   { path: '/strategy', name: 'strategy', component: Strategy },
   { path: '/adapters', name: 'adapters', component: Adapter },
+  { path: '/interview', name: 'interview', component: Interview },
+  { path: '/membership', name: 'membership', component: Payment },
   { path: '/notifications', name: 'notifications', component: Notifications },
   { path: '/daily', name: 'daily', component: DailyReport },
   { path: '/account', name: 'account', component: Account },

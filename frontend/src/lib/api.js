@@ -130,6 +130,20 @@ export const api = {
   adapterList: () => request('A14'),
   // A15 POST /adapters/{id}/enable {enabled:bool} → {adapterId,status(enabled|disabled)}
   enableAdapter: (id, enabled) => request('A15', { params: { id }, body: { enabled } }),
+  // —— U6 面试模拟（A16 题集 / A17 建会话 / A18 作答 / A19 报告）——
+  // A16 GET /interview/questions → {questionSets:[{setId,title,questionCount,difficulty?,tags?}]}
+  interviewQuestions: () => request('A16'),
+  // A17 POST /interview/sessions {type,jobId?,mode,questionSetId?} → {sessionId,status}
+  createSession: (body) => request('A17', { body }),
+  // A18 POST /interview/sessions/{id}/answer {answer,questionId?,asrProvider?} → {accepted,score?(0-1)}
+  answerSession: (id, body) => request('A18', { params: { id }, body }),
+  // A19 GET /interview/sessions/{id}/report → {sessionId,overallScore(0-100),dimensions[],feedback,degradeFlag?}
+  sessionReport: (id) => request('A19', { params: { id } }),
+  // —— U7 支付与会员（A20 下单 / A21 回调）——
+  // A20 POST /orders {plan(pro|team),months,coupon?} → {orderNo,amount(分),payUrl,expireAt(ms)}
+  createOrder: (body) => request('A20', { body }),
+  // A21 POST /orders/{id}/callback（mock 驱动 订单状态机 + memberPlanChanged）
+  orderCallback: (id, body) => request('A21', { params: { id }, body }),
 };
 
 export class ApiError extends Error {
@@ -313,6 +327,43 @@ function mockResponse(id, body, params) {
       const enabled = !!(b && b.enabled)
       return { adapterId: id, status: enabled ? 'enabled' : 'disabled' }
     },
+    // —— U6 面试模拟 mock（A16 题集 / A17 建会话 / A18 作答 / A19 报告）——
+    // 字段严格对齐 U6-arch §4：questionSets[]{setId,title,questionCount,difficulty?,tags?} / dimensions[]{dim,rawScore(1-5),reason}
+    A16: () => ({ questionSets: [
+      { setId: 's1', title: '自我介绍', questionCount: 2, difficulty: 'easy', tags: ['1分钟', '3分钟'] },
+      { setId: 's2', title: '项目介绍', questionCount: 3, difficulty: 'medium', tags: ['STAR'] },
+      { setId: 's3', title: '技术问题', questionCount: 8, difficulty: 'hard', tags: ['Java', '分布式'] },
+      { setId: 's4', title: '行为问题', questionCount: 5, difficulty: 'medium', tags: ['软技能'] },
+    ] }),
+    A17: (b) => ({ sessionId: 'sess_' + Date.now().toString(36), status: 'in_progress' }),
+    A18: (b) => ({ accepted: true, score: Number((Math.random() * 0.3 + 0.6).toFixed(2)) }),
+    A19: (b, p) => {
+      const dims = [
+        { dim: '回答完整性', rawScore: 4, reason: '覆盖了核心要点，但部分细节可补充。' },
+        { dim: '技术准确性', rawScore: 5, reason: '技术概念表述准确，举例恰当。' },
+        { dim: '结构化表达', rawScore: 4, reason: '基本采用 STAR 结构，可更精炼。' },
+        { dim: '与岗位匹配度', rawScore: 5, reason: '充分体现了岗位所需能力。' },
+      ]
+      const overallScore = Math.round(dims.reduce((a, d) => a + d.rawScore, 0) / dims.length / 5 * 100)
+      return {
+        sessionId: (p && p.id) || 'sess_demo',
+        overallScore,
+        dimensions: dims,
+        feedback: '整体表现优秀，建议在“回答完整性”上补充更多量化结果（如 QPS、降幅）。',
+        degradeFlag: false,
+      }
+    },
+    // —— U7 支付与会员 mock（A20 下单 / A21 回调）——
+    // amount 单位为分，前端仅展示(分→元换算，不计算)；payUrl 仅占位。
+    _price: { pro: { 1: 29, 3: 79, 6: 149, 12: 279 }, team: { 1: 99, 3: 269, 6: 519, 12: 999 } },
+    A20: (b) => {
+      const plan = (b && b.plan) || 'pro'
+      const months = Number((b && b.months) || 1)
+      const yuan = (store._price[plan] && store._price[plan][months]) || 29
+      const orderNo = 'ORD-' + Date.now().toString().slice(-10)
+      return { orderNo, amount: yuan * 100, payUrl: 'https://mock.local/pay/' + orderNo, expireAt: Date.now() + 24 * 3600 * 1000 }
+    },
+    A21: (b, p) => ({ ok: true, orderNo: (p && p.id) || null, toState: 'paid' }),
   };
   const fn = store[id];
   if (!fn) throw new ApiError('NOT_MOCKED', `端点 ${id} 未提供 mock`);

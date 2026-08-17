@@ -105,3 +105,15 @@
 - **⑤日志与告警**：无新增阻塞/告警；R3 业务项 A1-A6 仍在 `TASK-ALERTS.md` 待你拍板，未臆测。
 - **合同缺口登记**：A14 响应契约不含 `isPro` 字段 → 本地 mock 全 `pro`（启用按钮可用），U5 设计稿 `canPro` 非专业版拦截在生产接真实 `plan` 时再补；不影响本组件契约对齐。
 - 下一队首：Q14 U6 面试模拟（A16-A19）。
+
+## [2026-08-18T02:3x+08:00] tick=manual 阶段=①②③④⑤ 任务=Q14(U6面试A16-A19)+Q15(U7支付A20/A21) 状态=OK
+- **①定时触发**：读 PROJECT_BRAIN §2+§7 + TASK-QUEUE(队首 Q14) + TASK-ALERTS(A1-A6) + 当日日志；确认循环 ACTIVE、前端 Vue3、Q8-Q13 已完。
+- **②分发**：认领 Q14+Q15（连续两条 R1 技术转化），写 .task-claims.json{Q14,Q15} 防 3 条自动化重复认领。
+- **③执行**：
+  - Q14 新建 frontend/src/screens/Interview.vue：三视图(备战/模拟/报告)严格对齐 U6-arch §4 字段映射；A16 题集手风琴(单卡展开+aria-expanded)/A17 建会话(配额-1)/A18 对话气泡+aria-live/A19 报告(综合分+4维度条形+degradeFlag)；摄像头本地占位(红线：不调 getUserMedia 采集上传)；语音占位切文本；配额 mock(专业版10/日)；落实 U11 加载(Skeleton)·错误(ErrorState+重试)·空态(EmptyState)·响应式三档。
+  - Q15 新建 frontend/src/screens/Payment.vue：当前套餐卡+套餐对比(PlanCompareCard)+下单面板(A20)+支付弹窗(payUrl占位)+订单5态(OrderStateBadge)+降级横幅+幂等(重复支付拦截)；落实 U11 模式+响应式三档。
+  - api.js 补 A16-A21 业务方法 + mock（原缺此6端点会抛 NOT_MOCKED，已补）；router.js 加 /interview+/membership；App.vue 加「面试模拟」「我的会员」导航。
+  - REVIEW-1 双闸门实跑全绿（66/6 + PRD-HLD v4.5）；REVIEW-2 自审无偏离；REVIEW-3 红线：未部署/未引真实凭据/未 push 远端/摄像头仅本地占位。前端 npm run build 实跑 1618 模块 10.68s（仅 chunk 体积警告非错误）。
+- **④状态回传**：Q14/Q15 → 已完成；PROJECT_BRAIN §2/§7 标 V3 8 屏(Q8-Q15)全完、队首转 Q2(灰度·R1)；本条目即回传。
+- **⑤日志与告警**：无新增阻塞/告警；合同缺口登记：A20/A21 金额前端仅展示、payUrl 不真跳转、MockPay 模拟 A21（生产接真实支付网关时补）；R3 业务项 A1-A6 仍在 TASK-ALERTS.md 待你拍板，未臆测。
+- **V3 阶段总结**：Q8(U9)→Q9(U3)→Q10(U1)→Q11(U2)→Q16(React→Vue)→Q12(U4)→Q13(U5)→Q14(U6)→Q15(U7) 全部转化完成，本地不部署。下一队首 Q2 灰度(R1 合规基座)。
