@@ -1,0 +1,23 @@
+{
+  "name": "resume-ai-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "resume-ai-prod 生产前端（V 阶段：由 U 阶段 mock 原型转化而来，接入真实 A01-A25 契约 API）",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.26.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.0",
+    "vitest": "^2.0.0"
+  }
+}

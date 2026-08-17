@@ -1,0 +1,46 @@
+/* 设计系统 token —— 与 design/ui/00-design-system.html 同源，确保原型↔生产视觉一致。
+   响应式断点（§6）：640 / 768 / 1024；窄屏卡片纵向堆叠、壳折叠。 */
+:root {
+  --c-bg: #f5f7fa;
+  --c-surface: #fff;
+  --c-text: #1f2733;
+  --c-muted: #6b7785;
+  --c-faint: #9aa6b2;
+  --c-border: #e6eaf0;
+  --c-accent: #2f6bff;
+  --c-accent-weak: #eaf1ff;
+  --c-l0: #e5484d;
+  --c-l1: #f5811f;
+  --c-l2: #2f6bff;
+  --c-l3: #8a94a6;
+  --c-ok: #22a06b;
+  --c-bad: #e5484d;
+  --r-lg: 14px;
+  --r-md: 10px;
+  --r-sm: 8px;
+  --r-full: 999px;
+  --shadow: 0 1px 3px rgba(20, 30, 50, .06), 0 6px 18px rgba(20, 30, 50, .05);
+  /* 动效（02-motion-system）：禁止各屏私定义时长/缓动 */
+  --d-fast: 120ms;
+  --d-base: 200ms;
+  --d-slow: 320ms;
+  --e-out: cubic-bezier(.2, .7, .3, 1);
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--font); background: var(--c-bg); color: var(--c-text); font-size: 15px; line-height: 1.5; }
+
+/* 响应式（UI-SELFCHECK §5 范式） */
+@media (max-width: 768px) {
+  .app-shell { grid-template-columns: 1fr !important; }
+  .app-side { position: sticky; top: 0; flex-direction: row; overflow-x: auto; border-right: none; border-bottom: 1px solid var(--c-border); }
+  .card-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+@media (max-width: 480px) {
+  .card-grid { grid-template-columns: 1fr !important; }
+  .btn, .input, .toggle { min-height: 40px; } /* R4 按钮≥40px */
+}
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
