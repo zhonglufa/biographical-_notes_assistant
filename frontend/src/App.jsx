@@ -6,6 +6,7 @@ import Auth from './screens/Auth.jsx';
 import Notifications from './screens/Notifications.jsx';
 import DailyReport from './screens/DailyReport.jsx';
 import Applications from './screens/Applications.jsx';
+import Resume from './screens/Resume.jsx';
 import { api } from './lib/api.js';
 import { Card, Toggle } from './components/UI.jsx';
 
@@ -39,6 +40,7 @@ function Shell({ user }) {
       <aside className="app-side" style={{ background: 'var(--c-surface)', borderRight: '1px solid var(--c-border)', padding: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <strong style={{ padding: '8px 10px' }}>简历投递助手</strong>
         <a href="#/applications" style={nav}>投递管理</a>
+        <a href="#/resume" style={nav}>简历工作台</a>
         <a href="#/notifications" style={nav}>通知中心</a>
         <a href="#/daily" style={nav}>每日日报</a>
         <a href="#/account" style={nav}>我的</a>
@@ -46,6 +48,7 @@ function Shell({ user }) {
       <main style={{ padding: 8 }}>
         <Routes>
           <Route path="/applications" element={<Applications />} />
+          <Route path="/resume" element={<Resume />} />
           <Route path="/notifications" element={<Notifications />} />
           <Route path="/daily" element={<DailyReport />} />
           <Route path="/account" element={<Account />} />

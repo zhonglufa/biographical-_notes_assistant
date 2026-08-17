@@ -39,3 +39,11 @@
 - **R2 沉淀（立即）**：解锁 Q2–Q4 由「阻塞(待用户拍板)」→「待办」(R1 合规基座：灰度回滚 Runbook / PIPL crypto-shred 设计 / 法检复核痕迹)；Q5–Q7 物理动作保留阻塞但标注「真上线必做」；同步 `TASK-MECHANISM.md` §3(R4 标准 PIPL/等保由延后→必须补齐) / §6(循环 ACTIVE) / §8(决策日志)、`TASK-ALERTS.md`(A1–A6 升级上线前置 + 已闭环记录)、`PROJECT_BRAIN.md` §2；新建项目 `.workbuddy/memory/MEMORY.md` 固化决策。
 - **⑤日志与告警**：A1–A6 仍为 R3 待拍板（真上线使其升级为上线前置，尤 A1/A2/A3 紧迫）；无人臆测业务取值。
 - 备注：诚实边界保持——Q5 部署/Q6 真实凭据/Q7 PIPL 签署仍为物理动作，仅用户触发，不伪造完成；循环续推范围由「纯 V3 屏幕」扩大至「屏幕 + 合规基座」。
+
+## [2026-08-18T00:20+08:00] tick=auto 阶段=①②③④⑤ 任务=Q10/U1简历工作台生产组件 状态=OK
+- **①定时触发**：读 PROJECT_BRAIN §2 + TASK-QUEUE(队首待办 Q10) + TASK-ALERTS(A1-A6 已代拍板) + 当日日志末条(00:09 决策捕获)；`.task-claims.json={Q10:2026-08-18T00:20+08:00}` 本轮回写防 3 条错峰重复认领。
+- **②分发**：认领 Q10（U1 简历工作台，A04/A05/A06）；`.task-claims.json` 写入 Q10 锁。
+- **③执行**：新建 `frontend/src/screens/Resume.jsx`（左栏简历卡片列表含首选徽标+ATS 评分卡 / 右栏版本时间线+设为首选+版本 diff 按钮(diffAvailable 控禁用) / A04 新建弹窗(title/template) / ATS 异步状态机 pending→running→done(fail-closed 重试) 评分环+维度建议 / U11 加载(Skeleton)·错误(ErrorState 重试)·空态(EmptyState)·Toast·无障碍 aria·响应式 375/768/1280 grid minmax 自适应单列）；`frontend/src/lib/api.js` 加 `resumeList(A04_LIST)`/`createResume(A04)`/`resumeVersions(A05)`/`triggerAts(A06)`/`setPreferred(A05_PREFER)` + 本地 `_resumeStore` mock（A04 创建返回 resumeId/versionId/createdAt，A05 版本+diffAvailable，A06 返回 taskId+pending）；`frontend/src/components/UI.jsx` Modal 修复支持 `children`（fallback body，向后兼容 Applications 的 body 用法）；`frontend/src/App.jsx` 加 `/resume` 路由 + 导航「简历工作台」(置投递管理之后)。REVIEW-1 双闸门实跑全绿（66/6 + PRD-HLD v4.5）；REVIEW-2 自审无偏离；REVIEW-3 红线：纯本地 mock、无凭据/部署/PIPL、未自动 push。前端 `vite build` ✅ 41 模块 2.94s。
+- **④状态回传**：Q10 → 已完成；PROJECT_BRAIN §2/§7 标注 U1 转化完成 + V 阶段续推序列；本条目即状态回传。
+- **⑤日志与告警**：登记合同缺口——**U1 简历列表(GET /resumes) 与 设为首选(PATCH /resumes/{id}/versions/{vid}/prefer) 无契约端点定义**（external-api.registry 仅 A04 POST /resume / A05 GET /resume/versions / A06 GET /resume/ats-score，无列表/首选专用端点）；组件走本地 mock store 直改，真实后端需补 `resumes-list` + `resume-prefer` 两契约（建议 A04_LIST/A05_PREFER 入 registry）。该缺口与 A10 同性质，已 code comment + 本条目登记，未臆测补契约字段。A1-A6 已由 00:09 轮代拍板固化，无新增待决。
+- 备注：R1 自驱——U1 设计稿(U1-resume.html + interaction-U1.md)与契约枚举齐备，无需询问直接落地；物理部署仍标 Q5 仅你可做。

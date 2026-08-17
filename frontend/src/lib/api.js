@@ -15,6 +15,9 @@ export const ENDPOINTS = {
   A04: { method: 'POST', path: '/resume' },
   A05: { method: 'GET', path: '/resume/versions' },
   A06: { method: 'GET', path: '/resume/ats-score' },
+  // 以下为 U1 列表/首选的客户端扩展端点（契约无对应定义 → 合同缺口，见 TASK-LOG）
+  A04_LIST: { method: 'GET', path: '/resumes' },
+  A05_PREFER: { method: 'PATCH', path: '/resumes/{rid}/versions/{vid}/prefer' },
   A07: { method: 'GET', path: '/jobs/search' },
   A08: { method: 'POST', path: '/jobs/favorite' },
   A09: { method: 'POST', path: '/applications/batch' },
@@ -103,7 +106,17 @@ export const api = {
   },
   // A11 投递详情（状态机各态；真实契约 pending，按 interaction-U3.md §4 建模）。
   applicationDetail: (id) => request('A11', { params: { id } }),
-  // …其余 A04–A21 按同一模式补充
+  // —— U1 简历工作台（A04/A05/A06）——
+  // 简历列表：契约无 GET /resumes 列表端点 → 用本地 mock store（合同缺口见 TASK-LOG）。
+  resumeList: () => request('A04_LIST'),
+  // A04 创建简历（POST /resumes）→ resumeId/versionId/createdAt
+  createResume: ({ title, template, body }) => request('A04', { body: { title, template, body } }),
+  // A05 简历版本列表（GET /resumes/{id}/versions）→ versions[] + diffAvailable
+  resumeVersions: (resumeId) => request('A05', { params: { id: resumeId } }),
+  // A06 触发 ATS 评分（POST /resumes/{id}/ats）→ taskId/status(pending)
+  triggerAts: (resumeId) => request('A06', { params: { id: resumeId } }),
+  // 设为首选：契约无独立端点（需 PATCH /resumes/{id}/versions/{vid}/prefer）→ 本地 mock 直改 store（合同缺口）
+  setPreferred: (resumeId, versionId) => request('A05_PREFER', { params: { rid: resumeId, vid: versionId } }),
 };
 
 export class ApiError extends Error {
@@ -111,6 +124,18 @@ export class ApiError extends Error {
 }
 
 // —— 本地 mock（仅 VITE_USE_MOCK，联调用；与契约同形）——
+// 简历列表/首选无契约端点 → 客户端 store（合同缺口见 TASK-LOG）
+let _rid = 0;
+const _resumeStore = [
+  { resumeId: 'r-se', title: '高级前端工程师 · 标准版', template: 'standard', versions: [
+    { versionId: 'v-se-1', versionNo: 1, createdAt: Date.now() - 9 * 86400000, note: '初稿', isPreferred: false },
+    { versionId: 'v-se-2', versionNo: 2, createdAt: Date.now() - 2 * 86400000, note: '补充项目经历', isPreferred: true },
+  ] },
+  { resumeId: 'r-be', title: '后端开发 · 技术版', template: 'tech', versions: [
+    { versionId: 'v-be-1', versionNo: 1, createdAt: Date.now() - 5 * 86400000, note: null, isPreferred: true },
+  ] },
+];
+
 function mockResponse(id, body, params) {
   const now = Date.now();
   const store = {
@@ -156,6 +181,31 @@ function mockResponse(id, body, params) {
         history: [{ status, at: now - 3600 * 1000 }],
       };
     },
+    // —— U1 简历工作台 mock（A04 创建 / A04_LIST 列表 / A05 版本 / A05_PREFER 设为首选 / A06 触发ATS）——
+    A04_LIST: () => _resumeStore.map(r => ({
+      resumeId: r.resumeId, title: r.title, template: r.template,
+      versionCount: r.versions.length,
+      preferredVersionId: (r.versions.find(v => v.isPreferred) || {}).versionId || null,
+    })),
+    A04: (b) => {
+      const id = 'r' + (++_rid) + '-' + Date.now().toString(36);
+      const vid = 'v-' + id + '-1';
+      const t = Date.now();
+      const rec = { resumeId: id, title: (b && b.title) || '未命名简历', template: (b && b.template) || 'standard', versions: [{ versionId: vid, versionNo: 1, createdAt: t, note: null, isPreferred: true }] };
+      _resumeStore.unshift(rec);
+      return { resumeId: id, versionId: vid, createdAt: t };
+    },
+    A05: (b, p) => {
+      const rid = (p && p.id) || (_resumeStore[0] && _resumeStore[0].resumeId);
+      const rec = _resumeStore.find(r => r.resumeId === rid) || { versions: [] };
+      return { versions: rec.versions, diffAvailable: rec.versions.length >= 2 };
+    },
+    A05_PREFER: (b, p) => {
+      const rec = _resumeStore.find(r => r.resumeId === (p && p.rid));
+      if (rec) rec.versions.forEach(v => { v.isPreferred = (v.versionId === (p && p.vid)); });
+      return { ok: true };
+    },
+    A06: (b, p) => ({ taskId: 't-' + ((p && p.id) || 'r1') + '-' + Date.now().toString(36), status: 'pending' }),
   };
   const fn = store[id];
   if (!fn) throw new ApiError('NOT_MOCKED', `端点 ${id} 未提供 mock`);

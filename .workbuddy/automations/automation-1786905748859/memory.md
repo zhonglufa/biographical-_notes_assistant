@@ -2,6 +2,14 @@
 
 > 高层摘要，供后续 tick 快速续推；不含完整产出体。
 
+## 最近执行（2026-08-18T00:20+08:00 · tick=auto · Q10/U1 简历工作台）
+- **动作**：认领并交付 Q10（U1 简历工作台，A04/A05/A06 生产组件）+ Modal children 修复 + App 路由接入。
+- **产出**：`frontend/src/screens/Resume.jsx`（新建，列表+版本时间线+ATS 异步状态机+新建弹窗+U11 基线+响应式）；`frontend/src/lib/api.js`（+resumeList/createResume/resumeVersions/triggerAts/setPreferred + _resumeStore mock）；`frontend/src/components/UI.jsx`（Modal 支持 children）；`frontend/src/App.jsx`（+/resume 路由+导航）。
+- **闸门**：REVIEW-1 双闸门全绿；REVIEW-2 无偏离；REVIEW-3 未触发（纯本地 mock）。`vite build` ✅ 41 模块 2.94s。
+- **合同缺口登记**：U1 列表(GET /resumes)与设为首选(PATCH /resumes/{id}/versions/{vid}/prefer)无契约端点→本地 mock store（与 A10 同处理，建议补 resumes-list/resume-prefer 入 registry）。
+- **状态回传**：Q10→已完成；PROJECT_BRAIN §2/§7、TASK-QUEUE、TASK-LOG 已更新；claim 待清理；本地 commit 待执行（不 push）。
+- **下一步**：下一 auto-tick 认领 Q11(U2 岗位浏览) 续推。
+
 ## 最近执行（2026-08-18T00:09+08:00 · 用户交互决策捕获）
 - **动作**：用户回答战略分叉——「原型肯定要做(Q10–Q15 一步不能少) + 最终定位真上线产品(Q2–Q7 合规必补齐)」。
 - **R2 沉淀**：解锁 Q2–Q4 入 待办(R1 合规基座)；Q5–Q7 物理动作保留阻塞但标注真上线必做；TASK-MECHANISM §3/§6/§8、TASK-ALERTS、PROJECT_BRAIN §2 同步；项目 MEMORY.md 新建固化决策。
