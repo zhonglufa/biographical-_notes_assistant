@@ -78,6 +78,13 @@ status: DONE
   .skeleton{height:60px;background:linear-gradient(90deg,#eef0f6,#f6f7fa,#eef0f6);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:10px;margin-bottom:10px}
   @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
   @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+  /* 响应式：手机窄屏收口（依据 00-design-system §6 + UI-SELFCHECK §3） */
+  @media (max-width:480px){
+    .shell{padding-left:10px;padding-right:10px}
+    .top{flex-direction:column;align-items:flex-start;gap:6px}
+    button{min-height:40px}
+    .chat{height:340px}
+  }
 </style>
 </head>
 <body>

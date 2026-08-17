@@ -120,7 +120,7 @@ status: <DRAFT|REVIEW|DONE|BLOCKED>
 1. 读取工程师的 `Ux-*.html` + `interaction-Ux.md`。
 2. 回溯读取 `Ux-pm.md`（验收标准）+ `Ux-arch.md`（字段映射）作为核查基线。
 3. 跑**双闸门**（`validate_contracts.py` + `check_prd_hld_traceability.py`），记录绿/红。
-4. 核查 **UI 一致性**（与设计系统/IA 对齐）、**无障碍基线**、**交互可用**（锚点/动效/异常）。
+4. 核查 **UI 一致性**（与设计系统/IA 对齐）、**无障碍基线**、**交互可用**（锚点/动效/异常）、**响应式三端**（375/768/1280 渲染、无横向溢出、无重叠、按钮≥40px 可点、模态≤90vw，依据 `UI-SELFCHECK.md §3`，逐条 PASS/FAIL 写入 `Ux-qa.md`）。
 5. 产出**核查报告**：结论（通过/退回）+ 遗留项清单。
 6. 不通过 → 在报告写 `↻ 退工程师修：<具体项>`，Team Lead 据此退回。
 7. `## 上游引用` 列出全部被查文件；`## 下游交付` 指向 Team Lead 汇总。
@@ -160,3 +160,13 @@ status: <DRAFT|REVIEW|DONE|BLOCKED>
 2. 下游角色**必须先读上游产物再动手**，禁止凭空假设（TRACE 的 `upstream_read` 是证据）。
 3. 发现上游矛盾 → 日志记 `↻ 需 PM/Arch 澄清` 并暂停该包，由 Team Lead 协调。
 4. 文件命名：`roles/Ux-{pm|arch|qa}.md`、`screens/Ux-*.html`、`interaction-Ux.md`。
+
+---
+
+## 9. 响应式与 UI 自查规范（提交前必过闸门）
+
+- **权威文件**：`design/ui/UI-SELFCHECK.md`——含自我反思（为什么之前乱/没响应式）、用户可用性结论、三端自查清单（§3）、防卡死派发纪律（§4）、响应式 CSS 范式（§5）。
+- **设计系统源头**：`00-design-system.html §6` 已定义断点（--bp-sm:640 / --bp-md:768 / --bp-lg:1024）与"壳折叠 + 卡片堆叠"要求。
+- **每个 U 屏必须**：`<style>` 末尾含对应 `@media` 块（带壳屏用 §5 上段、卡片屏用 §5 下段），覆盖 ≤768px 与 ≤480px。
+- **QA 必查**：`UI-SELFCHECK.md §3` 七项（R1–R7）逐条判定，任一 FAIL 即退回工程师改，不得 commit 未过自查的屏。
+- **派发纪律**：§4 的"派发后验证文件存在+重试+lead 代笔标注"为硬性规则，防止子 agent 瞬断导致"一直准备中/零产物"。

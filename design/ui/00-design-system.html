@@ -156,6 +156,17 @@
     </ul>
     <p>所有时长/缓动 token（<code>--d-fast/base/slow/slower</code>、<code>--e-out/e-std</code>）在 01/02 中保持一致，禁止各屏私自定义动画时长。</p>
   </div>
+
+  <div class="section">
+    <h2>6. 响应式规范（Responsive）</h2>
+    <p>客户端目标设备：<b>桌面 PC Web（主）</b> + <b>移动端 H5（辅助浏览）</b>。所有 U 原型<strong>必须</strong>在以下三档宽度可正常使用，<strong>禁止横向溢出</strong>：</p>
+    <ul>
+      <li><b>桌面 ≥1024px</b>：完整双栏布局（侧栏 232px + 内容）。</li>
+      <li><b>平板 768–1023px</b>：内容区收窄，组件自然换行。</li>
+      <li><b>手机 ≤768px</b>：侧栏<strong>折叠为顶部横向滚动条</strong>；卡片/列表行<strong>纵向堆叠</strong>，操作按钮换行到整行底部、最小点按高度 <code>40px</code>；内容内边距收紧。</li>
+    </ul>
+    <p>断点 token（供 U6–U11 引用）：<code>--bp-sm:640px</code>、<code>--bp-md:768px</code>、<code>--bp-lg:1024px</code>。标准壳折叠 / 卡片堆叠的 CSS 范式见 <code>UI-SELFCHECK.md §5</code>；每个 U 屏在 <code>&lt;style&gt;</code> 末尾引入对应 <code>@media</code> 块。提交前须过 <code>UI-SELFCHECK.md §3</code> 三端自查清单（375/768/1280 渲染、无横溢、无重叠、按钮可点、模态≤90vw、尊重 reduced-motion）。</p>
+  </div>
 </div>
 </body>
 </html>

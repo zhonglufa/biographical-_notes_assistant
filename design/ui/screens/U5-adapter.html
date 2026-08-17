@@ -56,6 +56,14 @@ status: DONE
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .toast button{background:transparent;border:none;color:#9ad;cursor:pointer;padding:0}
   @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+  /* 响应式：卡片在窄屏纵向堆叠（依据 00-design-system §6 + UI-SELFCHECK §3） */
+  @media (max-width:640px){
+    .card{flex-wrap:wrap;align-items:flex-start;}
+    .meta{flex:1 0 55%;}
+    .health{min-width:0;flex:1 0 100%;text-align:left;margin-top:6px;order:3;}
+    .actions{flex:1 0 100%;justify-content:flex-end;margin-top:8px;order:4;}
+    .btn{min-height:40px;}
+  }
 </style>
 </head>
 <body>

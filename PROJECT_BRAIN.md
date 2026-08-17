@@ -99,10 +99,12 @@
   1. **PM(`software-product-manager`)**：基于 PRD 对应章节(A 编号) + U 阶段规范，产出该包**交互需求/验收清单**（写入 `design/ui/roles/Ux-pm.md`）。
   2. **架构师(`software-architect`)**：基于需求与设计系统(`00-design-system.html`/`01-app-shell.html`)，产出该包**组件结构/状态/复用决策**（写入 `design/ui/roles/Ux-arch.md`）。
   3. **工程师(`software-engineer`)**：依据 PM+Arch 产出 + U1–U4 范本，实现**可交互 HTML 原型**（`design/ui/screens/Ux-*.html`）+ **交互规格**（`design/ui/interaction-Ux.md`）。
-  4. **QA(`software-qa-engineer`)**：独立核查——跑双闸门 + UI 一致性（与设计系统/IA 对齐）+ 无障碍基线 + 锚点/交互可用，产出**核查报告**（`design/ui/roles/Ux-qa.md`）；不通过则退回工程师修。
+  4. **QA(`software-qa-engineer`)**：独立核查——跑双闸门 + UI 一致性（与设计系统/IA 对齐）+ 无障碍基线 + 锚点/交互可用 + **响应式三端自查**（375/768/1280 渲染、无横向溢出、无重叠、按钮≥40px 可点、模态≤90vw，依据 `design/ui/UI-SELFCHECK.md §3`，逐条 PASS/FAIL 写入 `Ux-qa.md`）；不通过则退回工程师修。
 - Team Lead 汇总四角色产出 → 过 REVIEW-1/2 闸门 → 本地 commit（提交信息含四角色贡献摘要）→ 回写本文件 §2/§7 + 当日日志 + PROGRESS.md。
 - **停止条件**：每轮推进 **K=1** 个 U 包（多角色串行耗时，质量优先）；命中阶段 checkpoint / 遇 REVIEW-3 红线或硬阻塞 → 标 BLOCKED 转其他可独立包；接近 ~45min 时间预算即停。
 - 电路保护器：同包连续 2 轮无进展 / 硬阻塞 → 标 BLOCKED 转其他包，避免卡死与伪造完成。
+- **派发后必验证（防"卡在准备中/零产物"）**：每派发一个角色 agent，返回后**立即检查其承诺产物文件是否存在且非空**；缺失 → 重试一次 → 仍缺失则由 Team Lead 代笔并在 TRACE 标注"子 agent 瞬断、lead 代笔"，绝不伪造"角色独立产出"（规则见 `UI-SELFCHECK.md §4`）。
+- **UI 自查闸门（用户 2026-08-17 要求"下次自己自检"）**：任何 U 屏 commit 前须经 `UI-SELFCHECK.md §3` 七项（R1–R7）自查；设计系统响应式规范见 `00-design-system.html §6`，各屏 `@media` 范式见 `UI-SELFCHECK.md §5`。任一 FAIL 不得 commit。
 - 终点：**U 阶段全完成 + A+B+C 已达成 + 护栏 1/2/3 就位**（护栏 4/5/6 用户延后）→ 日志写 `GOAL REACHED` + 产出「产品交付结果报告 v2」，停止循环。
 - 全程不每轮打扰用户；仅 `GOAL REACHED` 或不可恢复阻塞时出最终报告。
 - 用本文件 + MEMORY.md + 日志维持跨轮连续性（循环是全新会话，无对话记忆）。

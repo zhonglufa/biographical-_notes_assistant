@@ -37,6 +37,17 @@ status: DONE
 - ✅ 非 pro 拦截 A15 预校验（PM AC4）= 按钮置灰+提示，不发请求。
 - ✅ 错误/空态/加载态齐备（interaction-U5 §4）。
 
+## 4.5 响应式三端自查（UI-SELFCHECK §3 · 2026-08-17 补）
+> 用户 2026-08-17 指出"UI 没考虑响应式 + 排版乱"。本包原 `U5-adapter.html` 卡片 `.card` 为单行 flex 含固定 `min-width:120px` 健康列 + 按钮组，**手机端横向挤压**。已按 `UI-SELFCHECK.md §5` 卡片型范式补 `@media(max-width:640px)` 纵向堆叠（健康列/操作按钮各占整行、按钮≥40px）。逐条判定（CSS 逻辑审查，本环境无 GUI）：
+- ✅ R1 三宽渲染：375/768/1280 均覆盖（≤640 堆叠，>640 单行）。
+- ✅ R2 无横向溢出：堆叠后无固定 `min-width` 溢出（`.health{min-width:0}`）。
+- ✅ R3 无重叠：健康列 `order:3`、按钮 `order:4` 纵向排列。
+- ✅ R4 可点性：`.btn{min-height:40px}`。
+- ✅ R5 模态自适应：`width:360px;max-width:90vw`（原有）。
+- ✅ R6 动效合规：`@media(prefers-reduced-motion:reduce)` 已有（原有）。
+- ✅ R7 语义可访问：状态点强制文本标签（§3 原有）。
+**响应式判定：PASS。**
+
 ## 5. 遗留项（非阻塞）
 - L1：适配器市场/安装/版本管理/v2 范围，本包仅占位，待 V2 阶段（PM §1 边界已声明）。
 - L2：真实 A14/A15 联调将在 V 阶段（原型→生产前端）进行，本包为 mock。

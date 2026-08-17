@@ -67,6 +67,32 @@
   .warn.show{display:block;}
   .meta{color:var(--c-muted);font-size:12px;margin-top:6px;}
   .tag-a{font-size:11px;background:var(--c-accent);color:#fff;border-radius:var(--r-full);padding:1px 8px;margin-left:6px;vertical-align:middle;}
+  /* 响应式：手机端侧栏折叠为顶部横滚条 + 卡片纵向堆叠（依据 00-design-system §6 + UI-SELFCHECK §3） */
+  @media (max-width:768px){
+    .app{grid-template-columns:1fr;}
+    .side{flex-direction:row;align-items:center;overflow-x:auto;border-right:none;border-bottom:1px solid var(--c-border);}
+    .brand{flex-shrink:0;border-bottom:none;border-right:1px solid var(--c-border);padding:12px 14px;font-size:14px;}
+    .nav{flex-direction:row;flex-wrap:nowrap;padding:8px;gap:4px;overflow-x:auto;}
+    .nav a{white-space:nowrap;margin-bottom:0;padding:8px 10px;}
+    .side-foot{display:none;}
+    .main{min-height:0;}
+    .top{flex-wrap:wrap;height:auto;min-height:52px;padding:8px 12px;gap:8px;}
+    .top .search{max-width:none;flex:1 1 100%;order:3;}
+    .content{padding:14px;max-width:none;}
+    .page-head h1{font-size:18px;}
+    .job,.app-row,.resume{flex-wrap:wrap;}
+    .job .acts,.app-row .acts,.resume .acts{width:100%;justify-content:flex-start;margin-top:8px;flex-direction:row;flex-wrap:wrap;}
+    .app-row .acts{justify-content:flex-end;}
+    .input,.select{width:100%;min-width:0;max-width:100%;}
+    .slider{width:100%;max-width:320px;}
+    .btn{min-height:40px;}
+  }
+  @media (max-width:480px){
+    .content{padding:10px;}
+    .card{padding:14px;}
+    .filter{flex-direction:column;align-items:stretch;}
+    .filter .input{min-width:0;}
+  }
 </style>
 </head>
 <body>
