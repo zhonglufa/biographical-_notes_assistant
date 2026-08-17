@@ -85,6 +85,12 @@
 | `design/图信息说明书.md` | 6 张架构图内容规格 |
 | `githooks/pre-commit` | 三闸门钩子 |
 | `.github/workflows/ci-cd.yml` | CI/CD 分层门禁（gates 双闸门 / test / build-frontend / package-cd） |
+| `TASK-MECHANISM.md` | **自主任务机制规则手册**（5阶段流水线 + 决策策略 R1–R4 + 询问区/自驱区 + 行业标准清单 + 诚实边界） |
+| `TASK-QUEUE.md` | **任务队列**（阶段②分发权威来源；待办/进行中/已完成/阻塞） |
+| `TASK-ALERTS.md` | **告警与待决**（阶段⑤「需用户拍板」落点；R2未知/R3业务逻辑/R4标准/A6物理触发前提） |
+| `TASK-LOG.md` | **运行日志**（阶段④状态回传 + 阶段⑤日志；追加式全量） |
+| `scripts/task_status.py` | **状态回看 CLI**（`queue`/`log`/`alerts`/`health`，零依赖） |
+| `.task-claims.json` | 任务认领锁（防 3 条自动化重复认领同一包） |
 
 ---
 
@@ -177,3 +183,14 @@
 - 循环每 5 分钟一轮；每轮首步读本文件 §2 与当日日志末条。
 - 若发现上一轮 `RUN_ABORTED` / 连续 0 进展 / 状态停滞 → 记 `↻ 继续做（resume）` 并立即推进下一工作包，不等待人工。
 - 若遇 REVIEW-3 红线或硬阻塞（缺凭据/法定签署）→ 标 BLOCKED 转其他可独立工作，避免卡死与伪造完成。
+
+---
+
+## 10. 自主任务机制（2026-08-17 建立 · 用户「没空时自主推进」诉求）
+> 完整规则见 `TASK-MECHANISM.md`。本仓库 3 条错峰自动化（:00/:20/:40）已改写为该机制的载体；当前 PAUSED（resume /goal 已 REACHED），启用后自动按队列续推。
+
+- **五阶段流水线**：① 定时触发 → ② 分发（`TASK-QUEUE.md` + `.task-claims.json` 锁）→ ③ 执行（按 R1–R4）→ ④ 状态回传（`TASK-LOG.md` + 回写本文件 §2/§7）→ ⑤ 日志与告警（`TASK-LOG.md` 全量 + `TASK-ALERTS.md` 待决）。
+- **决策策略（用户 2026-08-17 新增，跨项目强制）**：R1 知道→干 / R2 不知道→问→完善成规则 / R3 业务逻辑→多问（不问不动）/ R4 行业标准→遵守。已沉淀进 `~/.workbuddy/MEMORY.md`。
+- **询问区（只记录不拍板）**：业务逻辑（商业模式/定价/用户定位/KPI阈值/业务优先级）、合规解释、花钱、物理动作、未知歧义 → 落 `TASK-ALERTS.md`，等用户有空一次性回答。
+- **状态查询**：`python scripts/task_status.py [queue|log|alerts|health]`。
+- **当前待决（R3 多问落点）**：见 `TASK-ALERTS.md` A1–A6（商业模式/用户定位/KPI阈值/RAG优先级/无障碍/WCAG/真实平台接入触发前提）。
