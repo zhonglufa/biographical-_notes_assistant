@@ -12,6 +12,8 @@ build/
 Thumbs.db
 *.swp
 *.swo
-scaffold/src/__pycache__/
-design/contracts/__pycache__/
-scaffold/tests/__pycache__/
+# Python 缓存（全局，避免误跟踪已编译字节码）
+**/__pycache__/
+*.pyc
+*.pyo
+.git-commit-msg.txt

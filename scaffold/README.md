@@ -38,6 +38,21 @@ python -m src.api_stub
 
 需 Python 3.10+。脚本自动回溯到仓库根，加载 `design/contracts/`。
 
+### 3.1 启动可上线 HTTP 服务（O 阶段 · 上线就绪）
+
+`scaffold/src/server_main.py` 是零依赖（仅标准库）HTTP 入口，把 25 个契约端点 +
+`/healthz` + `/metrics`（护栏3 四指标）暴露为服务（详见仓库根 `docs/上线手册.md`）：
+
+```bash
+cd <repo>
+python scaffold/src/server_main.py          # 默认 0.0.0.0:8080，可用 PORT/HOST 覆盖
+# 或容器化：
+docker build -t resume-ai-prod:local . && docker run -p 8080:8080 resume-ai-prod:local
+```
+
+路由约定：POST `/api/<Axx>`（如 `/api/A01`）按 A 编号唯一匹配契约端点；所有请求/响应
+经契约校验（fail-closed）。护栏3 由 `ServerApp(bus=)` 自动挂接 `LightweightMonitor`，四项指标真实流动。
+
 ## 4. 后续模块脚手架顺序（建议，待逐期推进）
 
 按 HLD §9.4 闭环顺序与风险优先级：

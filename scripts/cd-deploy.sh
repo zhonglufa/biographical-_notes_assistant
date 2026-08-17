@@ -16,7 +16,7 @@ BUILD_DIR="$ROOT/dist-cd"
 rm -rf "$BUILD_DIR"
 mkdir -p "$BUILD_DIR"
 
-echo "▶ [CD] 1/3 构建前端（React+Vite）"
+echo "▶ [CD] 1/3 构建前端（Vue 3 + Vite）"
 if [ -d frontend ] && [ -f frontend/package.json ]; then
   ( cd frontend && npm ci && npm run build )
   cp -r frontend/dist "$BUILD_DIR/frontend"
@@ -48,7 +48,7 @@ else
   echo "      1) 在目标机器准备 Python 3.13 + Node 运行时"
   echo "      2) 将 $BUILD_DIR 拷贝至目标机器"
   echo "      3) 配置 LLM 日硬上限金额 / 监控阈值（护栏 2/3 生产值）"
-  echo "      4) 启动服务端（scaffold/src/server_app.py）与前端静态服务（frontend/dist）"
+  echo "      4) 启动服务端（scaffold/src/server_main.py）与前端静态服务（frontend/dist）"
   echo "      5) 接入真实平台账号（用户本机浏览器自动化，服务端不持凭据）"
   echo "      6) 配置 Prometheus 抓取 scripts/export_metrics.py 输出（/metrics）"
 fi

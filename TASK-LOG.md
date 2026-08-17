@@ -142,3 +142,16 @@
 - **④状态回传**：Q17 → 已完成（TASK-QUEUE 已加行）；PROJECT_BRAIN §7 更新（机制 ACTIVE / 护栏3 修复 / Q17）；本条目即状态回传。
 - **⑤日志与告警**：无新增阻塞。R1 自驱 backlog 经本轮后：Q1(RAG 阶段二·C1 设计已定·按 A4 延后) / Q5(部署) / Q6(真实凭据) / Q7(PIPL签字) 仍仅用户；A1–A6 已按用户「不懂听建议」授权代拍板并记录。循环下轮若无新 R1 任务将「无待办」待命（不伪造）。
 - REVIEW-1 双闸门全绿（66/6 schema + PRD-HLD v4.5）；REVIEW-2 自审无偏离；REVIEW-3 红线未触发（仅本地接线+文档，无部署/凭据/PIPL）。本地 commit（本轮），不 push 远端。
+
+## [2026-08-18T03:12+08:00] tick=manual 阶段=①②③④⑤ 任务=Q18/Q19/Q20·上线就绪技术件 状态=OK
+- **①定时触发**：用户指令「推进任务至产品上线 / 任何机制要实现 / 循环任务也要 / 直接干」；但 03:09 用户已暂停自动调度(省积分) → 本次为**手动一次性执行**循环 backlog（不重新开启耗积分的定时调度）。读 PROJECT_BRAIN §2/§7 + TASK-QUEUE + TASK-ALERTS + 当日日志末条(02:53 护栏3修复+Q17)。
+- **②分发**：认领「上线就绪」三件 R1 技术缺口 Q18(HTTP服务入口)/Q19(容器化)/Q20(上线手册)；写 .task-claims.json 防重复。
+- **③执行**：
+  - Q18：`scaffold/src/server_main.py`（零依赖 stdlib http.server）暴露 25 契约端点（按 A 编号路由 /api/Axx）+ /healthz 存活探针 + /metrics(Prometheus·护栏3四指标)；`ServerApp(bus=)` 自动挂接 LightweightMonitor，四项指标真实流动。配套 `scaffold/tests/test_server_main.py`（11 断言全 PASS，无真实 socket）。
+  - Q19：`Dockerfile`(python:3.13-slim·零依赖·非root·目录层级 preserve 使 contract_runtime 定位 design/contracts) + `.dockerignore` + `.env.example`(PORT/HOST/LLM网关/护栏阈值·安全默认) + `docker-compose.yml`(单容器+healthcheck)。
+  - Q20：`docs/上线手册.md`（启动/验证/构建前端/配置/本机重客户端/监控接入/上线前检查/已知限制）；同步修正 `scripts/cd-deploy.sh`(React→Vue3 注释 + server 入口指向 server_main.py) 与 `scaffold/README.md`(§3.1 服务启动)。
+  - 清理：`.gitignore` 扩展全局 `__pycache__/*`/`*.pyc`/`.git-commit-msg.txt`；`git rm --cached` 解冻被误跟踪的 pyc 与临时文件；`metrics.py` 的 `InMemoryMetrics` 加 `threading.Lock`（轻量容器多线程场景计数安全）。
+  - 验证：全量 scaffold 15 测试文件全绿；双闸门(契约66/6 + PRD-HLD追溯)全绿。
+- **④状态回传**：Q18/Q19/Q20 → 已完成；PROJECT_BRAIN §2/§7 标「可上线就绪(代码+容器+手册)」；本条目即状态回传。
+- **⑤日志与告警**：无新增阻塞。诚实边界：Q5(部署)/Q6(真实凭据)/Q7(PIPL签字) 仍仅用户(不伪造)；3 条自动调度保持 PAUSED(省积分)，本次为手动执行。A1–A6 已代拍板待你复审。
+- REVIEW-1 双闸门全绿；REVIEW-2 无偏离；REVIEW-3 红线未触发（仅本地服务+容器+文档，无部署/凭据/PIPL/生图）。本地 commit + 沙箱代推 push（用户 2026-08-17 授权 PAT，免本机 GFW 重置）；push 后提醒于 GitHub 设 dual-gate 为 Required status check。

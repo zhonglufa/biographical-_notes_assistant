@@ -1,8 +1,0 @@
-D阶段合规基座: Q2灰度(Q4)+Q3 PIPL crypto-shred(Q5)+Q4 法检哈希链(Q6) 设计文档+代码骨架+单测
-
-- design/guardrails/gray-release.md + scaffold/src/feature_flags.py：fail-safe 默认关 + kill-switch 全局回滚 + override 持久化；修复 flags 合并语义 bug(传入 flags 应合并 DEFAULT_FLAGS 而非替换)
-- design/guardrails/pipl-crypto-shred.md(引用 PIPL合规设计补充.md §2.3) + scaffold/src/crypto_shred.py：信封加密 + shred_user 销毁 KEK → 历史备份不可解密；MockCipher 仅自测，生产待接密钥工程 LLD + KMS(用户配主密钥 Q5)
-- design/guardrails/legal-audit-trail.md + scaffold/src/audit_log.py：SHA256 哈希链(prev_hash)防篡改；修复 os 未 import bug
-- scaffold/tests/test_guardrails.py：三护栏编排逻辑单测(10断言全PASS)；全量 scaffold 14 测试文件全绿
-- 状态回传：TASK-QUEUE Q2/Q3/Q4→已完成；TASK-LOG 追加；PROJECT_BRAIN §2/§7 标 D 三护栏备基座完成、R1 自驱 backlog 耗尽
-- 诚实边界：灰度策略取值/物理启用(Q5)、真实 KEK/KMS(Q5)/律师签字(Q7)、专家复核动作 均仅用户；未部署/未引真实凭据/未 push 远端
