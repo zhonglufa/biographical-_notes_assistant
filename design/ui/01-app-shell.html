@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>客户端外壳 · 全局导航 (app-shell)</title>
+<style>
+  :root{
+    --c-primary:#4F46E5; --c-primary-hover:#4338CA; --c-primary-soft:#EEF2FF;
+    --c-accent:#7C3AED; --c-success:#16A34A; --c-danger:#DC2626; --c-warning:#D97706; --c-info:#2563EB;
+    --c-ink:#0F172A; --c-body:#334155; --c-muted:#64748B; --c-faint:#94A3B8;
+    --c-border:#E2E8F0; --c-subtle:#F1F5F9; --c-page:#F8FAFC; --c-surface:#FFFFFF;
+    --r-sm:6px; --r-md:8px; --r-lg:12px; --r-full:999px;
+    --f-base:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--f-base);background:var(--c-page);color:var(--c-body);font-size:14px;}
+  .app{display:grid;grid-template-columns:232px 1fr;height:100vh;}
+  /* 侧边栏 */
+  .side{background:var(--c-surface);border-right:1px solid var(--c-border);display:flex;flex-direction:column;}
+  .brand{display:flex;align-items:center;gap:var(--s-2,8px);padding:18px 16px;font-weight:700;color:var(--c-ink);font-size:15px;border-bottom:1px solid var(--c-border);}
+  .brand .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--c-primary),var(--c-accent));color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .nav{padding:10px;overflow:auto;flex:1;}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-sm);color:var(--c-body);text-decoration:none;font-size:14px;margin-bottom:2px;cursor:pointer;}
+  .nav a:hover{background:var(--c-subtle);}
+  .nav a.active{background:var(--c-primary-soft);color:var(--c-primary);font-weight:600;}
+  .nav .ic{width:18px;text-align:center;opacity:.85;}
+  .nav .tag{margin-left:auto;font-size:11px;background:var(--c-danger);color:#fff;border-radius:var(--r-full);padding:1px 7px;}
+  .side-foot{padding:12px 16px;border-top:1px solid var(--c-border);font-size:12px;color:var(--c-faint);}
+  /* 顶栏 */
+  .main{display:flex;flex-direction:column;min-width:0;}
+  .top{height:56px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:16px;padding:0 20px;}
+  .top .search{flex:1;max-width:420px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-sm);color:var(--c-muted);font-size:13px;}
+  .top .spacer{flex:1;}
+  .top .plan{font-size:12px;background:var(--c-primary-soft);color:var(--c-primary);padding:4px 10px;border-radius:var(--r-full);font-weight:600;}
+  .top .bell{position:relative;font-size:18px;cursor:pointer;}
+  .top .bell .dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--c-danger);}
+  .top .avatar{width:30px;height:30px;border-radius:50%;background:var(--c-subtle);color:var(--c-muted);display:flex;align-items:center;justify-content:center;font-size:13px;}
+  .content{padding:24px;overflow:auto;}
+  .page-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .page-head h1{font-size:20px;margin:0;color:var(--c-ink);}
+  .page-head .sub{color:var(--c-muted);font-size:13px;}
+  .btn{font-family:var(--f-base);font-size:14px;font-weight:500;border-radius:var(--r-sm);padding:8px 14px;border:1px solid transparent;cursor:pointer;}
+  .btn-primary{background:var(--c-primary);color:#fff;}
+  .btn-secondary{background:var(--c-surface);color:var(--c-body);border-color:var(--c-border);}
+  .btn-danger{background:var(--c-danger);color:#fff;}
+  .btn-sm{padding:5px 12px;font-size:13px;}
+  /* 卡片/列表 */
+  .card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:16px;margin-bottom:12px;}
+  .job{display:flex;gap:14px;align-items:flex-start;}
+  .job .match{flex-shrink:0;width:54px;height:54px;border-radius:12px;background:var(--c-success-soft,#ECFDF3);color:var(--c-success);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;border:1px solid #ABEFC6;}
+  .job .match small{font-size:10px;font-weight:500;color:var(--c-muted);}
+  .job .info{flex:1;min-width:0;}
+  .job .info .title{font-weight:600;color:var(--c-ink);font-size:15px;}
+  .job .info .meta{color:var(--c-muted);font-size:13px;margin:2px 0 6px;}
+  .job .info .why{font-size:13px;color:var(--c-body);background:var(--c-subtle);border-radius:var(--r-sm);padding:8px 10px;}
+  .job .info .why b{color:var(--c-primary);}
+  .job .acts{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+  .badge{display:inline-flex;font-size:12px;font-weight:600;padding:2px 10px;border-radius:var(--r-full);}
+  .badge-success{background:#ECFDF3;color:var(--c-success);border:1px solid #ABEFC6;}
+  .badge-neutral{background:var(--c-subtle);color:var(--c-muted);border:1px solid var(--c-border);}
+  .toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .toolbar .count{color:var(--c-muted);font-size:13px;}
+  .placeholder{border:2px dashed var(--c-border);border-radius:var(--r-lg);padding:48px;text-align:center;color:var(--c-faint);}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- 侧边栏 -->
+  <aside class="side">
+    <div class="brand"><span class="logo">简</span> 简投 · AI 助手</div>
+    <nav class="nav" id="nav">
+      <a class="active" data-page="home"><span class="ic">🏠</span> 首页 / 待确认投递 <span class="tag">3</span></a>
+      <a data-page="resume"><span class="ic">📄</span> 简历工作台</a>
+      <a data-page="jobs"><span class="ic">🔍</span> 岗位浏览</a>
+      <a data-page="apps"><span class="ic">📨</span> 投递管理</a>
+      <a data-page="strategy"><span class="ic">⚙️</span> 策略配置</a>
+      <a data-page="adapter"><span class="ic">🔌</span> 适配器</a>
+      <a data-page="interview"><span class="ic">💬</span> 面试模拟</a>
+      <a data-page="notify"><span class="ic">🔔</span> 通知中心</a>
+      <a data-page="report"><span class="ic">📊</span> 每日日报</a>
+      <a data-page="member"><span class="ic">⭐</span> 会员</a>
+      <a data-page="settings"><span class="ic">🧰</span> 设置</a>
+    </nav>
+    <div class="side-foot">本机 Agent · v1.3<br>账号状态：<span style="color:var(--c-success)">正常</span></div>
+  </aside>
+
+  <!-- 主区 -->
+  <section class="main">
+    <header class="top">
+      <div class="search">搜索岗位、公司、技能…</div>
+      <div class="spacer"></div>
+      <span class="plan">Pro 会员</span>
+      <span class="bell">🔔<span class="dot"></span></span>
+      <span class="avatar">钟</span>
+    </header>
+
+    <div class="content">
+      <!-- 首页：待确认投递（核心半自动确认闸门） -->
+      <div class="page" id="page-home">
+        <div class="page-head">
+          <div><h1>待确认投递</h1><div class="sub">AI 已为你匹配高契合度岗位，请逐条确认后再发起投递</div></div>
+        </div>
+        <div class="toolbar">
+          <button class="btn btn-primary btn-sm" onclick="alert('已对勾选岗位发起投递（半自动·需本机 Agent 执行）')">确认选中并投递（3）</button>
+          <button class="btn btn-secondary btn-sm">全部忽略</button>
+          <span class="count">今日已投递 12 / 限额 20</span>
+        </div>
+
+        <div class="card">
+          <div class="job">
+            <div class="match">92<small>匹配</small></div>
+            <div class="info">
+              <div class="title">Java 开发工程师 · 某科技公司</div>
+              <div class="meta">上海 · 全职 · 15-25K · 1天前</div>
+              <div class="why">匹配理由：<b>技能 87%</b> 吻合（Java/Spring/微服务）；<b>地点</b> 命中偏好；<b>薪资</b> 在可接受区间。</div>
+            </div>
+            <div class="acts">
+              <button class="btn btn-primary btn-sm" onclick="this.closest('.card').style.opacity=.5">确认</button>
+              <button class="btn btn-secondary btn-sm">忽略</button>
+              <button class="btn btn-secondary btn-sm">稍后</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="job">
+            <div class="match">85<small>匹配</small></div>
+            <div class="info">
+              <div class="title">后端开发 · 某互联网公司</div>
+              <div class="meta">杭州 · 全职 · 18-30K · 2天前</div>
+              <div class="why">匹配理由：<b>经验</b> 符合（2年+）；<b>技术栈</b> 重合度高；<b>学历</b> 满足要求。</div>
+            </div>
+            <div class="acts">
+              <button class="btn btn-primary btn-sm">确认</button>
+              <button class="btn btn-secondary btn-sm">忽略</button>
+              <button class="btn btn-secondary btn-sm">稍后</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="job">
+            <div class="match">79<small>匹配</small></div>
+            <div class="info">
+              <div class="title">软件开发工程师 · 某创业公司</div>
+              <div class="meta">远程 · 全职 · 面议 · 3天前</div>
+              <div class="why">匹配理由：<b>远程</b> 命中偏好；<b>技能</b> 基本吻合；薪资需确认。</div>
+            </div>
+            <div class="acts">
+              <button class="btn btn-primary btn-sm">确认</button>
+              <button class="btn btn-secondary btn-sm">忽略</button>
+              <button class="btn btn-secondary btn-sm">稍后</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 其余页面占位（各屏交互原型在 U1–U11 交付） -->
+      <div class="page placeholder" id="page-other" style="display:none">
+        本屏交互原型将在对应 U 阶段工作包交付。<br>当前为全局导航外壳（app-shell）示意。
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+  // 极简导航高亮 + 内容切换（仅演示外壳；真实内容见各 Ux 原型）
+  const pages = {home:'page-home', resume:'page-other', jobs:'page-other', apps:'page-other',
+    strategy:'page-other', adapter:'page-other', interview:'page-other', notify:'page-other',
+    report:'page-other', member:'page-other', settings:'page-other'};
+  document.getElementById('nav').addEventListener('click', e=>{
+    const a = e.target.closest('a'); if(!a) return;
+    e.preventDefault();
+    document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+    a.classList.add('active');
+    Object.values(pages).forEach(id=>document.getElementById(id).style.display='none');
+    const key=a.dataset.page;
+    const target=pages[key];
+    document.getElementById(target).style.display = (target==='page-home')?'block':'block';
+    if(key!=='home'){ document.getElementById('page-other').style.display='block'; }
+  });
+</script>
+</body>
+</html>
