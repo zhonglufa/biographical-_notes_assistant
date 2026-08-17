@@ -20,23 +20,23 @@
 | A06 | POST /resumes/{id}/ats | stubs/resume.py | A06 resumes-ats | resume-ats.request ✓ | resume-ats.response ✓ | 服务端 Resume | 桩✅ |
 | A07 | GET /jobs | stubs/jobs.py | A07 jobs-search | jobs-search.request ✓ | jobs-list.response ✓ | 服务端 Jobs | 桩✅ |
 | A08 | POST /jobs/{id}/favorite | stubs/jobs.py | A08 jobs-favorite | jobs-favorite.request ✓ | jobs-favorite.response ✓ | 服务端 Jobs | 桩✅ |
-| A09 | POST /applications/batch | stubs/applications.py(待) | A09 applications-batch | None(HLD§4.2) | None(HLD§4.2) | 服务端 Applications | schema pending |
-| A10 | GET /applications | stubs/applications.py(待) | A10 applications-list | None(无体) | applications-list.response ✓ | 服务端 Applications | schema pending(req) |
-| A11 | GET /applications/{id} | stubs/applications.py(待) | A11 applications-detail | None(HLD§4.3) | None(HLD§4.3) | 服务端 Applications | schema pending |
-| A12 | GET /strategies | stubs/strategies.py(待) | A12 strategies-get | None(无体) | strategies.response ✓ | 服务端 Strategies | 待落地 |
-| A13 | PUT /strategies | stubs/strategies.py(待) | A13 strategies-update | strategies.request ✓ | strategies.response ✓ | 服务端 Strategies | 待落地 |
-| A14 | GET /adapters | stubs/adapters.py(待) | A14 adapters-list | None(HLD§4.4) | None(HLD§4.4) | 服务端 Adapters | schema pending |
-| A15 | POST /adapters/{id}/enable | stubs/adapters.py(待) | A15 adapter-enable | adapter-enable.request ✓ | adapter-enable.response ✓ | 服务端 Adapters | 待落地 |
-| A16 | GET /interviews/questions | stubs/interview.py(待) | A16 interview-questions | None(无体) | interview-questions.response ✓ | 服务端 Interview | 待落地 |
-| A17 | POST /interviews/sessions | stubs/interview.py(待) | A17 interview-session-create | interview-session-create.request ✓ | interview-session-create.response ✓ | 服务端 Interview | 待落地 |
-| A18 | POST /interviews/sessions/{id}/answer | stubs/interview.py(待) | A18 interview-session-answer | interview-session-answer.request ✓ | interview-session-answer.response ✓ | 服务端 Interview | 待落地 |
-| A19 | GET /interviews/sessions/{id}/report | stubs/interview.py(待) | A19 interview-session-report | None(无体) | interview-session-report.response ✓ | 服务端 Interview | 待落地 |
-| A20 | POST /payments/orders | stubs/payments.py(待) | A20 payments-order | payments-order.request ✓ | payments-order.response ✓ | 服务端 Payments | 待落地 |
-| A21 | POST /payments/callback | stubs/payments.py(待) | A21 payments-callback | payments-callback.request ✓ | None(HLD§4.10) | 服务端 Payments | schema pending(resp) |
-| A22 | GET /notifications | stubs/notifications.py(待) | A22 notifications-list | None(无体) | notifications-list.response ✓ | 服务端 Notifications | 待落地 |
-| A23 | GET /notifications/ws | stubs/notifications.py(待) | A23 notification-ws | None(无体) | notification-ws.response ✓ | 服务端 Notifications | 待落地 |
-| A24 | GET /daily-report/today | stubs/dailyreport.py(待) | A24 daily-report-today | None(无体) | daily-report-today.response ✓ | 服务端 DailyReport | 待落地 |
-| A25 | PUT /users/daily-report/preference | stubs/dailyreport.py(待) | A25 daily-report-preference | daily-report-preference.request ✓ | daily-report-preference.response ✓ | 服务端 DailyReport | 待落地 |
+| A09 | POST /applications/batch | stubs/applications.py | A09 applications-batch | None(HLD§4.2) | None(HLD§4.2) | 服务端 Applications | 桩✅(req/resp schema pending·HLD§4.2) |
+| A10 | GET /applications | stubs/applications.py | A10 applications-list | None(无体) | applications-list.response ✓ | 服务端 Applications | 桩✅ |
+| A11 | GET /applications/{id} | stubs/applications.py | A11 applications-detail | None(HLD§4.3) | None(HLD§4.3) | 服务端 Applications | 桩✅(resp schema pending·HLD§4.3) |
+| A12 | GET /strategies | stubs/strategies.py | A12 strategies-get | None(无体) | strategies.response ✓ | 服务端 Strategies | 桩✅ |
+| A13 | PUT /strategies | stubs/strategies.py | A13 strategies-update | strategies.request ✓ | strategies.response ✓ | 服务端 Strategies | 桩✅ |
+| A14 | GET /adapters | stubs/adapters.py | A14 adapters-list | None(HLD§4.4) | None(HLD§4.4) | 服务端 Adapters | 桩✅(req/resp schema pending·HLD§4.4) |
+| A15 | POST /adapters/{id}/enable | stubs/adapters.py | A15 adapter-enable | adapter-enable.request ✓ | adapter-enable.response ✓ | 服务端 Adapters | 桩✅ |
+| A16 | GET /interviews/questions | stubs/interview.py | A16 interview-questions | None(无体) | interview-questions.response ✓ | 服务端 Interview | 桩✅ |
+| A17 | POST /interviews/sessions | stubs/interview.py | A17 interview-session-create | interview-session-create.request ✓ | interview-session-create.response ✓ | 服务端 Interview | 桩✅ |
+| A18 | POST /interviews/sessions/{id}/answer | stubs/interview.py | A18 interview-session-answer | interview-session-answer.request ✓ | interview-session-answer.response ✓ | 服务端 Interview | 桩✅ |
+| A19 | GET /interviews/sessions/{id}/report | stubs/interview.py | A19 interview-session-report | None(无体) | interview-session-report.response ✓ | 服务端 Interview | 桩✅ |
+| A20 | POST /payments/orders | stubs/payments.py | A20 payments-order | payments-order.request ✓ | payments-order.response ✓ | 服务端 Payments | 桩✅ |
+| A21 | POST /payments/callback | stubs/payments.py | A21 payments-callback | payments-callback.request ✓ | None(HLD§4.10) | 服务端 Payments | 桩✅(resp schema pending·HLD§4.10) |
+| A22 | GET /notifications | stubs/notifications.py | A22 notifications-list | None(无体) | notifications-list.response ✓ | 服务端 Notifications | 桩✅ |
+| A23 | GET /notifications/ws | stubs/notifications.py | A23 notification-ws | None(无体) | notification-ws.response ✓ | 服务端 Notifications | 桩✅ |
+| A24 | GET /daily-report/today | stubs/dailyreport.py | A24 daily-report-today | None(无体) | daily-report-today.response ✓ | 服务端 DailyReport | 桩✅ |
+| A25 | PUT /users/daily-report/preference | stubs/dailyreport.py | A25 daily-report-preference | daily-report-preference.request ✓ | daily-report-preference.response ✓ | 服务端 DailyReport | 桩✅ |
 
 ## 待补 schema（B 阶段或并行子代理落地时处理）
 - **A09 / A11**：ref `HLD §4.2 / §4.3`，需从 HLD 提取请求/响应 schema 后落地严格校验。
