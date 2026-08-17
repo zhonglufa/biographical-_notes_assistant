@@ -117,3 +117,16 @@
 - **④状态回传**：Q14/Q15 → 已完成；PROJECT_BRAIN §2/§7 标 V3 8 屏(Q8-Q15)全完、队首转 Q2(灰度·R1)；本条目即回传。
 - **⑤日志与告警**：无新增阻塞/告警；合同缺口登记：A20/A21 金额前端仅展示、payUrl 不真跳转、MockPay 模拟 A21（生产接真实支付网关时补）；R3 业务项 A1-A6 仍在 TASK-ALERTS.md 待你拍板，未臆测。
 - **V3 阶段总结**：Q8(U9)→Q9(U3)→Q10(U1)→Q11(U2)→Q16(React→Vue)→Q12(U4)→Q13(U5)→Q14(U6)→Q15(U7) 全部转化完成，本地不部署。下一队首 Q2 灰度(R1 合规基座)。
+
+## [2026-08-18T02:4x+08:00] tick=manual 阶段=①②③④⑤ 任务=Q2(灰度)+Q3(PIPL crypto-shred)+Q4(法检痕迹) 状态=OK
+- **①定时触发**：读 PROJECT_BRAIN §2+§7 + TASK-QUEUE(队首 Q2) + TASK-ALERTS(A1-A6) + 当日日志；确认 V3 八屏(Q8-Q15)已完、循环 ACTIVE。
+- **②分发**：认领 Q2+Q3+Q4（连续三条 R1 合规基座，设计文档+代码骨架均可自驱），写 .task-claims.json 防重复认领。
+- **③执行**：
+  - Q2 灰度：`design/guardrails/gray-release.md`(Runbook：fail-safe默认关+kill-switch+灰度流程+回滚阈值) + `scaffold/src/feature_flags.py`(开关编排：默认关/kill-switch/override持久化，修复 flags 合并语义 bug)。
+  - Q3 PIPL：`design/guardrails/pipl-crypto-shred.md`(引用 PIPL合规设计补充.md §2.3) + `scaffold/src/crypto_shred.py`(信封加密+shred_user 销毁KEK→历史备份不可解密；MockCipher仅自测，生产待接密钥工程LLD+KMS)。
+  - Q4 法检：`design/guardrails/legal-audit-trail.md` + `scaffold/src/audit_log.py`(SHA256哈希链 prev_hash，篡改可检；修复 os 未 import bug)。
+  - `scaffold/tests/test_guardrails.py`：三护栏编排逻辑单测(10断言全PASS)；修复中发现 feature_flags flags 合并语义错误 + audit_log 缺 os import，均已修。
+  - REVIEW-1 双闸门实跑全绿（66/6 + PRD-HLD v4.5）；REVIEW-2 自审无偏离；REVIEW-3 红线：未部署/未引真实凭据/未 push 远端；crypto-shred 真实密钥派生/KMS 与律师签字明确标用户决策点。
+- **④状态回传**：Q2/Q3/Q4 → 已完成；PROJECT_BRAIN §2/§7 标 D 护栏4/5/6 备基座完成、R1 自驱 backlog 耗尽、下一待用户决策(Q1/A1-A6/Q5-Q7)；本条目即回传。
+- **⑤日志与告警**：无新增阻塞/告警；诚实边界登记：Q2 灰度策略取值/物理启用、Q3 真实KEK/KMS(Q5)/律师签字(Q7)、Q4 专家复核动作 均仅用户(不伪造完成)；R3 业务项 A1-A6 仍在 TASK-ALERTS 待拍板。
+- **结论**：R1 自驱 backlog 已耗尽(V3八屏 + D三护栏基座)。剩余全部为用户决策/物理动作。循环下轮将「无待办」待命。

@@ -19,9 +19,9 @@
 | Q13 | V3 · 转化 U5 适配器管理（A14/A15） | V | 工程师 | 已完成（2026-08-18 02:2x tick） | 6态色点+文本标签(AdapterStatusDot内联)+健康子态+启用闸门复用U3二次确认+10s撤销；`frontend/src/screens/Adapter.vue`+api.js(A14/A15 mock补齐)+router(/adapters)+App.vue导航「平台管理」；**合同缺口**：A14响应不含isPro→本地mock全pro(启用按钮可用)；未部署(物理动作Q5) |
 | Q14 | V3 · 转化 U6 面试模拟（A16–A19） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 三视图(备战/模拟/报告)严格对齐 U6-arch §4；摄像头本地占位不采集(红线)；`frontend/src/screens/Interview.vue`+api.js(A16-A19 mock)+router(/interview)+App.vue导航「面试模拟」；未部署(物理动作Q5) |
 | Q15 | V3 · 转化 U7 支付会员（A20/A21） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 套餐对比+下单面板(A20)+支付弹窗(payUrl占位)+订单5态+降级横幅+幂等；`frontend/src/screens/Payment.vue`+api.js(A20/A21 mock)+router(/membership)+App.vue导航「我的会员」；**合同缺口**：A20/A21 金额前端仅展示(分→元)、payUrl 不真跳转、MockPay 模拟 A21；未部署(物理动作Q5) |
-| Q2 | 护栏4 · 灰度开关 + 回滚预案（设计/Runbook） | D | 工程师 | 待办 | R1 设计文档+回滚脚本骨架；物理灰度开关启用仍仅你触发 |
-| Q3 | 护栏5 · PIPL crypto-shred + 合规设计（设计/文档） | D | 工程师 | 待办 | R1 合规设计文档+加密存储接口落地；法定签署(Q7)仍仅你触发 |
-| Q4 | 护栏6 · 法检专家复核痕迹（可追溯设计） | D | 工程师 | 待办 | R1 复核痕迹/审计日志设计；专家复核动作待你安排 |
+| Q2 | 护栏4 · 灰度开关 + 回滚预案（设计/Runbook） | D | 工程师 | 已完成（2026-08-18 本轮回填） | `design/guardrails/gray-release.md` + `scaffold/src/feature_flags.py`(fail-safe默认关+kill-switch，单测通过)；灰度策略取值/物理启用仍仅你触发 |
+| Q3 | 护栏5 · PIPL crypto-shred + 合规设计（设计/文档） | D | 工程师 | 已完成（2026-08-18 本轮回填） | `design/guardrails/pipl-crypto-shred.md`(引用 PIPL合规设计补充.md) + `scaffold/src/crypto_shred.py`(KEK销毁→历史备份不可解密，单测通过)；真实KEK派生/KMS(Q5)/律师签字(Q7)仅你 |
+| Q4 | 护栏6 · 法检专家复核痕迹（可追溯设计） | D | 工程师 | 已完成（2026-08-18 本轮回填） | `design/guardrails/legal-audit-trail.md` + `scaffold/src/audit_log.py`(SHA256哈希链篡改可检，单测通过)；专家复核动作待你安排真实专家 |
 | Q1 | 阶段二 RAG 检索管线（面试模拟/求职建议 grounded 在真实题库/劳动法） | S2 延展 | 架构师+工程师 | 待办 | 用户 2026-08-17：核心闭环跑通前不急，属阶段二能力 |
 
 ## 阻塞 · 待用户拍板（R3 业务逻辑 / 合规延后）

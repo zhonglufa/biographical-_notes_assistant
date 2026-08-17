@@ -1,8 +1,8 @@
-V3收尾: Q14 U6面试模拟(A16-A19) + Q15 U7支付会员(A20/A21) 生产组件 + 路由/导航 + mock补齐 + vite build通过
+D阶段合规基座: Q2灰度(Q4)+Q3 PIPL crypto-shred(Q5)+Q4 法检哈希链(Q6) 设计文档+代码骨架+单测
 
-- 新建 frontend/src/screens/Interview.vue：三视图(备战/模拟/报告)严格对齐 U6-arch §4；A16题集手风琴(aria-expanded单卡展开)/A17建会话(配额-1)/A18对话气泡+aria-live/A19报告(综合分+4维度条形+degradeFlag)；摄像头本地占位红线(不调getUserMedia)/语音占位；配额mock(专业版10/日)；U11加载·错误·空态·响应式三档
-- 新建 frontend/src/screens/Payment.vue：当前套餐卡+套餐对比+下单面板(A20)+支付弹窗(payUrl占位)+订单5态(OrderStateBadge)+降级横幅+幂等(重复支付拦截)；U11模式+响应式三档
-- api.js 补 A16-A21 业务方法+mock（原缺6端点→NOT_MOCKED，已补）；router.js 加 /interview+/membership；App.vue 加「面试模拟」「我的会员」导航
-- 验证：npm run build 实跑 1618模块 10.68s（仅chunk体积警告非错误）；双闸门+pre-commit三闸门全绿
-- 状态回传：TASK-QUEUE Q14/Q15→已完成；TASK-LOG 追加本轮五阶段记录；PROJECT_BRAIN §2/§7 标 V3 8屏(Q8-Q15)全完、队首转 Q2；.task-claims.json 认领/释放
-- 合同缺口：A20/A21 金额前端仅展示(分→元)、payUrl不真跳转、MockPay模拟A21(生产接真实支付网关补)；未部署/未引真实凭据/未push远端
+- design/guardrails/gray-release.md + scaffold/src/feature_flags.py：fail-safe 默认关 + kill-switch 全局回滚 + override 持久化；修复 flags 合并语义 bug(传入 flags 应合并 DEFAULT_FLAGS 而非替换)
+- design/guardrails/pipl-crypto-shred.md(引用 PIPL合规设计补充.md §2.3) + scaffold/src/crypto_shred.py：信封加密 + shred_user 销毁 KEK → 历史备份不可解密；MockCipher 仅自测，生产待接密钥工程 LLD + KMS(用户配主密钥 Q5)
+- design/guardrails/legal-audit-trail.md + scaffold/src/audit_log.py：SHA256 哈希链(prev_hash)防篡改；修复 os 未 import bug
+- scaffold/tests/test_guardrails.py：三护栏编排逻辑单测(10断言全PASS)；全量 scaffold 14 测试文件全绿
+- 状态回传：TASK-QUEUE Q2/Q3/Q4→已完成；TASK-LOG 追加；PROJECT_BRAIN §2/§7 标 D 三护栏备基座完成、R1 自驱 backlog 耗尽
+- 诚实边界：灰度策略取值/物理启用(Q5)、真实 KEK/KMS(Q5)/律师签字(Q7)、专家复核动作 均仅用户；未部署/未引真实凭据/未 push 远端
