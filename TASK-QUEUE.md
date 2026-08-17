@@ -15,7 +15,7 @@
 | Q10 | V3 · 转化 U1 简历工作台（A04/A05/A06） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 简历列表/版本时间线/ATS 异步评分环；`frontend/src/screens/Resume.jsx`+api.js(A04_LIST/A04/A05/A05_PREFER/A06)+mock+路由；**合同缺口**：列表与设为首选无契约端点→本地 mock store（与 A10 同处理）；未部署（物理动作 Q5） |
 | Q11 | V3 · 转化 U2 岗位浏览（A07/A08） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 搜索/筛选+平台 chips+matchBand 环+收藏|忽略|详情+分页+U11+响应式；`frontend/src/screens/Jobs.jsx`+api.js(A07/A08 路径修正+同形 mock)+路由；**合同缺口**：jobStub 不含 ignored→前端态 `ignoredSet`(与 A10/A04_LIST 同处理)；未部署（物理动作 Q5） |
 | Q16 | V3 · 前端技术栈回退 Vue3+Element Plus（React→Vue 重写） | V | 工程师 | 已完成（2026-08-18 本轮回填） | **R2 已拍板（严守 ADR-010）**：脚手架已就位并补齐 `App.vue`/6 屏 .vue/`components/UI.js`；删除 React 残留；`vite build` ✅ 1620 模块 11.36s；commit a03fe33；下一队首 Q12(U4) |
-| Q12 | V3 · 转化 U4 策略配置（A12/A13） | V | 工程师 | 待办 | 投递策略 |
+| Q12 | V3 · 转化 U4 策略配置（A12/A13） | V | 工程师 | 已完成（2026-08-18 02:04 tick · 并发完成） | 匹配阈值/日限/平台/黑名单四字段；`frontend/src/screens/Strategy.vue`+api.js(A12/A13 mock)+router+App+UI.js Toast 修复+Jobs.vue 样式；并发 tick `aa00d98` 完成；build 1612 模块绿；**合同缺口=NONE**（A12/A13 schema 4 字段 + 写响应 ok+updatedAt 全，registry fully-detailed）；护栏联动=dailyLimit→U3 限额同源、matchThreshold→本机 Agent plan() 过滤 low 匹配（LLD v1.3 已约定）；未部署（物理动作 Q5） |
 | Q13 | V3 · 转化 U5 适配器管理（A14/A15） | V | 工程师 | 待办 | 平台账号适配器（含删除撤销 U11 §5） |
 | Q14 | V3 · 转化 U6 面试模拟（A16–A19） | V | 工程师 | 待办 | AI 面试模拟会话 |
 | Q15 | V3 · 转化 U7 支付会员（A20/A21） | V | 工程师 | 待办 | 订单/会员 |

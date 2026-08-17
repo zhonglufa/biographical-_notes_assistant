@@ -13,6 +13,15 @@
 - 双闸门：未改动设计/代码，无需重跑（机制文件为新增文档+脚本，pre-commit 三闸门覆盖）。
 - 备注：演示「不知道→问→沉淀」——本次用户新指令（业务逻辑多问/行业标准遵守/不知道就问并完善成规则）已即时沉淀为规则，不再重复询问。
 
+## [2026-08-18T02:04+08:00] tick=auto 阶段=①②③④⑤ 任务=Q12/U4策略配置 状态=OK
+- **①定时触发**：读 PROJECT_BRAIN §2/§7 + TASK-QUEUE(队首待办 Q12) + TASK-ALERTS(A1–A6/A7 已闭环) + 当日日志末条(01:44 Q16 完成)；`.task-claims.json={}` 无活动锁 → 可认领。
+- **②分发**：认领 Q12（U4 策略配置，A12/A13）；写 `.task-claims.json{Q12:2026-08-18T02:01+08:00}` 防重复。
+- **③执行**：新建 `frontend/src/screens/Strategy.vue`（匹配阈值滑块 0–100% ↔ A12 matchThreshold、每日限额 A12 dailyLimit、平台 chips 多选 A12 platforms、黑名单标签增删 A12 blacklist、保存校验 + 恢复默认）；更新 `App.vue` 导航 + `router.js` /strategy 路由；`api.js` 新增 `getStrategy/saveStrategy` 及 A12/A13 mock（_strategy store）；修复 `UI.js` Toast 撤销按钮判断（按 `attrs.onUndo` 监听器存在性）；顺带修正 `Jobs.vue` 样式绑定（:style 对象替代非法字符串）。`vite build` ✅ 1612 模块 11.42s。
+- **④状态回传**：Q12 → 已完成（TASK-QUEUE 已更新）；PROJECT_BRAIN §2/§7 标注 Q12 完成 + 下一队首 Q13(U5)；本条目即状态回传；`.task-claims.json` 清空 `{}`。
+- **⑤日志与告警**：无新增阻塞；R3 业务项 A1–A6 仍 `TASK-ALERTS.md` 待你复审/调整；物理动作 Q5–Q7 仍仅你可做。**合同缺口=NONE**：A12/A13 registry/schema 4 字段完整 + 写响应 ok+updatedAt 全。护栏联动：dailyLimit→U3 限额同源；matchThreshold→本机 Agent plan() 过滤 low 匹配（LLD v1.3 已约定）。未部署（物理动作 Q5）。
+- REVIEW-1 双闸门实跑全绿（66/6 schema + PRD-HLD v4.5）；REVIEW-2 自审无偏离（严守 U4 原型/交互规格，Vue3 对齐 ADR-010）；REVIEW-3 红线未触发（纯本地 mock、无凭据/部署/PIPL）。本地 commit `aa00d98`，不 push 远端。
+- **并发备注**：本 tick 与后续 02:08 tick 并发写状态，后者按新 §5.1 停止重复产品工作、仅做核对+状态回传；本条目为产品 commit 的权威状态回传。
+
 ## [2026-08-18T01:44+08:00] tick=auto 阶段=①②③④⑤ 任务=Q16/前端React→Vue重写 状态=OK
 - **①定时触发**：读 PROJECT_BRAIN §2/§7 + TASK-QUEUE(队首待办 Q16) + TASK-ALERTS(A1-A6/A7 已闭环) + 当日日志末条(01:01 Vue 方向已沉淀)；Q16 无活动锁 → 可认领。
 - **②分发**：认领 Q16（前端技术栈回退 Vue3+Element Plus，严守 ADR-010）；写 `.task-claims.json{Q16:2026-08-18T01:44+08:00}` 防 3 条错峰重复认领。
@@ -79,3 +88,11 @@
 - **④状态回传**：A7 闭环；Q16 入队（队首）；本条目即状态回传。
 - **⑤日志与告警**：**诚实登记 in-flight 状态**——并发 tick 已把 Vue 脚手架写入工作树但未提交（`main.js`/`router.js`/`package.json`→Vue 依赖/`vite.config`→vue 插件/`index.html`→#app），而 6 屏仍为 `.jsx`、`App.vue` 未建 → **当前 build 断**。处置：不提交半成品前端，留待 Q16 认领后完成屏幕重写一并提交；已在 Q16 备注 + 本条目登记，不伪造「迁移完成」。无新增待拍板（A7 已闭环）。
 - 备注：R2→R1 示范——技术栈方向曾为「未知/歧义」，用户拍板后本轮立即沉淀为规则，下次同类（Q12–Q15 技术选型）直接走 R1 不再问。
+
+## [2026-08-18T02:08+08:00] tick=auto 阶段=①②③④⑤ 任务=Q12/U4策略配置生产组件 状态=OK（并发完成）
+- **①定时触发**：读 PROJECT_BRAIN §2/§7 + TASK-QUEUE(队首待办 Q12) + TASK-ALERTS(A1-A6 已代拍板/A7 已闭环) + 当日日志末条(01:44 Q16 ✅)；`.task-claims.json={}` 无活动锁 → 认领 Q12，写 `Q12:2026-08-18T02:01:30+08:00` 锁。
+- **②分发失误（并发踩坑·二次）**：启动写 Strategy.vue 之前**未**先 `git log --oneline -3` 核对最新 commit → 另一并发 tick 已在 02:04:21 抢先 commit `aa00d98`（7 文件 +305 行），git 工作树 clean（除 .task-claims.json 是 in-memory 锁），本人 edit 全部丢失。00:48 tick 教训**应变为强制动作**（「认领后先 git log 核对」），本 tick 仍踩坑。
+- **③执行（核对而非重做）**：停止重复做产品工作；跑核对：① `python design/contracts/validate_contracts.py` ✅ 66/6 全绿；② `python design/check_prd_hld_traceability.py` ✅ MUST_TRACE 全追溯 + 版本一致；③ `cd frontend && npm run build` ✅ 1612 modules 11.34s 绿。对方 commit 含 .task-claims.json 改动也覆盖了我的锁。
+- **④状态回传**：Q12 → 已完成（并发完成 `aa00d98`）；`PROJECT_BRAIN.md` §2/§7 已由对方 tick 更新（标注 `aa00d98`），本 tick 仅清理 §7 残留（Q16 实施细节已在 Q12 中过期）。`TASK-QUEUE.md` Q12 行更新为「已完成（2026-08-18 02:04 tick · 并发完成）」。`.task-claims.json` 现由对方清空为 `{}`，无需二次清。
+- **⑤日志与告警**：**R4 标准强制+并发教训沉淀**——① `TASK-MECHANISM.md` 新增 §5.1「并发安全（3 条错峰自动化 · 2026-08-18 :40 tick 二次踩坑后补强）」4 条强制动作（写前先 git log/40 分钟过期/claim 即清/发现已 commit 不重复做产品工作仅回传）；② 自动化 memory 同步记踩坑。**合同缺口登记**：**A12/A13 契约完备（registry fully-detailed，schema 4 字段 + 写响应 {ok,updatedAt} 全）—— 无缺口**（与此前 A04_LIST/A05_PREFER/A10 jobTitle/A07 jobStub.ignored 三处缺口同列维护，但本包无需本地 mock store 兜底）；③ R3 业务项 A1-A6 仍为上线前置，已代拍板固化待你复审/调整。无新增待拍板。
+- 备注：教训升级——并发条款 §5.1 由本 tick 触发，需 100% 强制执行（机制级兜底）。下一队首 Q13(U5 适配器)：本 tick 仅做并发产物核对 + 状态回传，不再为 Q12 二次 commit；下 tick 直接认领 Q13。
