@@ -17,17 +17,20 @@
   5. PIPL crypto-shred + 合规设计 ⏸ **用户 2026-08-17 延后/跳过**
   6. 法检专家复核痕迹 ⏸ **用户 2026-08-17 延后/跳过**
 - ⚠️ **范围裁剪（用户 2026-08-17 拍板）**：用户明确"合规/法务不用，直接跳过，没做灰度发布，先不要搞" → **D 阶段（S3）整体跳过**。本次 /goal 修正为：**A+B+C+U 四阶段交付 + 护栏 1/2/3 就位**即视为达成；护栏 4/5/6 不在本次交付范围，属用户风险自担，循环**不伪造"已就位"**，最终报告如实标注「用户延后」。
-- 四阶段（纳入 /goal，自主推进至完成）：
+- 七阶段（纳入 /goal，自主推进至完成）：
   - **S1 阶段一基线**：76 条 B 类验收标准→可验证证据看板条目；25 核心接口(A01–A25)按契约全量落地且双闸门通过；交付前自检清单补全、图信息说明书收敛。✅
   - **S2 阶段二**：RAG 架构与成本方案（含硬上限/熔断）落地；轻量监控（LLM 成本/封号率/投递成功率/错误率）接入。✅
-  - **U 阶段 · UI/交互设计（2026-08-17 用户补充）**：设计系统基础 + 信息架构/导航 + 各用户面 UI 设计稿（可交互 HTML 原型）+ 交互设计总纲（加载/错误/空态/确认闸门/撤销/无障碍）；覆盖 A01–A25 全部用户面。🔄 进行中
+  - **U 阶段 · UI/交互设计（2026-08-17 用户补充）**：设计系统基础 + 信息架构/导航 + 各用户面 UI 设计稿（可交互 HTML 原型）+ 交互设计总纲；覆盖 A01–A25 全部用户面。🔄 进行中
+  - **V 阶段 · 原型→生产前端转化（2026-08-17 补强闭环 B 新增）**：将 U 阶段 mock 原型转为接入真实契约 API 的前端代码骨架（本地，不部署）；由工程师角色执行。
+  - **T 阶段 · 真实测试闭环（补强 B 新增）**：QA 对 scaffold + 前端跑功能/集成/E2E（非仅设计一致性）；由 QA 角色执行。
+  - **O 阶段 · 运维就绪（补强 B 新增，DevOps/SRE 视角）**：产出 CI/CD 配置 + 轻量 CD 脚本 + 监控接入代码（不真部署）；SoftwareCompany 体系无 DevOps agent，由 general-purpose 代理该角色。部署上线/真实用户仍属用户独有动作，O 阶段只做到「生产就绪脚本」。
   - **S3 阶段三（D 阶段）** ⏸ **用户跳过**：原 PIPL 合规设计 + 灰度发布方案，本次不做。
 
 ---
 
 ## 2. 当前状态（循环每轮回写）
 - **所处阶段**：✅ **A+B+C 三阶段 + 护栏 1/2/3 全部达成**；🔄 **U 阶段（UI/交互设计）进行中**（用户 2026-08-17 指出原交付缺 UI 设计稿/交互设计，已纳入 /goal 续推）。护栏 4/5/6 用户延后，不计入。循环已重新激活（automation-1786905748859 置 ACTIVE）续推 U 阶段。
-- **完成度**：**A+B+C 三阶段全部达成 ✅** —— A 阶段 S1 基线（A1 看板76/76·A2 25 接口契约落地·A3 自检·A4 图说明全部 ✅）；B 阶段（B1 本机 Agent ✅ · B2 服务端 API/LLM 匹配/通知/状态机 ✅ · B3 契约运行时+事件总线+测试基座 ✅）；C 阶段（C1 RAG 架构+成本方案/护栏2 ✅ · C2 轻量监控/护栏3 ✅）。`scaffold` 共 12 个测试文件全 PASS，双闸门全绿，冒烟 25/25。**U 阶段进行中**：U0 设计系统+IA+导航已落地（`design/ui/00-design-system.html`+`01-app-shell.html`+`ia-nav.md`），**U-动效已落地**（`design/ui/02-motion-system.html` + app-shell 真实确认动效 + 设计系统"动效"章节）；**U1 简历工作台(A04/A05/A06) / U2 岗位浏览(A07/A08) / U3 投递管理(A09/A10/A11) / U4 策略配置(A12/A13) 已落地**（`design/ui/screens/U1-resume.html`+`U2-jobs.html`+`U3-applications.html`+`U4-strategy.html` + `design/ui/interaction-U1~U4.md`）；**U5–U11 待续推**。
+- **完成度**：**A+B+C 三阶段全部达成 ✅** —— A 阶段 S1 基线（A1 看板76/76·A2 25 接口契约落地·A3 自检·A4 图说明全部 ✅）；B 阶段（B1 本机 Agent ✅ · B2 服务端 API/LLM 匹配/通知/状态机 ✅ · B3 契约运行时+事件总线+测试基座 ✅）；C 阶段（C1 RAG 架构+成本方案/护栏2 ✅ · C2 轻量监控/护栏3 ✅）。`scaffold` 共 12 个测试文件全 PASS，双闸门全绿，冒烟 25/25。**U 阶段进行中**：U0 设计系统+IA+导航已落地（`design/ui/00-design-system.html`+`01-app-shell.html`+`ia-nav.md`），**U-动效已落地**（`design/ui/02-motion-system.html` + app-shell 真实确认动效 + 设计系统"动效"章节）；**U1 简历工作台(A04/A05/A06) / U2 岗位浏览(A07/A08) / U3 投递管理(A09/A10/A11) / U4 策略配置(A12/A13) 已落地**（`design/ui/screens/U1-resume.html`+`U2-jobs.html`+`U3-applications.html`+`U4-strategy.html` + `design/ui/interaction-U1~U4.md`）；**U5 适配器管理(A14/A15) 已落地（多角色流水线首包：PM/Arch/Eng/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U6–U11 待续推**。
 - **文档基线**：PRD v4.5 / HLD v3.35 / LLD（18 模块）
 - **护栏现状**：**护栏 1 双闸门 CI ✅** · **护栏 2 LLM 成本硬上限+熔断 ✅**（`scaffold/src/llm_match.py` CostGuard + `cost_policy.py` BudgetPolicy）· **护栏 3 封号率监控 ✅**（`scaffold/src/monitor.py` LightweightMonitor，4 指标+阈值告警）；**护栏 4/5/6（灰度回滚 / PIPL crypto-shred+合规 / 法检复核）= 用户 2026-08-17 明确延后/跳过，不计入本次 /goal，已如实标注「用户延后」**
 
@@ -51,6 +54,9 @@
 - 2026-08-17 **效率优化（用户反馈"频率低/接不上"）**：平台定时任务最小粒度=每小时一次、单轮原只做 1 包 → 升级为**单轮内批量多包循环**（默认 K=4，时间预算 ~45min，命中阶段 checkpoint/红线即停）；每个包仍独立过双闸门+评审+提交，质量不降。吞吐由 ~1 包/小时 提升至 ~4 包/小时，且单轮内连续无空档、包间"接得上"。
 - 2026-08-17 **U 阶段新增（用户反馈"缺少 UI 设计稿/交互设计"）**：原 /goal 仅覆盖架构/契约/服务端/监控（A+B+C），未含用户可见界面与交互。用户要求补齐 → 新增 **U 阶段 · UI/交互设计**（设计系统 + 信息架构/导航 + 各用户面可交互 HTML 原型 + 交互设计总纲），纳入 /goal；循环续推至 U 完成方 GOAL REACHED。UI 原型用 mock 数据、不触红线。
 - 2026-08-17 **U-动效 + 旧 UI 原型处置（用户"比旧原型好多了，是否加动画/旧原型不需要了请删除"）**：① 动画**加，但克制有目的**——仅服务"半自动确认闸门反馈"与"导航/状态/反馈跟手"，统一动效 token（`design/ui/02-motion-system.html`），尊重系统 `prefers-reduced-motion`；② **旧 UI 原型 = HTML 原型文件（非 SVG 架构图）**——用户 19:31 明确纠正"UI 原型图后缀为 html 不是 svg"。真正的旧 UI 原型为早期 `prototypes-v2.html`/`prototypes-v3.html`（高保真原型 v2/v3）与 `resume-ai-prod.html`（生产级设计方案），**已于 2026-08-17 删除并 git rm**。`design/figures/` 下 **SVG 架构图**用途不同（给开发者/评审看系统怎么搭，被 HLD 与图信息说明书引用），**本就应保留、从未属"旧 UI 原型"**——此前 19:22 轮将"旧原型"误判为 SVG 架构图是识别偏差，已在此纠正；仅 `fig-c2-container-v2.svg.bak` 为无引用备份、已删。旧原型删除后，`distill/distill-001-PRD评审与软件设计阶段规划.md` 第 66 行引用已改注释指向 `design/ui/`。
+- 2026-08-17 **多角色流水线升级（用户选 B）**：用户经问答选定把循环从"一人分饰多角"升级为**真正的多角色独立协作流水线**——主 agent 扮演 **Team Lead** 负责编排与复核，每个 U 包按 **PM(`software-product-manager`)→架构师(`software-architect`)→工程师(`software-engineer`)→QA(`software-qa-engineer`)** 接力完成；每个角色为独立 agent，只产出自己职责范围内的文件/结论，靠 PROJECT_BRAIN.md + 当日日志 + 共享文件传递上下文；主 agent 汇总、过双闸门、本地 commit。代价：token 消耗上升、单轮推进包数降为 **K=1**，换取多视角把关与"真正走完每人流程"。每包认领锁仍用 `design/ui/.u-claims.json`。
+- 2026-08-17 **闭环边界澄清（用户质疑"多角色方案能否真正闭环"）**：B 方案（PM→Arch→Eng→QA 多角色流水线）提升的是**团队生产流程的多角色协作质量**，但**不等于端到端上线闭环**。真正闭环还断在两处：① **部署/上线环节缺失**（无独立 DevOps/SRE 角色 + D 阶段灰度被用户延后），循环到"代码+UI 设计"即止；② **真实用户反馈回路缺失**（需真实运行+真实用户，属用户独有动作）。另有三处 gap：③ U 阶段 Engineer 产出为 **mock 数据可交互原型**，非接入真实后端 API 的**生产前端代码**（原型→生产前端有转化 gap）；④ 当前 QA 为 **UI 设计一致性核查**，非对真实运行系统的功能/集成/E2E 测试；⑤ SoftwareCompany 体系角色为 PM/Arch/Eng/QA/Lead，**无运维角色、无"真实用户"角色**，闭环两端（部署、用户）均缺。自主循环能闭环到的**上限 = 生产就绪的设计+代码骨架+UI 稿+mock 测试，止于"未上线"**；上线闭环须用户介入（提供凭据/部署/引真实用户），循环不伪造完成。
+- 2026-08-17 **补强闭环要素（用户选 B）**：用户在确认"多角色方案不能端到端自动闭环"后，进一步选定在循环内补强 ①②③④——① 加 **DevOps/SRE 角色**（CI/CD 配置+轻量 CD 脚本+监控接入代码，不真部署；SoftwareCompany 无 DevOps agent，由 general-purpose 代理）；② 加 **V 阶段·原型→生产前端转化**（mock 原型接真实契约 API，本地不部署）；③ 加 **角色交接规范 handoff spec**（`design/ui/ROLES-HANDOFF.md`，明确每角色产出文件与下游读取约定，避免各写各的）；④ 加 **T 阶段·真实测试闭环**（QA 跑功能/集成/E2E，非仅设计一致性）。/goal 由 A+B+C+U 扩展为 **A+B+C+U+V+T+O 七阶段 + 护栏1/2/3**；护栏 4/5/6 仍用户延后。⑤ 真实用户反馈回路与部署上线仍属用户独有动作，循环不伪造。
 
 ---
 
@@ -88,10 +94,16 @@
 
 ---
 
-## 8. 循环执行纪律（automation-1786905748859）
-- 每轮（每小时触发一次）：读**本文件 + MEMORY.md + 当日日志** → 进入**单轮内批量循环**：反复选 **ONE 连贯工作包**（一个模块/特性，或一节文档，须完整实现+门禁通过，而非一个微步骤）→ 实现并守双闸门 → 跑双闸门自检（不过则修）→ 本地 commit → **回写本文件 §2/§7 + 当日日志**，直到命中停止条件（阶段 checkpoint 达成 / 已连续完成 K=4 个包 / 接近 ~45min 时间预算 / 遇 REVIEW-3 红线或硬阻塞）。**单轮批量推进以提升吞吐（弥补平台每小时仅触发一次的限制），但每个包仍独立过双闸门+评审+提交，质量不打折**；S2 监控落地（无需调专家复核，D 已跳过）。
-- 电路保护器：同子项连续 2 轮无进展 / 属硬阻塞（缺凭据/法定签署）→ 标 BLOCKED 转其他可独立工作，避免卡死与伪造完成。
-- 终点：**A+B+C+U 四阶段交付 + 护栏 1/2/3 达成**（护栏 4/5/6 用户延后，不计入）→ 日志写 `GOAL REACHED` + 产出「产品交付结果报告 v2」（做了什么/UI 交付清单/护栏状态[含 4/5/6 用户延后标注]/待用户物理操作清单），停止循环。
+## 8. 循环执行纪律（automation-1786905748859 · 多角色流水线版）
+- 主 agent = **Team Lead**：每轮（每 20 分钟一条，共 3 条错峰）读**本文件 + MEMORY.md + 当日日志** → 认领 **ONE 个 U 包**（经 `design/ui/.u-claims.json` 锁，避免 3 条自动化重复认领）→ 按 **四角色接力**推进该包：
+  1. **PM(`software-product-manager`)**：基于 PRD 对应章节(A 编号) + U 阶段规范，产出该包**交互需求/验收清单**（写入 `design/ui/roles/Ux-pm.md`）。
+  2. **架构师(`software-architect`)**：基于需求与设计系统(`00-design-system.html`/`01-app-shell.html`)，产出该包**组件结构/状态/复用决策**（写入 `design/ui/roles/Ux-arch.md`）。
+  3. **工程师(`software-engineer`)**：依据 PM+Arch 产出 + U1–U4 范本，实现**可交互 HTML 原型**（`design/ui/screens/Ux-*.html`）+ **交互规格**（`design/ui/interaction-Ux.md`）。
+  4. **QA(`software-qa-engineer`)**：独立核查——跑双闸门 + UI 一致性（与设计系统/IA 对齐）+ 无障碍基线 + 锚点/交互可用，产出**核查报告**（`design/ui/roles/Ux-qa.md`）；不通过则退回工程师修。
+- Team Lead 汇总四角色产出 → 过 REVIEW-1/2 闸门 → 本地 commit（提交信息含四角色贡献摘要）→ 回写本文件 §2/§7 + 当日日志 + PROGRESS.md。
+- **停止条件**：每轮推进 **K=1** 个 U 包（多角色串行耗时，质量优先）；命中阶段 checkpoint / 遇 REVIEW-3 红线或硬阻塞 → 标 BLOCKED 转其他可独立包；接近 ~45min 时间预算即停。
+- 电路保护器：同包连续 2 轮无进展 / 硬阻塞 → 标 BLOCKED 转其他包，避免卡死与伪造完成。
+- 终点：**U 阶段全完成 + A+B+C 已达成 + 护栏 1/2/3 就位**（护栏 4/5/6 用户延后）→ 日志写 `GOAL REACHED` + 产出「产品交付结果报告 v2」，停止循环。
 - 全程不每轮打扰用户；仅 `GOAL REACHED` 或不可恢复阻塞时出最终报告。
 - 用本文件 + MEMORY.md + 日志维持跨轮连续性（循环是全新会话，无对话记忆）。
 
@@ -122,7 +134,7 @@
 - **U2** ✅ 岗位浏览 UI（A07 搜索 / A08 收藏忽略）—— `design/ui/screens/U2-jobs.html` + `design/ui/interaction-U2.md`
 - **U3** ✅ 投递与半自动确认闸门 UI（A09 批量 / A10 列表 / A11 详情）—— 核心安全交互；`design/ui/screens/U3-applications.html` + `design/ui/interaction-U3.md`
 - **U4** ✅ 策略配置 UI（A12 获取 / A13 更新：匹配阈值/日限额/平台/黑名单）—— `design/ui/screens/U4-strategy.html` + `design/ui/interaction-U4.md`
-- **U5** ⏳ 适配器管理 UI（A14 列表 / A15 启用）
+- **U5** ✅ 适配器管理 UI（A14 列表 / A15 启用）—— **多角色流水线首包（四角色拆分）**：`design/ui/roles/U5-pm.md`(PM)+`U5-arch.md`(Arch)+`screens/U5-adapter.html`(Eng)+`interaction-U5.md`(Eng)+`U5-qa.md`(QA)，五份产物齐全、互相引用（TRACE 头 upstream/downstream）、双闸门实跑全绿；规范见 `design/ui/ROLE-WORKBOOK.md` + 台账 `ROLE-DELIVERABLES.md`
 - **U6** ⏳ 面试模拟 UI（A16 题库 / A17 建会话 / A18 作答 / A19 报告）
 - **U7** ⏳ 支付与会员 UI（A20 下单 / A21 回调）
 - **U8** ⏳ 通知中心 UI（A22 列表 / A23 实时）
@@ -131,6 +143,23 @@
 - **U11** ⏳ 交互设计总纲（全局模式：加载/错误/空态/确认闸门/撤销/无障碍）
 - 交付物：每个面 = 可交互 HTML 原型（`design/ui/screens/*.html`）+ 交互规格（内联或 `design/ui/interaction-*.md`）；U0 基础 = `design/ui/00-design-system.html` + `design/ui/01-app-shell.html` + `design/ui/ia-nav.md`。
 - 评审：UI 原型用 mock 数据、不触红线（无真实 PII/凭据/部署），REVIEW-3 不触发，可自动提交；仍过双闸门（pre-commit 三闸门）保证文档一致性。
+
+### V 阶段 · 原型→生产前端转化（补强 B 新增）🔄 待 U 完成后续推
+- **V1** ⏳ 前端工程化脚手架（基于 U0 设计系统 + 01-app-shell，建立可接入真实 API 的前端项目骨架，本地不部署）
+- **V2** ⏳ U1–U11 原型逐屏转为生产前端组件（按 `design/ui/ROLES-HANDOFF.md` 交接，接入 A01–A25 真实契约 API，mock 数据仅用于本地开发）
+- 角色：工程师(`software-engineer`) 主导；架构师(`software-architect`) 复核组件边界；Team Lead 汇总提交。
+
+### T 阶段 · 真实测试闭环（补强 B 新增）🔄 待 V 完成后续推
+- **T1** ⏳ 功能测试：对 scaffold 各模块跑功能/E2E（非仅设计一致性）
+- **T2** ⏳ 集成测试：本机 Agent + 服务端 API + 前端三联调
+- **T3** ⏳ 契约回归：每次改动后重跑双闸门 + 25 端点契约一致性
+- 角色：QA(`software-qa-engineer`) 主导；工程师配合修 bug；Team Lead 汇总。
+
+### O 阶段 · 运维就绪（补强 B 新增，DevOps/SRE 视角）🔄 待 T 完成后续推
+- **O1** ⏳ CI/CD 配置（复用 `githooks/pre-commit` 三闸门 + `.github/workflows/dual-gate.yml`，扩为含构建+测试+轻量 CD）
+- **O2** ⏳ 轻量 CD 脚本（合并后自动部署单机器/小容器，不真部署）
+- **O3** ⏳ 监控接入代码（LLM 成本/封号率/投递成功率/错误率 → LightweightMonitor 已建，补生产接入点）
+- 角色：DevOps（general-purpose 代理，SoftwareCompany 无 DevOps agent）主导；Team Lead 复核。**部署上线/真实用户仍属用户独有动作**。
 
 ### D 阶段 · 合规 + 灰度（S3）⏸ **用户 2026-08-17 跳过，循环不再推进**
 - **D1** ⏸ 跳过：PIPL 合规设计（crypto-shred + 待专家复核接口）—— 用户"合规/法务不用，直接跳过"
