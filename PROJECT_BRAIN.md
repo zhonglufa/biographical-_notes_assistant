@@ -56,6 +56,8 @@
 - **OpenAPI 导出 truth gap（2026-08-17 发现 → 已修复）**：registry/HLD 声明 A 层 25 端点全 `fully-detailed`；旧 `openapi.json`（pre-v3.29 导出）曾标 outlined。已重导 `openapi.json`（A 层 25 operation 级 `x-contract-status` 现全 `fully-detailed`，82 `$ref` 全解析），并修正 `gen_openapi.py` docstring + `info.description` + `README.md` 措辞，明确「openapi 为投影视图、权威严格契约见各 operation `x-ref`」。余下 22 处 outlined 为 `$ref` stub 组件 + 面试域（合法，与 A 层 operation 状态不矛盾）。已随本轮提交。
 - 上线前 PIPL 法定最终签署：用户/法务，循环不代签（标"待用户触发"）—— 因 D 阶段跳过，本次不触发。
 - 真实凭据 / 部署 / 上线：用户独有动作。
+- **⚠️ B 类证据看板「真实证据」缺口（2026-08-17 专家评审登记）**：原设计真实证据"随 S3 灰度回填"，现 D/S3 跳过 → 部分依赖灰度的 B 类指标将永久空缺。须进 S2 前明确：哪些 B 类卡可改由 S2 监控数据回填、哪些确属不可达（不可达项在最终报告标注「用户延后不可测」）。
+- **⚠️ A2 计数口径不一致（2026-08-17 专家评审登记）**：PROJECT_BRAIN 多处写"A2 落地 24 核心接口"，但 A 层实为 **25** 端点（A01–A25）。属文档笔误，循环推进至 A2 收尾时统一为 25。
 
 ---
 
