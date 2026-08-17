@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Auth from './screens/Auth.jsx';
 import Notifications from './screens/Notifications.jsx';
+import DailyReport from './screens/DailyReport.jsx';
 import { api } from './lib/api.js';
 import { Card, Toggle } from './components/UI.jsx';
 
@@ -37,11 +38,13 @@ function Shell({ user }) {
       <aside className="app-side" style={{ background: 'var(--c-surface)', borderRight: '1px solid var(--c-border)', padding: 16, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <strong style={{ padding: '8px 10px' }}>简历投递助手</strong>
         <a href="#/notifications" style={nav}>通知中心</a>
+        <a href="#/daily" style={nav}>每日日报</a>
         <a href="#/account" style={nav}>我的</a>
       </aside>
       <main style={{ padding: 8 }}>
         <Routes>
           <Route path="/notifications" element={<Notifications />} />
+          <Route path="/daily" element={<DailyReport />} />
           <Route path="/account" element={<Account />} />
           <Route path="*" element={<Navigate to="/notifications" replace />} />
         </Routes>
