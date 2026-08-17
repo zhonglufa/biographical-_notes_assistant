@@ -125,3 +125,4 @@
 | 日期 | 决策（用户拍板后即时沉淀） | 影响范围 |
 |---|---|---|
 | 2026-08-18 | **定位=真上线产品 + 原型全做**：V3 屏幕 Q10–Q15 一步不能少全部转化；Q2–Q4 合规护栏(R4)解锁为待办由循环 R1 备基座；Q5–Q7 物理动作仍仅用户触发但属上线必做 | 循环续推范围扩大至合规；A1–A6 业务决策升级为上线前置，仍须你拍板 |
+| 2026-08-18 | **前端技术栈 = Vue 3 + Element Plus（严守 ADR-010）**：`frontend/` 曾误用 React18+Vite5+react-router6，与 ADR-010 / HLD §2.4（Vue3+Element Plus PC + uni-app 多端）不符，属未记录技术栈偏离；用户拍板**回退 Vue3**，Q8–Q11 已完成的 React 屏重写为 Vue SFC + vue-router + Element Plus，Q12–Q15 按 Vue 落地，uni-app 多端维持原规划 | frontend 全部组件技术栈；V 阶段 Q12–Q15 续推方向 |

@@ -17,11 +17,11 @@
 
 > ℹ️ 2026-08-18 定位=真上线产品，A1–A6 已由将领按最佳建议**代拍板**（用户授权「不懂，听最好建议」）。完整取值见项目 `MEMORY.md`。
 
-## 🟠 R2 未知/歧义 · 待拍板（技术栈方向）
+## 🟠 R2 未知/歧义 · 已拍板（技术栈方向）
 
 | ID | 问题 | 影响范围 | 状态 |
 |---|---|---|---|
-| A7 | **前端技术栈 truth gap**：ADR-010 / HLD §2.4 定 **Vue3+Element Plus(PC)+uni-app(H5/小程序)**，但 `frontend/` 实为 **React18+Vite5+react-router6**（`package.json`/`App.jsx`/各 `screens/*.jsx` 为证），从未修订 ADR/HLD。方向待拍板：**A)** 正式采纳 React（修订/覆盖 ADR-010，uni-app 多端列 MVP 外或延后）/ **B)** 回退 Vue3+Element Plus（重写 frontend 全部组件+路由）。当前 Q11–Q15 按 React 续推；方向未定前先登记、不伪造「已合规」。 | ADR-010、HLD §2.4、frontend 全部组件、后续 Q12–Q15 技术栈 | 待拍板 |
+| A7 | **前端技术栈 truth gap**：ADR-010 / HLD §2.4 定 **Vue3+Element Plus(PC)+uni-app(H5/小程序)**，但 `frontend/` 此前实为 **React18+Vite5+react-router6**（`package.json`/`App.jsx`/各 `screens/*.jsx` 为证），属未记录的技术栈偏离。**已拍板（2026-08-18）**：**回退 Vue3+Element Plus（严守 ADR-010）**，React 代码重写为 Vue 3 SFC + vue-router + Element Plus；uni-app 多端（H5/小程序）维持原 ADR 规划、当前未启动、属上线前范围。Q11–Q15 续推改为按 Vue 落地。 | ADR-010、HLD §2.4、frontend 全部组件（React→Vue 重写）、后续 Q12–Q15 技术栈 | 已闭环(已拍板:回退 Vue3+Element Plus) |
 
 ## 🟡 R4 标准 · 待你确认是否补做（非事故，但属标准项）
 

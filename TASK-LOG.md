@@ -63,3 +63,11 @@
 - **④状态回传**：Q11 → 已完成；本条目即状态回传。
 - **⑤日志与告警**：登记合同缺口——**A07 jobStub 字段集不含 `ignored` 字段**（`additionalProperties: false`，仅 `favorited`），但 UI 需表达「忽略」状态以衔接「忽略后不再推送」语义。组件以**前端 `ignoredSet`** 维护 ignore 集合（加入 → 卡片降透明度 0.55 + 徽标 + 操作变「撤销忽略」；撤销 → 移出集合 + Toast 反馈）。真实后端应将 ignored 持久化到 `user_job_ignore` 表或扩 jobStub 字段；本组件未臆造契约字段。A1-A6 仍为上线前置，00:09 轮代拍板固化。
 - 备注：R1 自驱——U2 设计稿(`U2-jobs.html` + `interaction-U2.md`)与契约(`jobs-list.response`/`jobs-search.request`/`jobs-favorite.{request,response}`)齐备，无须询问直接落地；物理部署仍标 Q5 仅你可做。
+
+## [2026-08-18T01:01+08:00] tick=auto 阶段=②③④⑤ 任务=技术栈决策沉淀(Vue3回退·R2→R1) 状态=OK
+- **①定时触发**：读 PROJECT_BRAIN §2 + TASK-QUEUE + TASK-ALERTS(A7 待拍板) + 当日日志末条(00:48 A7 补登记)；发现 PROJECT_BRAIN §5 工作树已含「回退 Vue3」决策（并发 tick 捕获），但待决 A7 尚未闭环、规则未沉淀。
+- **②分发**：本 tick 非屏幕包，属 **R2 决策沉淀**（用户已拍板「回退 Vue3+Element Plus」）——机制强制「用户回答后立即沉淀为规则，下次转 R1」。
+- **③执行（沉淀）**：① `TASK-ALERTS.md` A7 状态 `待拍板`→`已闭环(已拍板:回退 Vue3+Element Plus)`；② `TASK-MECHANISM.md` §8 新增「前端技术栈 = Vue 3 + Element Plus（严守 ADR-010）」决策行；③ `TASK-QUEUE.md` 新增 **Q16** 待办（前端 React→Vue 重写，队首）；④ `PROJECT_BRAIN.md` §2/§7 标注 Vue 回退方向；⑤ 项目 `MEMORY.md` 战略决策新增技术栈条目。REVIEW-1 双闸门实跑全绿；REVIEW-2 无偏离；REVIEW-3 未触发（纯文档沉淀）。
+- **④状态回传**：A7 闭环；Q16 入队（队首）；本条目即状态回传。
+- **⑤日志与告警**：**诚实登记 in-flight 状态**——并发 tick 已把 Vue 脚手架写入工作树但未提交（`main.js`/`router.js`/`package.json`→Vue 依赖/`vite.config`→vue 插件/`index.html`→#app），而 6 屏仍为 `.jsx`、`App.vue` 未建 → **当前 build 断**。处置：不提交半成品前端，留待 Q16 认领后完成屏幕重写一并提交；已在 Q16 备注 + 本条目登记，不伪造「迁移完成」。无新增待拍板（A7 已闭环）。
+- 备注：R2→R1 示范——技术栈方向曾为「未知/歧义」，用户拍板后本轮立即沉淀为规则，下次同类（Q12–Q15 技术选型）直接走 R1 不再问。
