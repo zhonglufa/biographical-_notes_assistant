@@ -25,9 +25,9 @@ status: DONE
 | **U5 适配器管理** | **A14/15** | [roles/U5-pm.md](roles/U5-pm.md) | [roles/U5-arch.md](roles/U5-arch.md) | [screens/U5-adapter.html](screens/U5-adapter.html) | [interaction-U5.md](interaction-U5.md) | [roles/U5-qa.md](roles/U5-qa.md) | ✅ 绿(实跑) | ✅ 四角色齐全 |
 | **U6 面试模拟** | **A16-19** | [roles/U6-pm.md](roles/U6-pm.md) | [roles/U6-arch.md](roles/U6-arch.md) | [screens/U6-interview.html](screens/U6-interview.html) | [interaction-U6.md](interaction-U6.md) | [roles/U6-qa.md](roles/U6-qa.md) | ✅ 绿(实跑) | ✅ 四角色齐全 |
 | **U7 支付会员** | **A20/21** | [roles/U7-pm.md](roles/U7-pm.md) | [roles/U7-arch.md](roles/U7-arch.md) | [screens/U7-payment.html](screens/U7-payment.html) | [interaction-U7.md](interaction-U7.md) | [roles/U7-qa.md](roles/U7-qa.md) | ✅ 绿(实跑) | ✅ 四角色齐全 |
-| U8 通知中心 | A22/23 | — | — | — | — | — | — | ⏳ |
-| U9 每日日报 | A24/25 | — | — | — | — | — | — | ⏳ |
-| U10 用户登录 | A01/02/03 | — | — | — | — | — | — | ⏳ |
-| U11 交互总纲 | — | — | — | — | — | — | — | ⏳ |
+| **U8 通知中心** | **A22/23** | [roles/U8-pm.md](roles/U8-pm.md) | [roles/U8-arch.md](roles/U8-arch.md) | [screens/U8-notifications.html](screens/U8-notifications.html) | [interaction-U8.md](interaction-U8.md) | [roles/U8-qa.md](roles/U8-qa.md) | ✅ 绿(实跑) | ✅ 四角色齐全 |
+| **U9 每日日报** | **A24/25** | [roles/U9-pm.md](roles/U9-pm.md) | [roles/U9-arch.md](roles/U9-arch.md) | [screens/U9-daily.html](screens/U9-daily.html) | [interaction-U9.md](interaction-U9.md) | [roles/U9-qa.md](roles/U9-qa.md) | ✅ 绿(实跑) | ✅ 四角色齐全 |
+| **U10 用户登录** | **A01/02/03** | [roles/U10-pm.md](roles/U10-pm.md) | [roles/U10-arch.md](roles/U10-arch.md) | [screens/U10-auth.html](screens/U10-auth.html) | [interaction-U10.md](interaction-U10.md) | [roles/U10-qa.md](roles/U10-qa.md) | ✅ 绿(实跑) | ✅ 四角色齐全 |
+| **U11 交互总纲** | — | [roles/U11-pm.md](roles/U11-pm.md) | [roles/U11-arch.md](roles/U11-arch.md) | — (跨切面规范) | [interaction-U11.md](interaction-U11.md) | [roles/U11-qa.md](roles/U11-qa.md) | ✅ 绿(实跑) | ✅ 总纲(3 产物) |
 
 **图例**：✅ 完成｜🔄 进行中｜⏳ 待续｜legacy = 多角色升级前的单 agent 产物（无四角色拆分）

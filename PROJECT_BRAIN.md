@@ -20,7 +20,7 @@
 - 七阶段（纳入 /goal，自主推进至完成）：
   - **S1 阶段一基线**：76 条 B 类验收标准→可验证证据看板条目；25 核心接口(A01–A25)按契约全量落地且双闸门通过；交付前自检清单补全、图信息说明书收敛。✅
   - **S2 阶段二**：RAG 架构与成本方案（含硬上限/熔断）落地；轻量监控（LLM 成本/封号率/投递成功率/错误率）接入。✅
-  - **U 阶段 · UI/交互设计（2026-08-17 用户补充）**：设计系统基础 + 信息架构/导航 + 各用户面 UI 设计稿（可交互 HTML 原型）+ 交互设计总纲；覆盖 A01–A25 全部用户面。🔄 进行中
+  - **U 阶段 · UI/交互设计（2026-08-17 用户补充）**：设计系统基础 + 信息架构/导航 + 各用户面 UI 设计稿（可交互 HTML 原型）+ 交互设计总纲；覆盖 A01–A25 全部用户面。✅ **全部完成（U0/U-动效/U1–U11 共 13 包）**
   - **V 阶段 · 原型→生产前端转化（2026-08-17 补强闭环 B 新增）**：将 U 阶段 mock 原型转为接入真实契约 API 的前端代码骨架（本地，不部署）；由工程师角色执行。
   - **T 阶段 · 真实测试闭环（补强 B 新增）**：QA 对 scaffold + 前端跑功能/集成/E2E（非仅设计一致性）；由 QA 角色执行。
   - **O 阶段 · 运维就绪（补强 B 新增，DevOps/SRE 视角）**：产出 CI/CD 配置 + 轻量 CD 脚本 + 监控接入代码（不真部署）；SoftwareCompany 体系无 DevOps agent，由 general-purpose 代理该角色。部署上线/真实用户仍属用户独有动作，O 阶段只做到「生产就绪脚本」。
@@ -29,8 +29,8 @@
 ---
 
 ## 2. 当前状态（循环每轮回写）
-- **所处阶段**：✅ **A+B+C 三阶段 + 护栏 1/2/3 全部达成**；🔄 **U 阶段（UI/交互设计）进行中**（用户 2026-08-17 指出原交付缺 UI 设计稿/交互设计，已纳入 /goal 续推）。护栏 4/5/6 用户延后，不计入。循环已重新激活（automation-1786905748859 置 ACTIVE）续推 U 阶段。
-- **完成度**：**A+B+C 三阶段全部达成 ✅** —— A 阶段 S1 基线（A1 看板76/76·A2 25 接口契约落地·A3 自检·A4 图说明全部 ✅）；B 阶段（B1 本机 Agent ✅ · B2 服务端 API/LLM 匹配/通知/状态机 ✅ · B3 契约运行时+事件总线+测试基座 ✅）；C 阶段（C1 RAG 架构+成本方案/护栏2 ✅ · C2 轻量监控/护栏3 ✅）。`scaffold` 共 12 个测试文件全 PASS，双闸门全绿，冒烟 25/25。**U 阶段进行中**：U0 设计系统+IA+导航已落地（`design/ui/00-design-system.html`+`01-app-shell.html`+`ia-nav.md`），**U-动效已落地**（`design/ui/02-motion-system.html` + app-shell 真实确认动效 + 设计系统"动效"章节）；**U1 简历工作台(A04/A05/A06) / U2 岗位浏览(A07/A08) / U3 投递管理(A09/A10/A11) / U4 策略配置(A12/A13) 已落地**（`design/ui/screens/U1-resume.html`+`U2-jobs.html`+`U3-applications.html`+`U4-strategy.html` + `design/ui/interaction-U1~U4.md`）；**U5 适配器管理(A14/A15) 已落地（多角色流水线首包：PM/Arch/Eng/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U6 面试模拟(A16-A19) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U7 支付会员(A20/A21) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+响应式 R1–R7 全 PASS+双闸门实跑全绿）**；**U8–U11 待续推**。
+- **所处阶段**：✅ **A+B+C 三阶段 + 护栏 1/2/3 全部达成**；✅ **U 阶段（UI/交互设计，U0/U-动效/U1–U11 共 13 包）全部完成**；🔄 **V 阶段（原型→生产前端转化）进行中**（V1 脚手架 / V2 原型转组件，本地不部署）。护栏 4/5/6 用户延后，不计入。循环已重新激活续推 V/T/O 阶段。
+- **完成度**：**A+B+C 三阶段全部达成 ✅** —— A 阶段 S1 基线（A1 看板76/76·A2 25 接口契约落地·A3 自检·A4 图说明全部 ✅）；B 阶段（B1 本机 Agent ✅ · B2 服务端 API/LLM 匹配/通知/状态机 ✅ · B3 契约运行时+事件总线+测试基座 ✅）；C 阶段（C1 RAG 架构+成本方案/护栏2 ✅ · C2 轻量监控/护栏3 ✅）。`scaffold` 共 12 个测试文件全 PASS，双闸门全绿，冒烟 25/25。**U 阶段进行中**：U0 设计系统+IA+导航已落地（`design/ui/00-design-system.html`+`01-app-shell.html`+`ia-nav.md`），**U-动效已落地**（`design/ui/02-motion-system.html` + app-shell 真实确认动效 + 设计系统"动效"章节）；**U1 简历工作台(A04/A05/A06) / U2 岗位浏览(A07/A08) / U3 投递管理(A09/A10/A11) / U4 策略配置(A12/A13) 已落地**（`design/ui/screens/U1-resume.html`+`U2-jobs.html`+`U3-applications.html`+`U4-strategy.html` + `design/ui/interaction-U1~U4.md`）；**U5 适配器管理(A14/A15) 已落地（多角色流水线首包：PM/Arch/Eng/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U6 面试模拟(A16-A19) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+互相引用+双闸门实跑全绿）**；**U7 支付会员(A20/A21) 已落地（多角色流水线：PM/Arch/Eng[HTML+interaction]/QA 四角色五份产物齐全+响应式 R1–R7 全 PASS+双闸门实跑全绿）**；**U8 通知中心(A22/A23) / U9 每日日报(A24/A25) / U10 用户与登录(A01/A02/A03) / U11 交互设计总纲（全局交互模式：加载/错误/空态/确认闸门/撤销/无障碍）已全部落地（多角色流水线五/三产物齐全+响应式 R1–R7 全 PASS+双闸门实跑全绿）**；**U 阶段（U0/U-动效/U1–U11，共 13 包）全部完成 ✅**。
 - **文档基线**：PRD v4.5 / HLD v3.35 / LLD（18 模块）
 - **护栏现状**：**护栏 1 双闸门 CI ✅** · **护栏 2 LLM 成本硬上限+熔断 ✅**（`scaffold/src/llm_match.py` CostGuard + `cost_policy.py` BudgetPolicy）· **护栏 3 封号率监控 ✅**（`scaffold/src/monitor.py` LightweightMonitor，4 指标+阈值告警）；**护栏 4/5/6（灰度回滚 / PIPL crypto-shred+合规 / 法检复核）= 用户 2026-08-17 明确延后/跳过，不计入本次 /goal，已如实标注「用户延后」**
 
@@ -89,7 +89,7 @@
 ---
 
 ## 7. 本轮计划 / 近期序列（循环每轮更新 §2 + 本节）
-- **下一工作包**：**U0–U7 均已落地**（U0/U-动效/U1–U4 legacy、U5–U7 多角色流水线）→ 续推 **U8 通知中心(A22/A23)** / U9 每日日报(A24/A25) / U10 用户与登录(A01/A02/A03) / U11 交互设计总纲。U 阶段全完成 → GOAL REACHED。
+- **下一工作包**：**U 阶段（U0–U11，13 包）已全部完成 ✅** → 进入 **V 阶段（原型→生产前端转化）**：续推 **V1 前端工程化脚手架**（基于 U0 设计系统 + 01-app-shell，建立可接入真实 API 的前端项目骨架，本地不部署）→ V2 原型转生产组件。U+V 完成 → T 阶段测试 → O 阶段运维就绪 → GOAL REACHED。
 - **近期推进序列**：B 类证据看板 → 25 接口契约全量落地 → 交付前自检清单补全 → 图说明收敛 → (S2) RAG 架构成本方案+轻量监控 → **（S3/D 阶段用户跳过，不再推进）**。
 
 ---
@@ -139,10 +139,10 @@
 - **U5** ✅ 适配器管理 UI（A14 列表 / A15 启用）—— **多角色流水线首包（四角色拆分）**：`design/ui/roles/U5-pm.md`(PM)+`U5-arch.md`(Arch)+`screens/U5-adapter.html`(Eng)+`interaction-U5.md`(Eng)+`U5-qa.md`(QA)，五份产物齐全、互相引用（TRACE 头 upstream/downstream）、双闸门实跑全绿；规范见 `design/ui/ROLE-WORKBOOK.md` + 台账 `ROLE-DELIVERABLES.md`
 - **U6** ✅ 面试模拟 UI（A16 题库 / A17 建会话 / A18 作答 / A19 报告）—— 多角色流水线：PM/Arch/Eng(screens/U6-interview.html + interaction-U6.md)/QA 五份产物齐全 + 双闸门实跑全绿
 - **U7** ✅ 支付会员 UI（A20 下单 / A21 回调）—— 多角色流水线：PM/Arch/Eng(screens/U7-payment.html + interaction-U7.md)/QA 五份产物齐全 + 双闸门实跑全绿 + 响应式 R1–R7 PASS
-- **U8** ⏳ 通知中心 UI（A22 列表 / A23 实时）
-- **U9** ⏳ 每日日报 UI（A24 今日 / A25 偏好）
-- **U10** ⏳ 用户与登录 UI（A01 登录 / A02 刷新 / A03 权益）
-- **U11** ⏳ 交互设计总纲（全局模式：加载/错误/空态/确认闸门/撤销/无障碍）
+- **U8** ✅ 通知中心 UI（A22 列表 / A23 实时）—— 多角色流水线：PM/Arch/Eng(screens/U8-notifications.html + interaction-U8.md)/QA 五份产物齐全 + 双闸门实跑全绿 + 响应式 R1–R7 PASS
+- **U9** ✅ 每日日报 UI（A24 今日 / A25 偏好）—— 多角色流水线：五份产物齐全 + 双闸门绿 + 响应式 R1–R7 PASS
+- **U10** ✅ 用户与登录 UI（A01 登录 / A02 刷新 / A03 权益）—— 多角色流水线：五份产物齐全；严守「未登录不暴露业务数据」红线 + 双闸门绿 + 响应式 PASS
+- **U11** ✅ 交互设计总纲（全局模式：加载/错误/空态/确认闸门/撤销/无障碍）—— 跨切面规范（PM 总纲 + Arch 模式库 + 工程师检查清单 + QA 全局一致性核查），U1–U11 统一遵循
 - 交付物：每个面 = 可交互 HTML 原型（`design/ui/screens/*.html`）+ 交互规格（内联或 `design/ui/interaction-*.md`）；U0 基础 = `design/ui/00-design-system.html` + `design/ui/01-app-shell.html` + `design/ui/ia-nav.md`。
 - 评审：UI 原型用 mock 数据、不触红线（无真实 PII/凭据/部署），REVIEW-3 不触发，可自动提交；仍过双闸门（pre-commit 三闸门）保证文档一致性。
 

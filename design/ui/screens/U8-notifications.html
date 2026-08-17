@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>U8 通知中心 · 简历投递助手</title>
+<style>
+  :root{
+    --c-bg:#f5f7fa; --c-surface:#fff; --c-text:#1f2733; --c-muted:#6b7785; --c-faint:#9aa6b2;
+    --c-border:#e6eaf0; --c-accent:#2f6bff; --c-accent-weak:#eaf1ff;
+    --c-l0:#e5484d; --c-l1:#f5811f; --c-l2:#2f6bff; --c-l3:#8a94a6;
+    --r-lg:14px; --r-md:10px; --r-sm:8px; --r-full:999px;
+    --sp-1:8px; --sp-2:16px; --sp-3:24px; --shadow:0 1px 3px rgba(20,30,50,.06),0 6px 18px rgba(20,30,50,.05);
+    --d-fast:120ms; --d-base:200ms; --e-out:cubic-bezier(.2,.7,.3,1);
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);background:var(--c-bg);color:var(--c-text);font-size:15px;line-height:1.5}
+  .page{max-width:760px;margin:0 auto;padding:var(--sp-3) var(--sp-2) 60px}
+  .topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:12px;background:var(--c-surface);
+    border:1px solid var(--c-border);border-radius:var(--r-lg);padding:14px 16px;box-shadow:var(--shadow);margin-bottom:var(--sp-2)}
+  .topbar h1{font-size:18px;margin:0;flex:1}
+  .badge{min-width:22px;height:22px;padding:0 7px;border-radius:var(--r-full);background:var(--c-l0);color:#fff;
+    font-size:12px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+  .badge.zero{background:var(--c-border);color:var(--c-faint)}
+  .live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--c-muted)}
+  .dot{width:8px;height:8px;border-radius:50%;background:#22c55e}
+  .dot.reconnecting{background:var(--c-l1);animation:pulse 1s infinite}
+  .dot.offline{background:var(--c-l3)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .btn{border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text);border-radius:var(--r-md);
+    padding:9px 14px;font-size:14px;cursor:pointer;min-height:40px}
+  .btn.primary{background:var(--c-accent);border-color:var(--c-accent);color:#fff}
+  .btn:active{transform:translateY(1px)}
+  .tabs{display:flex;gap:8px;overflow-x:auto;padding:4px 0 12px;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tab{border:1px solid var(--c-border);background:var(--c-surface);border-radius:var(--r-full);padding:7px 14px;
+    font-size:13px;white-space:nowrap;cursor:pointer;color:var(--c-muted);min-height:36px}
+  .tab.active{background:var(--c-accent-weak);border-color:var(--c-accent);color:var(--c-accent);font-weight:600}
+  .list{display:flex;flex-direction:column;gap:10px}
+  .card{position:relative;display:flex;gap:12px;background:var(--c-surface);border:1px solid var(--c-border);
+    border-radius:var(--r-lg);padding:14px 14px 14px 18px;box-shadow:var(--shadow);overflow:hidden}
+  .card .bar{position:absolute;left:0;top:0;bottom:0;width:4px}
+  .card.l0 .bar{background:var(--c-l0)} .card.l1 .bar{background:var(--c-l1)}
+  .card.l2 .bar{background:var(--c-l2)} .card.l3 .bar{background:var(--c-l3)}
+  .card.read{opacity:.72}
+  .card .main{flex:1;min-width:0}
+  .card .title{font-weight:600;display:flex;align-items:center;gap:8px}
+  .card.read .title{font-weight:500}
+  .lvtag{font-size:11px;padding:1px 7px;border-radius:var(--r-full);color:#fff}
+  .lvtag.l0{background:var(--c-l0)} .lvtag.l1{background:var(--c-l1)}
+  .lvtag.l2{background:var(--c-l2)} .lvtag.l3{background:var(--c-l3)}
+  .new{font-size:10px;background:var(--c-accent);color:#fff;border-radius:var(--r-full);padding:1px 6px}
+  .body{color:var(--c-muted);font-size:13px;margin-top:4px;
+    filter:blur(0);transition:filter var(--d-base)}
+  .card.locked .body{filter:blur(5px);user-select:none}
+  .unlock{font-size:12px;color:var(--c-accent);margin-top:6px;cursor:pointer;display:inline-block}
+  .meta{display:flex;gap:10px;align-items:center;margin-top:8px;font-size:12px;color:var(--c-faint)}
+  .ops{display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+  .mini{border:none;background:transparent;color:var(--c-muted);font-size:13px;cursor:pointer;padding:4px 6px;border-radius:var(--r-sm)}
+  .mini:hover{background:var(--c-accent-weak);color:var(--c-accent)}
+  .skeleton{height:64px;border-radius:var(--r-lg);background:linear-gradient(90deg,#eef1f6 25%,#e3e8f0 37%,#eef1f6 63%);background-size:400% 100%;animation:sk 1.3s infinite}
+  @keyframes sk{0%{background-position:100% 0}100%{background-position:-100% 0}}
+  .empty{border:2px dashed var(--c-border);border-radius:var(--r-lg);padding:36px;text-align:center;color:var(--c-faint)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;
+    background:#1f2733;color:#fff;padding:11px 18px;border-radius:var(--r-full);font-size:14px;transition:all var(--d-base) var(--e-out);pointer-events:none}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast .undo{color:#7eb0ff;margin-left:12px;cursor:pointer;font-weight:600}
+  .modal-mask{position:fixed;inset:0;background:rgba(20,30,50,.4);display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+  .modal-mask.show{display:flex}
+  .modal{background:#fff;border-radius:var(--r-lg);padding:22px;max-width:340px;width:100%;box-shadow:var(--shadow)}
+  .modal h3{margin:0 0 8px;font-size:16px}
+  .modal p{color:var(--c-muted);font-size:14px;margin:0 0 18px}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end}
+  @media (max-width:768px){
+    .page{padding:16px 12px 56px}
+    .topbar{padding:12px 14px}
+    .ops{flex-direction:row}
+  }
+  @media (max-width:480px){
+    .card{padding:12px 12px 12px 16px}
+    .btn{padding:9px 12px}
+    .topbar h1{font-size:16px}
+    .live span.txt{display:none}
+  }
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar">
+    <h1>通知中心</h1>
+    <span class="live"><span class="dot" id="connDot"></span><span class="txt" id="connTxt">实时</span></span>
+    <span class="badge" id="unreadBadge">3</span>
+    <button class="btn primary" id="markAll">全部已读</button>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-lv="all">全部</button>
+    <button class="tab" data-lv="L0">L0 重要</button>
+    <button class="tab" data-lv="L1">L1</button>
+    <button class="tab" data-lv="L2">L2</button>
+    <button class="tab" data-lv="L3">L3 营销</button>
+  </div>
+
+  <div class="list" id="list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-mask" id="confirmMask">
+  <div class="modal">
+    <h3>全部标记为已读？</h3>
+    <p>将把 3 条未读通知设为已读，多端会同步。</p>
+    <div class="row"><button class="btn" id="confirmCancel">取消</button><button class="btn primary" id="confirmOk">确认</button></div>
+  </div>
+</div>
+
+<script>
+// mock 数据（本地，不触红线）
+const NOW = Date.now();
+const data = [
+  {id:'n1',level:'L0',title:'面试邀请 · 字节跳动',body:'您投递的「后端开发」岗位邀请您参加视频面试，请前往面试备战查看准备包。',read:false,createdAt:NOW-3*60000,channel:'push'},
+  {id:'n2',level:'L0',title:'登录态失效 · Boss直聘',body:'该平台会话已过期，请在本机重新扫码登录后继续投递。',read:false,createdAt:NOW-22*60000,channel:'push'},
+  {id:'n3',level:'L1',title:'投递失败需处理 · 智联',body:'3 份投递因「验证码触发」暂停，请人工处理后重试。',read:false,createdAt:NOW-50*60000,channel:'push'},
+  {id:'n4',level:'L2',title:'今日已投递 10 份',body:'成功 9 / 失败 1，失败项见上方处理。',read:true,createdAt:NOW-2*3600000,channel:'push'},
+  {id:'n5',level:'L2',title:'HR 已查看 · 2 个岗位',body:'今日有 2 个岗位的简历被 HR 查看。',read:true,createdAt:NOW-4*3600000,channel:'站内'},
+  {id:'n6',level:'L3',title:'新功能：面试题库升级',body:'面试题生成已支持按公司深度分析，快来体验。',read:true,createdAt:NOW-26*3600000,channel:'邮件'},
+];
+let filter='all', lastDeleted=null, undoTimer=null;
+const lvText={L0:'重要',L1:'重要',L2:'普通',L3:'营销'};
+const rel = ms=>{const m=Math.floor((NOW-ms)/60000);if(m<1)return'刚刚';if(m<60)return m+' 分钟前';const h=Math.floor(m/60);if(h<24)return h+' 小时前';return Math.floor(h/24)+' 天前';};
+
+function render(){
+  const list=document.getElementById('list');
+  let items=data.filter(d=>filter==='all'||d.level===filter);
+  const unread=data.filter(d=>!d.read).length;
+  const badge=document.getElementById('unreadBadge');
+  badge.textContent=unread; badge.classList.toggle('zero',unread===0);
+  if(items.length===0){list.innerHTML='<div class="empty">暂无通知</div>';return;}
+  list.innerHTML=items.map(d=>`
+    <div class="card ${d.level.toLowerCase()} ${d.read?'read':''} locked" data-id="${d.id}">
+      <div class="bar"></div>
+      <div class="main">
+        <div class="title">${d.title}<span class="lvtag ${d.level.toLowerCase()}">${lvText[d.level]}</span>${!d.read&&d.createdAt>NOW-60000?'<span class="new">新</span>':''}</div>
+        <div class="body">${d.body}</div>
+        <span class="unlock" onclick="unlock('${d.id}')">🔓 解锁查看详情</span>
+        <div class="meta"><span>${rel(d.createdAt)}</span><span>· ${d.channel==='站内'?'站内信':d.channel}</span></div>
+      </div>
+      <div class="ops">
+        ${d.read?'':`<button class="mini" onclick="markRead('${d.id}')">标已读</button>`}
+        <button class="mini" onclick="del('${d.id}')">删除</button>
+      </div>
+    </div>`).join('');
+}
+function unlock(id){const c=document.querySelector(`.card[data-id="${id}"]`);if(c)c.classList.remove('locked');}
+function markRead(id){const d=data.find(x=>x.id===id);if(d){d.read=true;render();toast('已标记为已读');}}
+function del(id){const i=data.findIndex(x=>x.id===id);if(i<0)return;lastDeleted={item:data[i],index:i};data.splice(i,1);render();showUndo();}
+function showUndo(){const t=document.getElementById('toast');t.innerHTML='通知已删除<span class="undo" onclick="undo()">撤销</span>';t.classList.add('show');clearTimeout(undoTimer);undoTimer=setTimeout(()=>t.classList.remove('show'),5000);}
+function undo(){if(lastDeleted){data.splice(Math.min(lastDeleted.index,data.length),0,lastDeleted.item);lastDeleted=null;render();document.getElementById('toast').classList.remove('show');toast('已撤销');}}
+function toast(msg){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2600);}
+
+document.getElementById('tabs').addEventListener('click',e=>{if(!e.target.classList.contains('tab'))return;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));e.target.classList.add('active');filter=e.target.dataset.lv;render();});
+
+document.getElementById('markAll').addEventListener('click',()=>{
+  const unread=data.filter(d=>!d.read).length;if(unread===0){toast('没有未读通知');return;}
+  document.getElementById('confirmMask').classList.add('show');
+});
+document.getElementById('confirmCancel').onclick=()=>document.getElementById('confirmMask').classList.remove('show');
+document.getElementById('confirmOk').onclick=()=>{data.forEach(d=>d.read=true);document.getElementById('confirmMask').classList.remove('show');render();toast('已全部标记为已读');};
+
+// A23 实时连接模拟（本地，不建真实 WS）
+const dot=document.getElementById('connDot'),txt=document.getElementById('connTxt');
+function setConn(s){dot.className='dot'+(s==='live'?'':(s==='reconnecting'?' reconnecting':' offline'));txt.textContent=s==='live'?'实时':(s==='reconnecting'?'重连中':'离线(轮询)');}
+setConn('live');
+setTimeout(()=>{ // 模拟一条新推送
+  data.unshift({id:'n7',level:'L2',title:'HR 已查看 · 腾讯',body:'您投递的「测试开发」被 HR 查看。',read:false,createdAt:NOW,channel:'push'});render();toast('收到新通知');
+},6000);
+
+render();
+</script>
+</body>
+</html>
