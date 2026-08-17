@@ -125,6 +125,11 @@ export const api = {
   triggerAts: (resumeId) => request('A06', { params: { id: resumeId } }),
   // 设为首选：契约无独立端点（需 PATCH /resumes/{id}/versions/{vid}/prefer）→ 本地 mock 直改 store（合同缺口）
   setPreferred: (resumeId, versionId) => request('A05_PREFER', { params: { rid: resumeId, vid: versionId } }),
+  // —— U5 适配器管理（A14 列表 / A15 启用停用）——
+  // A14 GET /adapters（适配器列表与状态；字段对齐 adapter-facade + b09-health）
+  adapterList: () => request('A14'),
+  // A15 POST /adapters/{id}/enable {enabled:bool} → {adapterId,status(enabled|disabled)}
+  enableAdapter: (id, enabled) => request('A15', { params: { id }, body: { enabled } }),
 };
 
 export class ApiError extends Error {
@@ -288,6 +293,26 @@ function mockResponse(id, body, params) {
     })(),
     A12: () => store._strat.get(),
     A13: (b) => { store._strat.set(b || {}); return { ok: true, updatedAt: store._strat.updatedAt() }; },
+    // —— U5 适配器管理 mock（A14 列表 / A15 启用停用）——
+    // A14 GET /adapters：对齐 adapter-facade(platformName/platformType/version/status) + b09-health(healthy/cookieHealthy/checkedAt/avgLatencyMs)。
+    // 覆盖 6 态（installed/test_mode/enabled/disabled/degraded/login_expired），供 UI 全态验证。
+    A14: () => ({
+      items: [
+        { adapterId: 'boss', platformName: 'BOSS直聘', platformType: 'social', version: 'v1.2.0', status: 'enabled', health: { healthy: true, cookieHealthy: true, checkedAt: now - 2 * 60000, avgLatencyMs: 120 } },
+        { adapterId: 'liepin', platformName: '猎聘', platformType: 'headhunter', version: 'v1.1.0', status: 'enabled', health: { healthy: true, cookieHealthy: true, checkedAt: now - 60000, avgLatencyMs: 95 } },
+        { adapterId: 'job51', platformName: '前程无忧', platformType: 'other', version: 'v1.0.3', status: 'degraded', health: { healthy: false, cookieHealthy: true, checkedAt: now - 5 * 60000, avgLatencyMs: 820 } },
+        { adapterId: 'zhaopin', platformName: '智联招聘', platformType: 'other', version: 'v1.0.1', status: 'login_expired', health: { healthy: true, cookieHealthy: false, checkedAt: now - 8 * 60000, avgLatencyMs: 140 } },
+        { adapterId: 'lagou', platformName: '拉勾', platformType: 'social', version: 'v0.9.0', status: 'disabled', health: { healthy: true, cookieHealthy: true, checkedAt: now - 12 * 60000, avgLatencyMs: 160 } },
+        { adapterId: 'guopin', platformName: '国聘网', platformType: 'state-owned', version: 'v0.5.0', status: 'installed', health: { healthy: true, cookieHealthy: true, checkedAt: now - 20 * 60000, avgLatencyMs: 210 } },
+        { adapterId: 'niuke', platformName: '牛客网', platformType: 'campus', version: 'v0.4.0', status: 'test_mode', health: { healthy: true, cookieHealthy: true, checkedAt: now - 30 * 60000, avgLatencyMs: 180 } },
+      ],
+    }),
+    // A15 POST /adapters/{id}/enable {enabled} → {adapterId,status(enabled|disabled)}
+    A15: (b, p) => {
+      const id = (p && p.id) || null
+      const enabled = !!(b && b.enabled)
+      return { adapterId: id, status: enabled ? 'enabled' : 'disabled' }
+    },
   };
   const fn = store[id];
   if (!fn) throw new ApiError('NOT_MOCKED', `端点 ${id} 未提供 mock`);

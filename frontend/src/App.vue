@@ -23,6 +23,7 @@ function onLogin() {
       <router-link to="/resume" class="nav">简历工作台</router-link>
       <router-link to="/jobs" class="nav">岗位浏览</router-link>
       <router-link to="/strategy" class="nav">策略配置</router-link>
+      <router-link to="/adapters" class="nav">平台管理</router-link>
       <router-link to="/notifications" class="nav">通知中心</router-link>
       <router-link to="/daily" class="nav">每日日报</router-link>
       <router-link to="/account" class="nav">我的</router-link>

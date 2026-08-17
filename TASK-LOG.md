@@ -96,3 +96,12 @@
 - **④状态回传**：Q12 → 已完成（并发完成 `aa00d98`）；`PROJECT_BRAIN.md` §2/§7 已由对方 tick 更新（标注 `aa00d98`），本 tick 仅清理 §7 残留（Q16 实施细节已在 Q12 中过期）。`TASK-QUEUE.md` Q12 行更新为「已完成（2026-08-18 02:04 tick · 并发完成）」。`.task-claims.json` 现由对方清空为 `{}`，无需二次清。
 - **⑤日志与告警**：**R4 标准强制+并发教训沉淀**——① `TASK-MECHANISM.md` 新增 §5.1「并发安全（3 条错峰自动化 · 2026-08-18 :40 tick 二次踩坑后补强）」4 条强制动作（写前先 git log/40 分钟过期/claim 即清/发现已 commit 不重复做产品工作仅回传）；② 自动化 memory 同步记踩坑。**合同缺口登记**：**A12/A13 契约完备（registry fully-detailed，schema 4 字段 + 写响应 {ok,updatedAt} 全）—— 无缺口**（与此前 A04_LIST/A05_PREFER/A10 jobTitle/A07 jobStub.ignored 三处缺口同列维护，但本包无需本地 mock store 兜底）；③ R3 业务项 A1-A6 仍为上线前置，已代拍板固化待你复审/调整。无新增待拍板。
 - 备注：教训升级——并发条款 §5.1 由本 tick 触发，需 100% 强制执行（机制级兜底）。下一队首 Q13(U5 适配器)：本 tick 仅做并发产物核对 + 状态回传，不再为 Q12 二次 commit；下 tick 直接认领 Q13。
+
+## [2026-08-18T02:25+08:00] tick=manual 阶段=①②③④⑤ 任务=Q13/U5适配器管理(A14/A15) 状态=OK
+- **①定时触发**：读 PROJECT_BRAIN §2+§7 + TASK-QUEUE(Q13 队首) + TASK-ALERTS(A1-A6) + 当日日志；确认循环 ACTIVE、前端已 Vue3(ADR-010)。
+- **②分发**：认领 Q13(U5 适配器)，写 `.task-claims.json{Q13}` 防 3 条自动化重复认领。
+- **③执行**：新建 `frontend/src/screens/Adapter.vue`（6态色点+文本标签 AdapterStatusDot 内联实现 / 健康子态 healthy·cookieHealthy·checkedAt / 启用闸门复用 U3 二次确认+10s 撤销 / 落实 U11 加载(Skeleton)·错误(ErrorState+重试)·空态(EmptyState)·响应式三档(768/480/reduced-motion)）；`api.js` 补 A14/A15 mock（覆盖6态+health，原 mock 缺此二端点会抛 NOT_MOCKED）；`router.js` 加 `/adapters`；`App.vue` 加「平台管理」导航。REVIEW-1 双闸门实跑全绿（66/6 + PRD-HLD v4.5）；REVIEW-2 自审无偏离；REVIEW-3 红线：未部署/未引真实凭据/未 push 远端。前端 `npm run build` 实跑 ✅ 1614 模块 10.83s（仅 chunk 体积警告，非错误）。
+- **④状态回传**：Q13 → 已完成；PROJECT_BRAIN §2/§7 标 Q13 完成、队首 Q14(U6 面试)；本条目即回传。
+- **⑤日志与告警**：无新增阻塞/告警；R3 业务项 A1-A6 仍在 `TASK-ALERTS.md` 待你拍板，未臆测。
+- **合同缺口登记**：A14 响应契约不含 `isPro` 字段 → 本地 mock 全 `pro`（启用按钮可用），U5 设计稿 `canPro` 非专业版拦截在生产接真实 `plan` 时再补；不影响本组件契约对齐。
+- 下一队首：Q14 U6 面试模拟（A16-A19）。

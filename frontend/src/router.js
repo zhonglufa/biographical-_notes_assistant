@@ -8,6 +8,7 @@ import Notifications from './screens/Notifications.vue';
 import DailyReport from './screens/DailyReport.vue';
 import Strategy from './screens/Strategy.vue';
 import Account from './screens/Account.vue';
+import Adapter from './screens/Adapter.vue';
 
 const routes = [
   { path: '/', redirect: '/applications' },
@@ -15,6 +16,7 @@ const routes = [
   { path: '/resume', name: 'resume', component: Resume },
   { path: '/jobs', name: 'jobs', component: Jobs },
   { path: '/strategy', name: 'strategy', component: Strategy },
+  { path: '/adapters', name: 'adapters', component: Adapter },
   { path: '/notifications', name: 'notifications', component: Notifications },
   { path: '/daily', name: 'daily', component: DailyReport },
   { path: '/account', name: 'account', component: Account },
