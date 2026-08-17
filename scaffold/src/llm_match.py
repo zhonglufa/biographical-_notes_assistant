@@ -105,10 +105,11 @@ class MatchService:
     """岗位匹配服务：守成本护栏，调用 LLM 网关判定匹配度。"""
 
     def __init__(self, gateway: LLMGateway, cost_guard: CostGuard, *,
-                 cost_per_call_cents: int = 10) -> None:
+                 cost_per_call_cents: int = 10, monitor=None) -> None:
         self.gateway = gateway
         self.guard = cost_guard
         self.cost_per_call_cents = cost_per_call_cents
+        self.monitor = monitor
 
     def match(self, resume_text: str, job_text: str):
         """返回 (band, score, cost_cents)；护栏触发则抛 CostGuardOpen。"""
@@ -118,6 +119,8 @@ class MatchService:
             raw = self.gateway.complete(self._prompt(resume_text, job_text))
             band, score = self._parse(raw)
             self.guard.record_success()
+            if self.monitor is not None:
+                self.monitor.record_llm_cost(self.cost_per_call_cents)
             return band, score, self.cost_per_call_cents
         except Exception:
             self.guard.record_failure()

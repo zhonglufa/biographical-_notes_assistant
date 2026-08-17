@@ -22,6 +22,7 @@ import time
 from dataclasses import dataclass
 from enum import Enum
 from typing import Iterable, Protocol, runtime_checkable
+from monitor_hooks import attach_monitor
 
 
 class MatchBand(str, Enum):
@@ -101,12 +102,18 @@ class DeliveryOrchestrator:
     bus:     可选事件总线（实现 .publish(event)->(bool,str)），用于发 domain-events
     """
 
-    def __init__(self, adapter: AdapterPort, *, bus=None, user_id: str = "anonymous", now=None):
+    def __init__(self, adapter: AdapterPort, *, bus=None, user_id: str = "anonymous", now=None, monitor=None):
         self.adapter = adapter
         self.bus = bus
         self.user_id = user_id
         self._applied_today: set[str] = set()
         self._now = now if now is not None else time.time
+        self.monitor = monitor
+        # 护栏3：若同时提供事件总线与 monitor，自动挂接使其接收 apply 事件
+        # （成功/失败经事件计入；验证码挑战走 record_ban 直调）。attach_monitor 幂等，
+        # 同一 monitor 被多处注入也不会重复订阅导致重复计数。
+        if bus is not None and monitor is not None:
+            attach_monitor(bus, monitor)
 
     # ---- 规划 / 过滤 ----
     def plan(self, jobs: Iterable[JobCandidate], strategy: DeliveryStrategy) -> list[JobCandidate]:
@@ -143,8 +150,11 @@ class DeliveryOrchestrator:
                 self._emit(j, "submitted", res.get("detail"))
             elif status == "captcha_required":
                 outcomes.append(ApplyOutcome(j.job_id, "pending_captcha", res.get("detail", "")))
+                if self.monitor is not None:
+                    self.monitor.record_ban(1)   # 验证码挑战=账号风险信号，计入封号率监控
             else:
                 outcomes.append(ApplyOutcome(j.job_id, "failed", res.get("detail", "")))
+                self._emit(j, "failed", res.get("detail"))   # 失败事件进入监控成功率台账
         return outcomes
 
     def _emit(self, job: JobCandidate, to_state: str, reason: str | None):

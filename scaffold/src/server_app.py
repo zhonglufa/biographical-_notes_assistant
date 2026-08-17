@@ -17,17 +17,26 @@ from typing import Optional
 from contract_runtime import ContractRuntime
 from delivery_state_machine import DeliveryStateMachine
 from domain_events import apply_status_changed
+from monitor import LightweightMonitor
+from monitor_hooks import attach_monitor
 
 
 class ServerApp:
     """契约优先服务端应用：分发 + 指标 + 投递状态机 + 事件。"""
 
-    def __init__(self, *, bus=None, metrics=None, state_machine=None) -> None:
+    def __init__(self, *, bus=None, metrics=None, state_machine=None, monitor=None) -> None:
         self.rt = ContractRuntime()
         self.bus = bus
         self.metrics = metrics
         self.sm = state_machine or DeliveryStateMachine()
         self._meta: dict[str, dict] = {}
+        # 护栏3接线：有事件总线且未显式传入 monitor 时，自动创建并挂接 LightweightMonitor；
+        # 复用同一 metrics 实例使「错误率」自动流入，attach_monitor 订阅 apply.status.changed
+        # 使「投递成功率」事件真正进入监控（此前 monitor 为孤儿代码，生产环境收不到事件）。
+        if bus is not None and monitor is None:
+            monitor = LightweightMonitor(metrics=self.metrics)
+            attach_monitor(bus, monitor)
+        self.monitor = monitor
 
     # ---- 通用请求分发 ----
     def handle(self, endpoint_id: str, request: Optional[dict], *, user_id: str = "anonymous"):

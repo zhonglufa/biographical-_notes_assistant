@@ -38,6 +38,17 @@ def main():
     app.record_failure(tid2)
     check("失败→closed", sm.state(tid2) == "closed")
 
+    # 护栏3接线验证（独立 app，避免受上面事件影响）
+    mbus = EventBus()
+    mmetrics = InMemoryMetrics()
+    mapp = ServerApp(bus=mbus, metrics=mmetrics)
+    check("monitor 自动挂接", mapp.monitor is not None)
+    mtid = mapp.create_application("u9", "j9", "boss")
+    mapp.record_submission(mtid)
+    check("投递成功率流入监控=1.0", mapp.monitor.snapshot()["apply_success_rate"] == 1.0)
+    mapp.handle("ZZZ", {})          # 非 200 → 经共享 metrics 计入错误率
+    check("错误率经共享 metrics 流入监控", mapp.monitor.snapshot()["error_rate"] > 0.0)
+
     print("test_server_app OK")
 
 

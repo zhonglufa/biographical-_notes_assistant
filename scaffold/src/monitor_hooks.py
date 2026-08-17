@@ -29,6 +29,12 @@ def attach_monitor(bus: EventBus, monitor: LightweightMonitor) -> None:
     事件 payload 形态（对齐 local_agent._emit / server_app）：
       {"eventType": "apply.status.changed", "payload": {"toState": "submitted" | "closed" | "failed", ...}}
     """
+    # 幂等：同一 monitor 实例可能被 server_app 与 local_agent 多处注入同一总线，
+    # 重复订阅会导致成功率重复计数；用实例标记避免。
+    if getattr(monitor, "_monitor_attached", False):
+        return
+    monitor._monitor_attached = True
+
     def _on_apply(payload: dict):
         # EventBus.publish 向订阅者投递的是 event["payload"]（见 event_bus.py）
         to_state = payload.get("toState") if isinstance(payload, dict) else None

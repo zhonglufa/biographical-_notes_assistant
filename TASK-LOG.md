@@ -130,3 +130,15 @@
 - **④状态回传**：Q2/Q3/Q4 → 已完成；PROJECT_BRAIN §2/§7 标 D 护栏4/5/6 备基座完成、R1 自驱 backlog 耗尽、下一待用户决策(Q1/A1-A6/Q5-Q7)；本条目即回传。
 - **⑤日志与告警**：无新增阻塞/告警；诚实边界登记：Q2 灰度策略取值/物理启用、Q3 真实KEK/KMS(Q5)/律师签字(Q7)、Q4 专家复核动作 均仅用户(不伪造完成)；R3 业务项 A1-A6 仍在 TASK-ALERTS 待拍板。
 - **结论**：R1 自驱 backlog 已耗尽(V3八屏 + D三护栏基座)。剩余全部为用户决策/物理动作。循环下轮将「无待办」待命。
+
+## [2026-08-18T02:53+08:00] tick=manual 阶段=①②③④⑤ 任务=激活机制+修复护栏3孤儿+Q17部署安全剧本 状态=OK
+- **①定时触发**：用户授权「不懂听建议 / 用机制 / 不事故 / 直接干 / 缺文档补」；读 PROJECT_BRAIN §2/§7 + TASK-QUEUE(队首 Q17 设计类) + TASK-ALERTS(A1–A6 已代拍板) + 当日日志末条(02:4x Q2-Q4)。
+- **②分发**：本回合三件——(a)激活自主机制 3 条错峰自动化（:00/:20/:40 → ACTIVE），删除 2 条重复同名自动化（与机制 §5.1 并发风险冲突，留之会并发抢活=事故）；(b)修复护栏3 孤儿监控根因；(c)补 Q17 部署前安全核对清单（设计/Runbook）。
+- **③执行**：
+  - 机制：3 条核心自动化 PAUSED→ACTIVE；删除 `自主推进循环`(:20)/(:40) 两条重复（soft-delete，可恢复）。
+  - 护栏3 接线修复（R1 技术）：`server_app`/`local_agent` 构造时若拿到 `bus` 即自动创建并挂接 `LightweightMonitor`（复用 `metrics` 使错误率自动流入）；`MatchService` 计费成功后回写 `record_llm_cost`；`local_agent` 遇验证码挑战调 `record_ban`、遇失败发 `failed` 事件；`attach_monitor` 加幂等守卫防同 monitor 多处注入重复计数。四项指标（成功率/错误率/封号率/LLM成本）现已全部真实流动。
+  - 补设计文档 `design/guardrails/pre-deploy-safety-checklist.md`（Q17）：6 护栏 go/no-go 闸门 + 部署引导程序「单 monitor+单 bus 注入三组件」接线契约（防 snapshot 不收敛）+ 首上线金丝雀剧本 + 诚实边界（Q5/Q6/Q7 仍仅用户）。
+  - 测试：新增 `test_server_app`/`test_llm_match`/`test_local_agent` 护栏3 接线断言；全量 scaffold 15 测试文件全绿；双闸门全绿。
+- **④状态回传**：Q17 → 已完成（TASK-QUEUE 已加行）；PROJECT_BRAIN §7 更新（机制 ACTIVE / 护栏3 修复 / Q17）；本条目即状态回传。
+- **⑤日志与告警**：无新增阻塞。R1 自驱 backlog 经本轮后：Q1(RAG 阶段二·C1 设计已定·按 A4 延后) / Q5(部署) / Q6(真实凭据) / Q7(PIPL签字) 仍仅用户；A1–A6 已按用户「不懂听建议」授权代拍板并记录。循环下轮若无新 R1 任务将「无待办」待命（不伪造）。
+- REVIEW-1 双闸门全绿（66/6 schema + PRD-HLD v4.5）；REVIEW-2 自审无偏离；REVIEW-3 红线未触发（仅本地接线+文档，无部署/凭据/PIPL）。本地 commit（本轮），不 push 远端。

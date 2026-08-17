@@ -1,6 +1,7 @@
 """test_llm_match.py — LLM 匹配 + 成本护栏单测（B2-3 · 护栏2核心）"""
 from base import check
 from llm_match import MockLLM, CostGuard, MatchService, CostGuardOpen, DEFAULT_DAILY_CAP_CENTS
+from monitor import LightweightMonitor
 
 
 class FailingLLM:
@@ -45,6 +46,13 @@ def main():
     except CostGuardOpen:
         over = True
     check("超日硬上限抛 CostGuardOpen", over)
+
+    # 护栏3 LLM 成本指标接线：MatchService 成功后应把成本回写 monitor
+    g4 = CostGuard()
+    mon4 = LightweightMonitor()
+    svc4 = MatchService(MockLLM(), g4, monitor=mon4)
+    svc4.match("r", "j")
+    check("LLM 成本流入监控", mon4.snapshot()["llm_cost_cents"] == 10)
 
     print("test_llm_match OK")
 

@@ -13,6 +13,7 @@ from local_agent import (
     DeliveryOrchestrator, DeliveryStrategy, JobCandidate, MatchBand, MockAdapter,
 )
 from event_bus import EventBus  # 真实事件总线，验证契约对齐
+from monitor import LightweightMonitor
 
 
 def _jobs():
@@ -90,6 +91,22 @@ def test_event_contract_alignment():
     check("userId 透传", p["userId"] == "U-test")
 
 
+def test_monitor_wiring():
+    print("· 护栏3 接线：封号率/成功率经 monitor 流入")
+    bus = EventBus()
+    mon = LightweightMonitor()
+    mon.bans.set_active_accounts(1)
+    orch = DeliveryOrchestrator(MockAdapter(captcha_jobs={"J2"}, fail_jobs={"J3"}),
+                                bus=bus, user_id="U", monitor=mon)
+    strat = DeliveryStrategy(require_confirmation=False, min_band=MatchBand.LOW)
+    cands = orch.plan(_jobs(), strat)  # 含 J1/J2/J3（min_band=low 不排除）
+    orch.execute(cands, confirmed_ids={"J1", "J2", "J3"}, strategy=strat)
+    # J1 applied → 成功；J2 captcha → record_ban；J3 failed → 失败事件
+    snap = mon.snapshot()
+    check("投递成功率=1/2", abs(snap["apply_success_rate"] - 0.5) < 1e-9)
+    check("封号率=1.0（J2 验证码挑战）", abs(snap["ban_rate"] - 1.0) < 1e-9)
+
+
 def main():
     print("=== test_local_agent ===")
     test_plan_filters_low()
@@ -97,6 +114,7 @@ def main():
     test_quota_and_idempotency()
     test_captcha_pause()
     test_event_contract_alignment()
+    test_monitor_wiring()
     print("本机 Agent 投递核心测试通过 ✅")
 
 
