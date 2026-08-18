@@ -27,7 +27,9 @@ public class JobMatch {
     @TableField("score")
     private Integer score;
 
-    @TableField("band")
+    // 注意：band 是 OGNL 保留字（按位与运算符），MBP 自动生成的 <if test="band != null"> 会因 OGNL 解析失败而炸。
+    // 故用 insertStrategy/updateStrategy = ALWAYS，让 MBP 无条件包含该列、不生成 band 相关的动态 <if>。
+    @TableField(value = "band", insertStrategy = FieldStrategy.ALWAYS, updateStrategy = FieldStrategy.ALWAYS)
     private String band; // green | blue | gray
 
     @TableField("reason")
