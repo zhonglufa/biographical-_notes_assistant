@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import time
 
-from app.agent.models import GetJobDetailCommand, HealthReport, SearchJobsCommand, TaskStatusResponse
-from app.agent.transport import AgentTransport
+from app.routers.models import GetJobDetailCommand, HealthReport, SearchJobsCommand, TaskStatusResponse
+from app.routers.transport import AgentTransport
 from app.errors import AppError
 
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from app.ai.models import (
+from app.gateways.models import (
     AtsRequest,
     EvaluateRequest,
     MatchRequest,

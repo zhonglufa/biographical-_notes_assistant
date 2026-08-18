@@ -17,8 +17,8 @@ if str(ROOT) not in sys.path:
 import pytest
 from fastapi.testclient import TestClient
 
-from app.ai.content_safety import ContentSafety
-from app.ai.orchestrator import AIOrchestrator, LocalResultRecorder
+from app.gateways.content_safety import ContentSafety
+from app.gateways.orchestrator import AIOrchestrator, LocalResultRecorder
 from app.config import settings
 
 TOKEN = "test-internal-token"

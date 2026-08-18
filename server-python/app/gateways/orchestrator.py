@@ -18,9 +18,9 @@ import json
 import time
 import uuid
 
-from app.ai.content_safety import ContentSafety
-from app.ai.llm_client import LLMClient
-from app.ai.rule_engine import (
+from app.gateways.content_safety import ContentSafety
+from app.gateways.llm_client import LLMClient
+from app.gateways.rule_engine import (
     advise,
     question_bank,
     rule_match,

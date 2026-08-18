@@ -17,9 +17,9 @@ Java 业务服务 ──(B01–B05, 内网 REST, X-Internal-Token)──> server
 ```
 
 - `app/main.py`：FastAPI 应用，装配编排器 + Agent 服务，统一异常→错误信封，traceId 贯穿，开放 `/healthz`。
-- `app/ai/orchestrator.py`：五个方法 b01–b05，三级降级链 + 内容安全门 + `ai.task.result` 事件发布。
-- `app/ai/rule_engine.py`：降级兜底（规则匹配 / 题库 / advise / 模板 / 启发式 ATS），确定性、可单测。
-- `app/agent/*`：B10/B11 触发受理 + B07 任务状态 + B09 健康上报（经 transport 接缝下发本机 Agent）。
+- `app/gateways/orchestrator.py`：五个方法 b01–b05，三级降级链 + 内容安全门 + `ai.task.result` 事件发布。
+- `app/gateways/rule_engine.py`：降级兜底（规则匹配 / 题库 / advise / 模板 / 启发式 ATS），确定性、可单测。
+- `app/routers/*`：B10/B11 触发受理 + B07 任务状态 + B09 健康上报（经 transport 接缝下发本机 Agent）。
 - `app/contracts.py`：复用 `design/contracts/validate_contracts.py`（零依赖）做 fail-closed 响应校验。
 
 ## 2. 目录结构
@@ -33,17 +33,17 @@ server-python/
     security.py        # X-Internal-Token 依赖（未配置令牌→拒绝全部，fail-closed）
     main.py            # FastAPI 装配 + 异常处理器 + traceId 中间件
     deps.py            # 依赖注入入口（便于测试 override）
-    ai/{models,llm_client,content_safety,rule_engine,orchestrator,router}.py
-    agent/{models,transport,service,router}.py
+    gateways/{models,llm_client,content_safety,rule_engine,orchestrator,router}.py
+    routers/{models,transport,service,router}.py
   tests/               # 35 项 pytest（auth / 契约 fail-closed / 各 B 端点 / agent / health）
-  requirements.txt  pytest.ini  .gitignore
+  pyproject.toml  .gitignore
 ```
 
 ## 3. 运行与测试
 
 ```bash
 # 依赖（已装入 managed venv；本地包管理，不消耗 WorkBuddy 积分）
-python -m pip install -r requirements.txt
+python -m pip install -e ".[dev]"
 # 本地起服务
 uvicorn app.main:app --host 0.0.0.0 --port 8080
 # 测试（FastAPI TestClient，全部本地可跑）
@@ -90,4 +90,4 @@ python -m pytest -q
 
 - 复用 `design/contracts/validate_contracts.py`（与 scaffold / CI 同一校验器），所有 B 成功响应与错误信封过机器 schema。
 - 请求模型（pydantic `extra="forbid"` + 字段范围约束）镜像机器 schema 的 `additionalProperties:false` 与 min/max。
-- 本目录测试**不**改变 CI 既有双闸门（契约静态校验 + PRD-HLD 追溯 + scaffold 15+ 测试）；server-python 测试需在 CI 追加一步（见 §3），待 push 解锁后接入。
+- 本目录测试**不**改变 CI 既有双闸门（契约静态校验 + PRD-HLD 追溯 + scaffold 15+ 测试）；server-python 测试作业已接入 `ci-cd.yml`（`server-python` job：pytest 门禁 + ruff 信息性 lint），push 触发 CI 后由远端验证。

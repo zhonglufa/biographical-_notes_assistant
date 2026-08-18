@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Path
 
-from app.agent.models import GetJobDetailCommand, HealthReport, SearchJobsCommand
+from app.routers.models import GetJobDetailCommand, HealthReport, SearchJobsCommand
 from app.contracts import validate_payload
 from app.deps import get_agent_service
 from app.errors import AppError

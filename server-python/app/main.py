@@ -19,13 +19,13 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
-from app.agent.router import router as agent_router
-from app.agent.service import AgentTriggerService
-from app.agent.transport import LocalAgentTransport
-from app.ai.content_safety import ContentSafety
-from app.ai.llm_client import LLMClient
-from app.ai.orchestrator import AIOrchestrator, LocalResultRecorder
-from app.ai.router import router as ai_router
+from app.routers.router import router as agent_router
+from app.routers.service import AgentTriggerService
+from app.routers.transport import LocalAgentTransport
+from app.gateways.content_safety import ContentSafety
+from app.gateways.llm_client import LLMClient
+from app.gateways.orchestrator import AIOrchestrator, LocalResultRecorder
+from app.gateways.router import router as ai_router
 from app.config import settings
 from app.errors import AppError, envelope_from_error, error_envelope
 from app.guard import build_guardrails

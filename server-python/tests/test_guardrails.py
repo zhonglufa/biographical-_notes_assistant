@@ -11,11 +11,11 @@ from __future__ import annotations
 
 import pytest
 
-from app.ai.content_safety import ContentSafety
-from app.ai.llm_client import LLMClient
-from app.ai.orchestrator import AIOrchestrator, LocalResultRecorder
-from app.agent.service import AgentTriggerService
-from app.agent.transport import LocalAgentTransport
+from app.gateways.content_safety import ContentSafety
+from app.gateways.llm_client import LLMClient
+from app.gateways.orchestrator import AIOrchestrator, LocalResultRecorder
+from app.routers.service import AgentTriggerService
+from app.routers.transport import LocalAgentTransport
 from app.guard.audit_log import AuditLog
 from app.guard.cost import BudgetPolicy, CostGuard
 from app.guard.crypto_shred import CryptoShred
