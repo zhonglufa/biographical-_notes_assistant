@@ -1,0 +1,20 @@
+# resume-ai-prod 单容器启动（O 阶段 · 上线就绪）
+# 仅服务端 API（零依赖、契约桩 + 监控 + /metrics）。
+# 前端构建后由 nginx / 静态服务托管，或合并进同一编排（见 docs/上线手册.md）。
+services:
+  server:
+    build: .
+    image: resume-ai-prod:local
+    container_name: rat-server
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - HOST=0.0.0.0
+    # 生产值（LLM 网关 / 护栏阈值）经 .env 注入，此处仅暴露端口
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

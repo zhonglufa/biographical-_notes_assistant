@@ -1,0 +1,48 @@
+# 任务队列（TASK-QUEUE）· 分发阶段②的权威来源
+
+> 状态：`待办` / `进行中` / `已完成` / `阻塞(待用户拍板)` / `阻塞(物理动作·用户)`
+> 循环每轮从「队首未完成项」认领一个（经 `design/ui/.u-claims.json` 锁防重复）。
+> 本仓库 /goal（A+B+C+U+V+T+O + 护栏1/2/3）已 GOAL REACHED；以下为后续待办。**2026-08-18 战略定位=真上线产品**：V3 屏幕 Q10–Q15 一步不能少全部转化；Q2–Q4 合规护栏(R4)解锁为待办由循环 R1 备基座；Q5–Q7 物理动作仍仅用户触发但属上线必做。2026-08-18 02:53 机制已 **ACTIVE**（3 条错峰自动化启用，删除 2 条重复同名自动化防并发事故）；修复护栏3 孤儿监控根因（四项指标现已全活）；补 Q17 部署前安全核对清单；R1 自驱 backlog 仅余 Q1(阶段二·延后)/Q5-Q7(物理·仅用户)。**2026-08-18 03:12 用户暂停自动调度(省积分)但授权手动推进至上线**：补 Q18 HTTP服务入口 / Q19 容器化 / Q20 上线手册，至此「代码+容器+手册」均可上线就绪；3 条自动化保持 PAUSED(不耗积分)，R1 自驱 backlog 现仅余 Q1(阶段二·延后)。
+
+---
+
+## 待办（可走 R1 自驱）
+
+| ID | 标题 | 阶段 | 角色 | 状态 | 备注 |
+|---|---|---|---|---|---|
+| Q18 | 上线就绪 · HTTP 服务入口（零依赖 server_main.py） | O | 工程师 | 已完成（2026-08-18 本轮回填） | `scaffold/src/server_main.py`：25 契约端点(/api/Axx)+/healthz+/metrics(Prometheus·护栏3四指标)；`ServerApp(bus=)` 自动挂接 LightweightMonitor；`test_server_main.py` 11断言全 PASS；未部署(物理动作 Q5) |
+| Q19 | 上线就绪 · 容器化（Dockerfile/compose/.env.example） | O | 工程师 | 已完成（2026-08-18 本轮回填） | `Dockerfile`(python:3.13-slim·零依赖·非root)+`.dockerignore`+`.env.example`+`docker-compose.yml`(单容器+healthcheck)；目录层级 preserve 使 contract_runtime 定位 design/contracts |
+| Q20 | 上线就绪 · 上线手册（RUNBOOK） | O | 工程师 | 已完成（2026-08-18 本轮回填） | `docs/上线手册.md`：启动/验证/构建前端/配置/本机重客户端/监控接入/上线前检查/已知限制；同步修正 `scripts/cd-deploy.sh`(React→Vue3+server_main入口) 与 `scaffold/README.md`(§3.1) |
+| Q8 | V3 · 转化 U9 每日日报为生产组件（A24/A25） | V | 工程师 | 已完成（2026-08-17 本轮回填） | 设计稿+契约齐备，纯 R1 转化；api.dailyReport/saveDailyPref 已就位；未部署（物理动作 Q5） |
+| Q9 | V3 · 转化 U3 投递与半自动确认闸门（A09/A10/A11）· 产品核心 | V | 工程师 | 已完成（2026-08-17 本轮回填） | 半自动投递闸门（二次确认+10s撤销+限额可见+状态机可视化）；`frontend/src/screens/Applications.jsx`+api.js+mock+路由；未部署（物理动作 Q5） |
+| Q10 | V3 · 转化 U1 简历工作台（A04/A05/A06） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 简历列表/版本时间线/ATS 异步评分环；`frontend/src/screens/Resume.jsx`+api.js(A04_LIST/A04/A05/A05_PREFER/A06)+mock+路由；**合同缺口**：列表与设为首选无契约端点→本地 mock store（与 A10 同处理）；未部署（物理动作 Q5） |
+| Q11 | V3 · 转化 U2 岗位浏览（A07/A08） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 搜索/筛选+平台 chips+matchBand 环+收藏|忽略|详情+分页+U11+响应式；`frontend/src/screens/Jobs.jsx`+api.js(A07/A08 路径修正+同形 mock)+路由；**合同缺口**：jobStub 不含 ignored→前端态 `ignoredSet`(与 A10/A04_LIST 同处理)；未部署（物理动作 Q5） |
+| Q16 | V3 · 前端技术栈回退 Vue3+Element Plus（React→Vue 重写） | V | 工程师 | 已完成（2026-08-18 本轮回填） | **R2 已拍板（严守 ADR-010）**：脚手架已就位并补齐 `App.vue`/6 屏 .vue/`components/UI.js`；删除 React 残留；`vite build` ✅ 1620 模块 11.36s；commit a03fe33；下一队首 Q12(U4) |
+| Q12 | V3 · 转化 U4 策略配置（A12/A13） | V | 工程师 | 已完成（2026-08-18 02:04 tick · 并发完成） | 匹配阈值/日限/平台/黑名单四字段；`frontend/src/screens/Strategy.vue`+api.js(A12/A13 mock)+router+App+UI.js Toast 修复+Jobs.vue 样式；并发 tick `aa00d98` 完成；build 1612 模块绿；**合同缺口=NONE**（A12/A13 schema 4 字段 + 写响应 ok+updatedAt 全，registry fully-detailed）；护栏联动=dailyLimit→U3 限额同源、matchThreshold→本机 Agent plan() 过滤 low 匹配（LLD v1.3 已约定）；未部署（物理动作 Q5） |
+| Q13 | V3 · 转化 U5 适配器管理（A14/A15） | V | 工程师 | 已完成（2026-08-18 02:2x tick） | 6态色点+文本标签(AdapterStatusDot内联)+健康子态+启用闸门复用U3二次确认+10s撤销；`frontend/src/screens/Adapter.vue`+api.js(A14/A15 mock补齐)+router(/adapters)+App.vue导航「平台管理」；**合同缺口**：A14响应不含isPro→本地mock全pro(启用按钮可用)；未部署(物理动作Q5) |
+| Q14 | V3 · 转化 U6 面试模拟（A16–A19） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 三视图(备战/模拟/报告)严格对齐 U6-arch §4；摄像头本地占位不采集(红线)；`frontend/src/screens/Interview.vue`+api.js(A16-A19 mock)+router(/interview)+App.vue导航「面试模拟」；未部署(物理动作Q5) |
+| Q15 | V3 · 转化 U7 支付会员（A20/A21） | V | 工程师 | 已完成（2026-08-18 本轮回填） | 套餐对比+下单面板(A20)+支付弹窗(payUrl占位)+订单5态+降级横幅+幂等；`frontend/src/screens/Payment.vue`+api.js(A20/A21 mock)+router(/membership)+App.vue导航「我的会员」；**合同缺口**：A20/A21 金额前端仅展示(分→元)、payUrl 不真跳转、MockPay 模拟 A21；未部署(物理动作Q5) |
+| Q2 | 护栏4 · 灰度开关 + 回滚预案（设计/Runbook） | D | 工程师 | 已完成（2026-08-18 本轮回填） | `design/guardrails/gray-release.md` + `scaffold/src/feature_flags.py`(fail-safe默认关+kill-switch，单测通过)；灰度策略取值/物理启用仍仅你触发 |
+| Q3 | 护栏5 · PIPL crypto-shred + 合规设计（设计/文档） | D | 工程师 | 已完成（2026-08-18 本轮回填） | `design/guardrails/pipl-crypto-shred.md`(引用 PIPL合规设计补充.md) + `scaffold/src/crypto_shred.py`(KEK销毁→历史备份不可解密，单测通过)；真实KEK派生/KMS(Q5)/律师签字(Q7)仅你 |
+| Q4 | 护栏6 · 法检专家复核痕迹（可追溯设计） | D | 工程师 | 已完成（2026-08-18 本轮回填） | `design/guardrails/legal-audit-trail.md` + `scaffold/src/audit_log.py`(SHA256哈希链篡改可检，单测通过)；专家复核动作待你安排真实专家 |
+| Q17 | 护栏收口 · 部署前安全核对清单+首上线剧本（设计/Runbook） | O/D | 工程师 | 已完成（2026-08-18 本轮回填） | `design/guardrails/pre-deploy-safety-checklist.md`：6 护栏 go/no-go + 引导程序「单 monitor+单 bus 注入三组件」接线契约 + 金丝雀剧本；直接服务「确保不会生产事故」 |
+| Q1 | 阶段二 RAG 检索管线（面试模拟/求职建议 grounded 在真实题库/劳动法） | S2 延展 | 架构师+工程师 | 待办 | 用户 2026-08-17：核心闭环跑通前不急，属阶段二能力 |
+
+## 阻塞 · 待用户拍板（R3 业务逻辑 / 合规延后）
+
+| ID | 标题 | 阶段 | 状态 | 备注 |
+|---|---|---|---|---|
+| （无） | Q2–Q4 已于 2026-08-18 解锁为「待办」（R1 合规基座随循环推进）；R3 业务决策 A1–A6 仍在 `TASK-ALERTS.md` 待拍板 | — | — | — |
+
+## 阻塞 · 物理动作 · 仅用户可做（诚实边界）
+
+| ID | 标题 | 阶段 | 状态 | 备注 |
+|---|---|---|---|---|
+| Q5 | 上线部署（运行 `scripts/cd-deploy.sh` + `DEPLOY_TOKEN` 或按 `docs/上线手册.md` 手动步骤） | O | 阻塞(物理动作·用户) | **真上线必做**（2026-08-18 定位）：需真实凭据 + 用户触发，循环不代执行；服务端入口已就绪 `scaffold/src/server_main.py` |
+| Q6 | 接入真实招聘平台账号·API 密钥（Boss/猎聘等） | B | 阻塞(物理动作·用户) | **真上线必做**：配置真实凭据后方可联调真实投递，仅你可做 |
+| Q7 | PIPL 上线前法定最终签署 | D | 阻塞(物理动作·用户) | **真上线必做**：法定签署仅你可做，Q3 合规设计备好基座后由你签署 |
+
+---
+
+## 添加新任务
+在对应段落加一行即可；循环下轮自动识别「待办」队首并认领。业务/合规类决策请直接写 `TASK-ALERTS.md`（询问区），不要伪装成可自驱任务。

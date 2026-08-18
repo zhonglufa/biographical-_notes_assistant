@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "resume-ai-server-python"
+version = "0.1.0"
+description = "Resume AI Python 侧 FastAPI LLM 网关(gateways) + 本机 Agent 触发路由(routers)（ADR-002）"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
+    "pydantic>=2.6",
+    "httpx>=0.27",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.5",
+]
+
+[tool.setuptools]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["app", "tests"]
+
+[tool.ruff.lint]
+# E/F/I = 真实缺陷（缩进/未定义/导入）；W/UP = 现代化建议。先选 E/F/I 作为阻断集。
+select = ["E", "F", "I"]
+ignore = ["E501"]

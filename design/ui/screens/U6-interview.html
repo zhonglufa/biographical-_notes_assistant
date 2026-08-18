@@ -1,0 +1,308 @@
+<!-- TRACE
+role: Engineer | software-engineer
+package: U6 面试模拟 UI (A16/A17/A18/A19)
+agent_run: 2026-08-17T21:45
+author_of_record: software-engineer（本轮子 agent 调度瞬断，由 Team Lead 代笔）
+upstream_read: [design/ui/roles/U6-pm.md(§2/§3/§5), design/ui/roles/U6-arch.md(§1/§2/§3/§4/§5), design/ui/02-motion-system.html, design/ui/ROLE-WORKBOOK.md §4]
+downstream_write: [design/ui/roles/U6-qa.md]
+decisions: mock 数据(题集/对话脚本/报告)，纯前端态，不接真实 A16-A19；摄像头仅本地占位框绝不调真实采集上传(红线)；语音为占位切换(不调真实麦克风)；配额 mock(专业版每日10次)。三视图(备战/模拟/报告)切换。尊重 prefers-reduced-motion。
+status: DONE
+-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>面试模拟 · U6（mock 原型）</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#fff; --ink:#1f2733; --muted:#6b7686; --line:#e6e9ef;
+    --accent:#6c5ce7; --green:#16a34a; --red:#dc2626; --yellow:#d97706; --gray:#9aa3b2; --blue:#2563eb;
+    --radius:14px; --shadow:0 1px 3px rgba(16,24,40,.06),0 8px 24px rgba(16,24,40,.05);
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--ink)}
+  .shell{max-width:1000px;margin:0 auto;padding:20px 20px 60px}
+  header.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  header.top h1{font-size:22px;margin:0}
+  .quota{font-size:13px;color:var(--muted)}
+  .quota b{color:var(--accent)}
+  .tabs{display:flex;gap:8px;margin-bottom:16px}
+  .tab{font:inherit;border:1px solid var(--line);background:#fff;padding:9px 16px;border-radius:10px;cursor:pointer;transition:background .15s,transform .12s}
+  .tab:hover{background:#f0f2f6}
+  .tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tab:active{transform:scale(.97)}
+  section.block{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px}
+  section.block h2{font-size:15px;margin:0 0 12px;color:var(--muted);font-weight:600;letter-spacing:.04em}
+  /* accordion */
+  .acc{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+  .acc-head{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;cursor:pointer;font-weight:600;background:#fff}
+  .acc-head:focus{outline:2px solid var(--accent);outline-offset:-2px}
+  .acc-head .meta{font-size:12px;color:var(--muted);font-weight:400;margin-left:10px}
+  .acc-body{padding:0 16px;max-height:0;overflow:hidden;transition:max-height .2s ease,padding .2s ease}
+  .acc.open .acc-body{padding:0 16px 16px;max-height:2400px;overflow:auto}
+  .acc-body p{color:var(--ink);font-size:14px;line-height:1.6;margin:8px 0}
+  .pill{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#eef0f6;color:var(--muted);margin-right:6px}
+  .pill.d-easy{background:#dcfce7;color:#15803d}.pill.d-medium{background:#fef3c7;color:#b45309}.pill.d-hard{background:#fee2e2;color:#b91c1c}
+  button{font:inherit;border:1px solid var(--line);background:#fff;color:var(--ink);padding:7px 14px;border-radius:9px;cursor:pointer;transition:transform .12s,background .15s}
+  button:hover{background:#f0f2f6}button:active{transform:scale(.97)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  .field{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--muted)}
+  select,input[type=text]{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink)}
+  /* simulation */
+  .sim{display:grid;grid-template-columns:1fr 220px;gap:16px}
+  @media(max-width:760px){.sim{grid-template-columns:1fr}}
+  .chat{background:#fafbfc;border:1px solid var(--line);border-radius:12px;padding:14px;height:420px;overflow:auto;display:flex;flex-direction:column;gap:10px}
+  .bub{max-width:78%;padding:10px 13px;border-radius:12px;font-size:14px;line-height:1.5}
+  .bub.ai{background:#eef0f6;align-self:flex-start;border-bottom-left-radius:4px}
+  .bub.me{background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+  .live{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+  .inputbar{display:flex;gap:8px;margin-top:10px}
+  .inputbar input{flex:1}
+  .pip{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px;text-align:center;font-size:12px;color:var(--muted)}
+  .pip .cam{width:100%;height:120px;border-radius:8px;background:linear-gradient(135deg,#2a2f3a,#3a4150);display:flex;align-items:center;justify-content:center;color:#cbd2e0;font-size:12px;margin-bottom:8px}
+  .pip.on .cam{background:linear-gradient(135deg,#1f2733,#4b5566)}
+  /* report */
+  .score{font-size:46px;font-weight:700;color:var(--accent)}
+  .dim{margin-bottom:12px}
+  .dim .lab{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+  .bar{height:8px;background:#eef0f6;border-radius:6px;overflow:hidden}
+  .bar > i{display:block;height:100%;background:var(--accent);border-radius:6px;transition:width .4s}
+  .feedback{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:12px;font-size:14px;line-height:1.6}
+  .note{font-size:12px;color:var(--yellow);background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:8px 10px;margin-top:10px}
+  .hidden{display:none!important}
+  .toast{position:fixed;left:50%;bottom:32px;transform:translateX(-50%) translateY(20px);background:#1f2733;color:#fff;padding:12px 18px;border-radius:12px;opacity:0;transition:opacity .2s,transform .2s;z-index:60;font-size:14px}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .skeleton{height:60px;background:linear-gradient(90deg,#eef0f6,#f6f7fa,#eef0f6);background-size:200% 100%;animation:sk 1.2s infinite;border-radius:10px;margin-bottom:10px}
+  @keyframes sk{0%{background-position:200% 0}100%{background-position:-200% 0}}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+  /* 响应式：手机窄屏收口（依据 00-design-system §6 + UI-SELFCHECK §3） */
+  @media (max-width:480px){
+    .shell{padding-left:10px;padding-right:10px}
+    .top{flex-direction:column;align-items:flex-start;gap:6px}
+    button{min-height:40px}
+    .chat{height:340px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="top">
+    <h1>面试模拟</h1>
+    <div class="quota">今日剩余面试：<b id="remain">10</b> / 10（专业版）</div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="prep" onclick="switchTab('prep')">面试备战</button>
+    <button class="tab" data-tab="sim" onclick="switchTab('sim')">AI 面试模拟</button>
+    <button class="tab" data-tab="report" onclick="switchTab('report')">评估报告</button>
+  </div>
+
+  <!-- 备战 A16 -->
+  <div id="view-prep">
+    <section class="block">
+      <h2>面试备战 · 题集（A16 GET /interviews/questions）</h2>
+      <div id="prepList"></div>
+    </section>
+  </div>
+
+  <!-- 模拟 A17/A18 -->
+  <div id="view-sim" class="hidden">
+    <section class="block">
+      <h2>创建会话（A17 POST /interviews/sessions）</h2>
+      <div class="row" id="setup">
+        <div class="field">面试类型
+          <select id="type"><option>通用面试</option><option>岗位定制面试</option><option>压力面试</option><option>英文面试</option></select>
+        </div>
+        <div class="field">目标岗位
+          <select id="job"><option value="j1">Java 后端开发</option><option value="j2">前端开发</option><option value="j3">测试开发</option></select>
+        </div>
+        <div class="field">作答模式
+          <select id="mode"><option value="text">文本</option><option value="voice">语音（占位）</option></select>
+        </div>
+        <button class="primary" onclick="startSession()">开始面试</button>
+      </div>
+      <div class="note hidden" id="quotaNote">今日面试次数已用完，请升级套餐或查看已生成的报告。移动端仅支持查看评估报告。</div>
+    </section>
+
+    <div class="sim">
+      <div>
+        <section class="block" style="margin-bottom:0">
+          <h2>对话（A18 POST /sessions/{id}/answer）</h2>
+          <div class="chat" id="chat" aria-live="polite"><div class="live" id="live"></div></div>
+          <div class="inputbar">
+            <input type="text" id="answer" placeholder="输入你的作答…（语音模式为占位，不调真实麦克风）">
+            <button onclick="sendAnswer()">发送</button>
+            <button id="endBtn" class="hidden" onclick="endSession()">结束面试</button>
+          </div>
+        </section>
+      </div>
+      <div class="pip" id="pip">
+        <div class="cam">本地镜像预览<br>（可选·不参与评估·不录制不上传）</div>
+        <button onclick="toggleCam()">开启本地镜像</button>
+        <div style="margin-top:8px">摄像头仅本地自视角参考，评估完全基于文本/语音内容。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 报告 A19 -->
+  <div id="view-report" class="hidden">
+    <section class="block">
+      <h2>评估报告（A19 GET /sessions/{id}/report）</h2>
+      <div id="reportEmpty" class="feedback">暂无报告。完成一场模拟面试后，报告将显示在这里。</div>
+      <div id="reportBody" class="hidden">
+        <div class="row" style="justify-content:space-between">
+          <div><div class="muted" style="color:var(--muted);font-size:13px">综合评分</div><div class="score" id="overall">—</div></div>
+          <div style="text-align:right;font-size:12px;color:var(--muted)">会话 <span id="rSid">—</span></div>
+        </div>
+        <div id="dims" style="margin-top:14px"></div>
+        <div class="feedback" id="rFeedback" style="margin-top:14px"></div>
+        <div class="note hidden" id="degrade">degradeFlag = true：本次 LLM 评估超时/失败，已启用题库预设题兜底，分数仅供参考。</div>
+        <div class="row" style="margin-top:12px">
+          <button disabled>申诉（v2）</button>
+          <button disabled>重跑（v2）</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== mock 数据（对应 A16 / A17 / A18 / A19）=====
+const QUESTION_SETS=[
+  {setId:'s1',title:'自我介绍',questionCount:2,difficulty:'easy',tags:['1分钟','3分钟']},
+  {setId:'s2',title:'项目介绍',questionCount:3,difficulty:'medium',tags:['STAR']},
+  {setId:'s3',title:'技术问题',questionCount:8,difficulty:'hard',tags:['Java','分布式']},
+  {setId:'s4',title:'行为问题',questionCount:5,difficulty:'medium',tags:['软技能']},
+];
+const AI_SCRIPT=[
+  '你好，请先做一个简单的自我介绍。',
+  '你刚刚提到负责电商平台后端，能讲讲你们是怎么做服务拆分的吗？',
+  '如果订单服务突然 RT 飙升，你的排查思路是什么？',
+  '最后，你觉得自己相比其他候选人的最大优势是什么？'
+];
+let quota={limit:10,used:0};
+let state={tab:'prep',openSet:null,session:null,turn:0,answers:[],report:null};
+
+// ===== 备战（A16）=====
+function renderPrep(){
+  const box=document.getElementById('prepList');
+  if(quota.used>0 && false){} // 模拟加载后直接渲染
+  box.innerHTML='';
+  QUESTION_SETS.forEach(s=>{
+    const acc=document.createElement('div');acc.className='acc';
+    const dPill=s.difficulty?`<span class="pill d-${s.difficulty}">${s.difficulty}</span>`:'';
+    const tags=(s.tags||[]).map(t=>`<span class="pill">${t}</span>`).join('');
+    acc.innerHTML=`
+      <div class="acc-head" role="button" tabindex="0" aria-expanded="false">
+        <span>${s.title}<span class="meta">${s.questionCount} 题 · ${dPill}${tags}</span></span><span>▼</span>
+      </div>
+      <div class="acc-body">
+        <p>这是「${s.title}」备战区（mock）。建议结合你的简历与目标岗位 JD 用 STAR 法则组织回答。</p>
+        <p>题型难度：${s.difficulty||'—'}；标签：${(s.tags||[]).join('、')||'—'}。</p>
+        <button class="primary" onclick="gotoSim('${s.setId}')">模拟作答</button>
+      </div>`;
+    const head=acc.querySelector('.acc-head');
+    head.addEventListener('click',()=>toggleAcc(acc,head));
+    head.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggleAcc(acc,head);}});
+    box.appendChild(acc);
+  });
+}
+function toggleAcc(acc,head){
+  const isOpen=acc.classList.contains('open');
+  document.querySelectorAll('.acc').forEach(a=>{a.classList.remove('open');a.querySelector('.acc-head').setAttribute('aria-expanded','false');a.querySelector('.acc-head span:last-child').textContent='▼';});
+  if(!isOpen){acc.classList.add('open');head.setAttribute('aria-expanded','true');head.querySelector('span:last-child').textContent='▲';}
+}
+
+// ===== 模拟（A17/A18）=====
+function switchTab(t){
+  state.tab=t;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===t));
+  ['prep','sim','report'].forEach(v=>document.getElementById('view-'+v).classList.toggle('hidden',v!==t));
+}
+function gotoSim(setId){
+  if(quota.used>=quota.limit){document.getElementById('quotaNote').classList.remove('hidden');switchTab('sim');return;}
+  switchTab('sim');
+  showToast(`已为「${QUESTION_SETS.find(s=>s.setId===setId)?.title}」预选题集，开始面试即可`);
+}
+function startSession(){
+  if(quota.used>=quota.limit){document.getElementById('quotaNote').classList.remove('hidden');return;}
+  quota.used++;document.getElementById('remain').textContent=quota.limit-quota.used;
+  // mock A17 响应
+  state.session={sessionId:'sess_'+Date.now(),status:'in_progress'};
+  state.turn=0;state.answers=[];
+  const chat=document.getElementById('chat');chat.innerHTML='<div class="live" id="live"></div>';
+  document.getElementById('endBtn').classList.remove('hidden');
+  pushBubble('ai',AI_SCRIPT[0]);state.turn=1;
+  showToast(`会话已创建：${state.session.sessionId}（status=in_progress）`);
+}
+function sendAnswer(){
+  const inp=document.getElementById('answer');const txt=inp.value.trim();if(!txt)return;
+  pushBubble('me',txt);state.answers.push(txt);inp.value='';
+  // mock A18 响应 accepted+score
+  const score=(Math.random()*0.3+0.6).toFixed(2);
+  if(state.turn<AI_SCRIPT.length){pushBubble('ai',AI_SCRIPT[state.turn]);state.turn++;}
+  else{pushBubble('ai','好的，你的回答已记录，正在生成评估报告…');}
+}
+function endSession(){
+  if(!state.session)return;
+  state.session.status='completed';
+  // mock A19 报告
+  const dims=[
+    {dim:'回答完整性',rawScore:4,reason:'覆盖了核心要点，但部分细节可补充。'},
+    {dim:'技术准确性',rawScore:5,reason:'技术概念表述准确，举例恰当。'},
+    {dim:'结构化表达',rawScore:4,reason:'基本采用 STAR 结构，可更精炼。'},
+    {dim:'与岗位匹配度',rawScore:5,reason:'充分体现了岗位所需能力。'},
+  ];
+  const overall=dims.reduce((a,b)=>a+b.rawScore,0)/dims.length/5*100|0;
+  state.report={sessionId:state.session.sessionId,overallScore:overall,dimensions:dims,feedback:'整体表现优秀，建议在"回答完整性"上补充更多量化结果（如 QPS、降幅）。',degradeFlag:false};
+  document.getElementById('endBtn').classList.add('hidden');
+  switchTab('report');renderReport();
+  showToast('面试已完成，报告已生成');
+}
+function pushBubble(who,text){
+  const chat=document.getElementById('chat');const b=document.createElement('div');
+  b.className='bub '+who;b.textContent=text;chat.appendChild(b);chat.scrollTop=chat.scrollHeight;
+  document.getElementById('live').textContent=(who==='ai'?'面试官：':'你：')+text;
+}
+
+// ===== 报告（A19）=====
+function renderReport(){
+  if(!state.report){document.getElementById('reportEmpty').classList.remove('hidden');document.getElementById('reportBody').classList.add('hidden');return;}
+  const r=state.report;
+  document.getElementById('reportEmpty').classList.add('hidden');document.getElementById('reportBody').classList.remove('hidden');
+  document.getElementById('overall').textContent=r.overallScore;
+  document.getElementById('rSid').textContent=r.sessionId;
+  document.getElementById('rFeedback').textContent=r.feedback;
+  document.getElementById('degrade').classList.toggle('hidden',!r.degradeFlag);
+  const dims=document.getElementById('dims');dims.innerHTML='';
+  r.dimensions.forEach(d=>{
+    const el=document.createElement('div');el.className='dim';
+    el.innerHTML=`<div class="lab"><span>${d.dim}</span><span>${d.rawScore}/5</span></div><div class="bar"><i style="width:${d.rawScore/5*100}%"></i></div><div style="font-size:12px;color:var(--muted);margin-top:4px">${d.reason}</div>`;
+    dims.appendChild(el);
+  });
+}
+
+// ===== 摄像头本地占位（红线：不调真实采集上传）=====
+function toggleCam(){
+  const pip=document.getElementById('pip');const on=pip.classList.toggle('on');
+  pip.querySelector('button').textContent=on?'关闭本地镜像':'开启本地镜像';
+  showToast(on?'本地镜像已开启（仅本地预览，不参与评估、不录制不上传）':'本地镜像已关闭');
+}
+
+// ===== toast =====
+let toastTimer=null;
+function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),2800);}
+
+// init（模拟 A16 加载骨架→渲染）
+document.getElementById('remain').textContent=quota.limit-quota.used;
+const sk=document.getElementById('prepList');
+for(let i=0;i<3;i++){const s=document.createElement('div');s.className='skeleton';sk.appendChild(s);}
+setTimeout(renderPrep,500);
+</script>
+</body>
+</html>

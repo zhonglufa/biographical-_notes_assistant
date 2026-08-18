@@ -1,0 +1,19 @@
+# 测试环境配置（H2 内存库 MODE=MySQL + Flyway 跑 H2 兼容迁移 + 启用自定义 SecurityFilterChain）
+# 目的：使 mvn test 在 CI（无 MySQL/Redis/Rabbit 实例）可编译运行；生产用 src/main/resources/application.yml。
+# 注意：SecurityAutoConfiguration 未排除——SecurityConfig 的自定义 SecurityFilterChain 已接管安全，
+# 默认 HTTP Basic 拦截链不会再创建；排除它反而会关掉 HttpSecurity bean 导致 context 起不来。
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+  flyway:
+    enabled: true
+    locations: classpath:db/migration-test
+  autoconfigure:
+    exclude: >
+      org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration,
+      org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration,
+      org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration,
+      org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration

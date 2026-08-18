@@ -22,6 +22,8 @@
     { "code": "MAINTENANCE", "http": 503, "retryable": true, "namespace": "A", "user_action": "稍后重试" },
     { "code": "PAY_SIGN_INVALID", "http": 400, "retryable": false, "namespace": "PAY" },
     { "code": "PAY_DUPLICATE", "http": 200, "retryable": false, "namespace": "PAY" },
-    { "code": "PAY_AMOUNT_MISMATCH", "http": 400, "retryable": false, "namespace": "PAY", "user_action": "联系客服" }
+    { "code": "PAY_AMOUNT_MISMATCH", "http": 400, "retryable": false, "namespace": "PAY", "user_action": "联系客服" },
+    { "code": "INTERNAL_ERROR", "http": 500, "retryable": true, "namespace": "SYS", "user_action": "稍后重试" },
+    { "code": "CONTRACT_BREACH", "http": 500, "retryable": false, "namespace": "SYS", "user_action": "联系支持（实现偏离契约，已拦截）" }
   ]
 }

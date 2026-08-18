@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>U9 每日日报 · 简历投递助手</title>
+<style>
+  :root{
+    --c-bg:#f5f7fa; --c-surface:#fff; --c-text:#1f2733; --c-muted:#6b7785; --c-faint:#9aa6b2;
+    --c-border:#e6eaf0; --c-accent:#2f6bff; --c-accent-weak:#eaf1ff; --c-ok:#22a06b; --c-bad:#e5484d;
+    --r-lg:14px; --r-md:10px; --r-full:999px; --sp-2:16px; --sp-3:24px;
+    --d-base:200ms; --e-out:cubic-bezier(.2,.7,.3,1);
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:var(--font);background:var(--c-bg);color:var(--c-text);font-size:15px}
+  .page{max-width:760px;margin:0 auto;padding:var(--sp-3) var(--sp-2) 60px}
+  .sec{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:18px;box-shadow:0 1px 3px rgba(20,30,50,.05);margin-bottom:14px}
+  .sec h2{font-size:16px;margin:0 0 14px}
+  .summary{font-size:14px;color:var(--c-muted);margin-bottom:4px}
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .stat{background:var(--c-bg);border-radius:var(--r-md);padding:14px}
+  .stat .n{font-size:24px;font-weight:700}
+  .stat .l{font-size:12px;color:var(--c-muted);margin-top:2px}
+  .stat.ok .n{color:var(--c-ok)} .stat.bad .n{color:var(--c-bad)} .stat.acc .n{color:var(--c-accent)}
+  .bars{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+  .barrow{display:flex;align-items:center;gap:10px;font-size:13px}
+  .barrow .nm{width:88px;color:var(--c-muted)}
+  .barrow .track{flex:1;height:10px;background:var(--c-bg);border-radius:var(--r-full);overflow:hidden}
+  .barrow .fill{height:100%;background:var(--c-accent);border-radius:var(--r-full)}
+  .barrow .ct{width:34px;text-align:right;color:var(--c-faint)}
+  .trend{display:flex;align-items:flex-end;gap:8px;height:96px;margin-top:8px}
+  .trend .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+  .trend .bar{width:100%;background:var(--c-accent-weak);border-radius:6px 6px 0 0;min-height:4px;transition:height var(--d-base) var(--e-out)}
+  .trend .bar.t{background:var(--c-accent)}
+  .trend .day{font-size:11px;color:var(--c-faint)}
+  .tbl{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;color:var(--c-muted)}
+  .tbl th,.tbl td{padding:4px 6px;text-align:left;border-bottom:1px solid var(--c-border)}
+  .pref{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
+  .pref .lab{font-size:14px}
+  .pref .sub{font-size:12px;color:var(--c-faint)}
+  .timei{border:1px solid var(--c-border);border-radius:var(--r-md);padding:8px 10px;font-size:14px;min-height:40px}
+  .toggle{width:48px;height:28px;border-radius:var(--r-full);background:var(--c-border);position:relative;cursor:pointer;transition:background var(--d-base)}
+  .toggle.on{background:var(--c-ok)}
+  .toggle .kn{position:absolute;top:3px;left:3px;width:22px;height:22px;background:#fff;border-radius:50%;transition:left var(--d-base) var(--e-out)}
+  .toggle.on .kn{left:23px}
+  .btn{border:1px solid var(--c-border);background:var(--c-surface);border-radius:var(--r-md);padding:9px 16px;font-size:14px;cursor:pointer;min-height:40px}
+  .btn.primary{background:var(--c-accent);border-color:var(--c-accent);color:#fff}
+  .row-end{display:flex;justify-content:flex-end;margin-top:14px}
+  .empty{border:2px dashed var(--c-border);border-radius:var(--r-lg);padding:30px;text-align:center;color:var(--c-faint)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);opacity:0;background:#1f2733;color:#fff;padding:11px 18px;border-radius:var(--r-full);transition:all var(--d-base) var(--e-out);z-index:20}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (max-width:768px){.grid{grid-template-columns:repeat(2,1fr)}}
+  @media (max-width:480px){.page{padding:16px 12px 56px}.stat .n{font-size:20px}.barrow .nm{width:64px}}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="sec">
+    <h2>每日日报</h2>
+    <div class="summary" id="summary">正在生成今日投递日报…</div>
+    <div id="statWrap"></div>
+    <div id="emptyWrap" class="empty" style="display:none">今日无投递活动 · 系统不会发送空日报</div>
+  </div>
+
+  <div class="sec" id="distSec">
+    <h2>各平台投递分布</h2>
+    <div class="bars" id="bars"></div>
+  </div>
+
+  <div class="sec" id="trendSec">
+    <h2>近 7 天趋势</h2>
+    <div class="trend" id="trend"></div>
+    <table class="tbl"><thead><tr><th>日期</th><th>投递量</th></tr></thead><tbody id="trendTbl"></tbody></table>
+  </div>
+
+  <div class="sec">
+    <h2>日报推送设置（A25）</h2>
+    <div class="pref">
+      <div><div class="lab">推送时间</div><div class="sub">默认 20:00，日报准时送达</div></div>
+      <input class="timei" id="pushTime" type="time" value="20:00">
+    </div>
+    <div class="pref">
+      <div><div class="lab">开启日报推送</div><div class="sub" id="enSub">开启后每日推送投递日报</div></div>
+      <div class="toggle on" id="enToggle"><div class="kn"></div></div>
+    </div>
+    <div class="row-end"><button class="btn primary" id="save">保存设置</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const report = {
+  date:'2026-08-17',
+  summary:'今日共投递 12 份，成功 11 份，收到 2 个面试邀请。',
+  stats:{appliedTotal:12,success:11,failed:1,byPlatform:[{platformId:'Boss直聘',count:5},{platformId:'智联',count:4},{platformId:'51job',count:3}],hrViews:4,interviewInvites:2,newQuestions:6,
+    trend7d:[{date:'08-11',count:8},{date:'08-12',count:10},{date:'08-13',count:6},{date:'08-14',count:9},{date:'08-15',count:7},{date:'08-16',count:11},{date:'08-17',count:12}]}
+};
+const total = report.stats.byPlatform.reduce((s,p)=>s+p.count,0);
+document.getElementById('summary').textContent = report.summary;
+const maxTrend = Math.max(...report.stats.trend7d.map(t=>t.count));
+document.getElementById('statWrap').innerHTML = `
+  <div class="grid">
+    <div class="stat acc"><div class="n">${report.stats.appliedTotal}</div><div class="l">今日投递总数</div></div>
+    <div class="stat ok"><div class="n">${report.stats.success}</div><div class="l">成功</div></div>
+    <div class="stat bad"><div class="n">${report.stats.failed}</div><div class="l">失败</div></div>
+    <div class="stat"><div class="n">${report.stats.hrViews}</div><div class="l">HR 查看</div></div>
+    <div class="stat"><div class="n">${report.stats.interviewInvites}</div><div class="l">面试邀请</div></div>
+    <div class="stat"><div class="n">${report.stats.newQuestions}</div><div class="l">新增面试题</div></div>
+  </div>`;
+document.getElementById('bars').innerHTML = report.stats.byPlatform.map(p=>`
+  <div class="barrow"><span class="nm">${p.platformId}</span><span class="track"><span class="fill" style="width:${Math.round(p.count/total*100)}%"></span></span><span class="ct">${p.count}</span></div>`).join('');
+document.getElementById('trend').innerHTML = report.stats.trend7d.map((t,i)=>`
+  <div class="col"><div class="bar ${i===6?'t':''}" style="height:${Math.round(t.count/maxTrend*80)}px"></div><div class="day">${t.date.slice(3)}</div></div>`).join('');
+document.getElementById('trendTbl').innerHTML = report.stats.trend7d.map(t=>`<tr><td>${t.date}</td><td>${t.count}</td></tr>`).join('');
+
+const tg=document.getElementById('enToggle');
+tg.onclick=()=>{tg.classList.toggle('on');document.getElementById('enSub').textContent=tg.classList.contains('on')?'开启后每日推送投递日报':'已关闭日报推送';};
+document.getElementById('save').onclick=()=>{
+  const v=document.getElementById('pushTime').value;
+  if(!/^\d{2}:\d{2}$/.test(v)){toast('时间格式不正确');return;}
+  const ok=tg.classList.contains('on');
+  toast(`已保存：推送 ${v}，${ok?'开启':'关闭'}`);
+};
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2400);}
+</script>
+</body>
+</html>

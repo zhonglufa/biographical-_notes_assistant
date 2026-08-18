@@ -7,8 +7,17 @@ node_modules/
 dist/
 build/
 
+# Maven 构建产物（server-java · ADR-002）
+**/target/
+.mvn/
+
 # 操作系统 / 编辑器临时文件
 .DS_Store
 Thumbs.db
 *.swp
 *.swo
+# Python 缓存（全局，避免误跟踪已编译字节码）
+**/__pycache__/
+*.pyc
+*.pyo
+.git-commit-msg.txt

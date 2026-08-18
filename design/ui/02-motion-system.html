@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>动效系统 (Motion System) · 简投 AI 助手</title>
+<style>
+  :root{
+    --c-primary:#4F46E5; --c-primary-hover:#4338CA; --c-primary-soft:#EEF2FF;
+    --c-accent:#7C3AED; --c-success:#16A34A; --c-success-soft:#ECFDF3; --c-success-bd:#ABEFC6;
+    --c-danger:#DC2626; --c-warning:#D97706; --c-info:#2563EB;
+    --c-ink:#0F172A; --c-body:#334155; --c-muted:#64748B; --c-faint:#94A3B8;
+    --c-border:#E2E8F0; --c-subtle:#F1F5F9; --c-page:#F8FAFC; --c-surface:#FFFFFF;
+    --r-sm:6px; --r-md:8px; --r-lg:12px; --r-full:999px;
+    --f-base:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+    /* ===== 动效 Token（全局唯一来源，01-app-shell 复用同一套） ===== */
+    --d-fast:140ms; --d-base:200ms; --d-slow:320ms; --d-slower:480ms;
+    --e-out:cubic-bezier(0.16,1,0.3,1);     /* 收尾减速，主推 */
+    --e-std:cubic-bezier(0.4,0,0.2,1);      /* 标准进出 */
+    --e-soft:cubic-bezier(0.4,0,0.2,1);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--f-base);background:var(--c-page);color:var(--c-body);font-size:14px;line-height:1.6;}
+  .wrap{max-width:960px;margin:0 auto;padding:32px 24px 80px;}
+  h1{font-size:24px;color:var(--c-ink);margin:0 0 4px;}
+  h2{font-size:17px;color:var(--c-ink);margin:36px 0 12px;padding-bottom:8px;border-bottom:1px solid var(--c-border);}
+  .lead{color:var(--c-muted);margin:0 0 8px;}
+  .panel{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:20px;margin:14px 0;}
+  code{background:var(--c-subtle);padding:1px 6px;border-radius:4px;font-size:12px;color:var(--c-ink);}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--c-border);}
+  th{color:var(--c-muted);font-weight:600;}
+  .tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:var(--r-full);background:var(--c-primary-soft);color:var(--c-primary);}
+  .btn{font-family:var(--f-base);font-size:14px;font-weight:500;border-radius:var(--r-sm);padding:8px 14px;border:1px solid transparent;cursor:pointer;transition:transform var(--d-fast) var(--e-out),background var(--d-fast) var(--e-std),box-shadow var(--d-fast) var(--e-std);}
+  .btn-primary{background:var(--c-primary);color:#fff;}
+  .btn-primary:hover{background:var(--c-primary-hover);}
+  .btn-primary:active{transform:scale(.97);}
+  .btn-secondary{background:var(--c-surface);color:var(--c-body);border-color:var(--c-border);}
+  .btn-secondary:active{transform:scale(.97);}
+  .row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
+
+  /* ===== 演示用：确认投递卡片 ===== */
+  .job{display:flex;gap:14px;align-items:flex-start;background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:16px;position:relative;overflow:hidden;transition:opacity var(--d-slow) var(--e-std),transform var(--d-slow) var(--e-out),max-height var(--d-slower) var(--e-out),margin var(--d-slower) var(--e-out),padding var(--d-slower) var(--e-out);max-height:200px;}
+  .job.done{max-height:0;opacity:0;transform:translateY(-6px);margin-top:-12px;padding-top:0;padding-bottom:0;border-width:0;}
+  .job .match{flex-shrink:0;width:54px;height:54px;border-radius:12px;background:var(--c-success-soft);color:var(--c-success);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;border:1px solid var(--c-success-bd);}
+  .job .match small{font-size:10px;font-weight:500;color:var(--c-muted);}
+  .job .info{flex:1;min-width:0;}
+  .job .info .title{font-weight:600;color:var(--c-ink);font-size:15px;}
+  .job .info .meta{color:var(--c-muted);font-size:13px;margin:2px 0 6px;}
+  .job .info .why{font-size:13px;color:var(--c-body);background:var(--c-subtle);border-radius:var(--r-sm);padding:8px 10px;}
+  .job .info .why b{color:var(--c-primary);}
+  .job .acts{display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+  /* 确认覆盖层（勾选绘制） */
+  .job .overlay{position:absolute;inset:0;background:var(--c-success-soft);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity var(--d-base) var(--e-std);}
+  .job.confirming .overlay{opacity:1;}
+  .check{width:64px;height:64px;}
+  .check circle{fill:none;stroke:var(--c-success);stroke-width:3;stroke-dasharray:151;stroke-dashoffset:151;}
+  .check path{fill:none;stroke:var(--c-success);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:48;stroke-dashoffset:48;}
+  .job.confirming .check circle{animation:drawC var(--d-slow) var(--e-out) forwards;}
+  .job.confirming .check path{animation:drawM var(--d-slow) var(--e-out) var(--d-base) forwards;}
+  @keyframes drawC{to{stroke-dashoffset:0;}}
+  @keyframes drawM{to{stroke-dashoffset:0;}}
+
+  /* ===== Toast ===== */
+  .toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);background:var(--c-ink);color:#fff;padding:10px 16px;border-radius:var(--r-md);font-size:13px;opacity:0;pointer-events:none;transition:opacity var(--d-base) var(--e-std),transform var(--d-base) var(--e-out);z-index:50;}
+  .toast.show{opacity:1;transform:translate(-50%,0);}
+
+  /* ===== 状态脉冲 ===== */
+  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;background:var(--c-warning);position:relative;}
+  .dot::after{content:"";position:absolute;inset:0;border-radius:50%;background:var(--c-warning);animation:pulse 1.6s var(--e-std) infinite;}
+  @keyframes pulse{0%{transform:scale(1);opacity:.6;}70%{transform:scale(2.6);opacity:0;}100%{opacity:0;}}
+  .dot.ok{background:var(--c-success);} .dot.ok::after{background:var(--c-success);}
+  .dot.run{background:var(--c-info);} .dot.run::after{background:var(--c-info);}
+
+  /* ===== 骨架屏 ===== */
+  .sk{height:14px;border-radius:6px;background:linear-gradient(90deg,var(--c-subtle) 25%,#E8EEF5 37%,var(--c-subtle) 63%);background-size:400% 100%;animation:shimmer 1.4s var(--e-std) infinite;margin:8px 0;}
+  @keyframes shimmer{0%{background-position:100% 0;}100%{background-position:-100% 0;}}
+
+  /* ===== 导航过渡（演示） ===== */
+  .navbox{display:flex;gap:8px;}
+  .navbox button{font-family:var(--f-base);border:1px solid var(--c-border);background:var(--c-surface);border-radius:var(--r-sm);padding:8px 14px;cursor:pointer;color:var(--c-body);transition:background var(--d-fast) var(--e-std),color var(--d-fast) var(--e-std);}
+  .navbox button.on{background:var(--c-primary-soft);color:var(--c-primary);font-weight:600;}
+  .screen{margin-top:12px;padding:20px;border:1px dashed var(--c-border);border-radius:var(--r-lg);background:var(--c-surface);animation:fade var(--d-base) var(--e-out);}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .reduce-note{font-size:12px;color:var(--c-muted);margin-top:6px;}
+  body.reduce-motion *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;}
+  @media (prefers-reduced-motion: reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>动效系统 · Motion System</h1>
+  <p class="lead">为「简投 AI 助手」定义的统一动效规范。原则：<b>克制、有目的、可关闭</b>。本文件是动效 token 与示例的<b>唯一来源</b>，<code>01-app-shell.html</code> 复用同一套 token。</p>
+  <span class="tag">U 阶段 · 动效规范</span>
+
+  <h2>1. 设计原则</h2>
+  <div class="panel">
+    <p style="margin:0 0 8px"><b>① 目的优先，不装饰。</b> 动画只服务于两件事：强化产品招牌交互「半自动确认闸门」（让人确认投递的那一下有踏实反馈），以及让导航/状态/反馈更跟手。不用弹跳、闪光、视差等花哨动效。</p>
+    <p style="margin:0 0 8px"><b>② 短而利落。</b> 主交互 ≤ 320ms，收尾用减速缓动（ease-out），给人"即时但顺滑"的感觉。</p>
+    <p style="margin:0"><b>③ 可关闭。</b> 全程尊重系统「减弱动态效果」(<code>prefers-reduced-motion</code>)；开启后所有动画降级为瞬时切换，功能不受影响。</p>
+  </div>
+
+  <h2>2. 动效 Token</h2>
+  <div class="panel">
+    <table>
+      <tr><th>类别</th><th>Token</th><th>值</th><th>用途</th></tr>
+      <tr><td>时长</td><td><code>--d-fast</code></td><td>140ms</td><td>按压反馈、悬停</td></tr>
+      <tr><td>时长</td><td><code>--d-base</code></td><td>200ms</td><td>导航过渡、Toast、覆盖层</td></tr>
+      <tr><td>时长</td><td><code>--d-slow</code></td><td>320ms</td><td>确认勾选绘制</td></tr>
+      <tr><td>时长</td><td><code>--d-slower</code></td><td>480ms</td><td>卡片收起</td></tr>
+      <tr><td>缓动</td><td><code>--e-out</code></td><td>cubic-bezier(0.16,1,0.3,1)</td><td>主推：收尾减速</td></tr>
+      <tr><td>缓动</td><td><code>--e-std</code></td><td>cubic-bezier(0.4,0,0.2,1)</td><td>标准进出/循环</td></tr>
+    </table>
+  </div>
+
+  <h2>3. 现场示例</h2>
+
+  <div class="panel">
+    <b>3.1 确认投递（招牌交互）</b>
+    <p class="lead">点击「确认」→ 勾选绘制 + 卡片高亮 → 收起并计数 + Toast 反馈。体现"人确认后才发起"的半自动心智。</p>
+    <div class="job" id="demoJob">
+      <div class="match">92<small>匹配</small></div>
+      <div class="info">
+        <div class="title">Java 开发工程师 · 某科技公司</div>
+        <div class="meta">上海 · 全职 · 15-25K · 1天前</div>
+        <div class="why">匹配理由：<b>技能 87%</b> 吻合；<b>地点</b> 命中偏好。</div>
+      </div>
+      <div class="acts">
+        <button class="btn btn-primary btn-sm" id="demoConfirm">确认</button>
+        <button class="btn btn-secondary btn-sm">忽略</button>
+      </div>
+      <div class="overlay"><svg class="check" viewBox="0 0 52 52"><circle cx="26" cy="26" r="24"/><path d="M14 27 l8 8 l16 -18"/></svg></div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="btn btn-secondary btn-sm" id="demoReset">重置示例</button>
+      <span class="count" id="demoCount" style="color:var(--c-muted)">今日已投递 12 / 限额 20</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <b>3.2 状态脉冲</b>
+    <p class="lead">用于"待确认 / 进行中"等需要被注意但不打断的状态点。</p>
+    <div class="row">
+      <span><span class="dot"></span> 待确认</span>
+      <span><span class="dot run"></span> 投递中</span>
+      <span><span class="dot ok"></span> 已投递</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <b>3.3 Toast 反馈</b>
+    <p class="lead">操作结果从底部滑入、短暂停留后淡出。点击 3.1 的「确认」即可触发。</p>
+  </div>
+
+  <div class="panel">
+    <b>3.4 导航过渡</b>
+    <p class="lead">切换页面时内容区淡入（200ms），不位移大幅，避免眩晕。</p>
+    <div class="navbox">
+      <button class="on" data-s="A">首页</button>
+      <button data-s="B">岗位</button>
+      <button data-s="C">投递</button>
+    </div>
+    <div class="screen" id="demoScreen">首页内容区（淡入演示）</div>
+  </div>
+
+  <div class="panel">
+    <b>3.5 骨架屏（加载占位）</b>
+    <p class="lead">异步加载（如 AI 匹配中）时用微光占位，比转圈更安静、更现代。</p>
+    <div style="max-width:320px">
+      <div class="sk" style="width:60%"></div>
+      <div class="sk" style="width:90%"></div>
+      <div class="sk" style="width:80%"></div>
+    </div>
+  </div>
+
+  <h2>4. 无障碍 · 减弱动态效果</h2>
+  <div class="panel">
+    <p style="margin:0 0 10px">系统开启"减弱动态效果"时，所有动画自动降级为瞬时切换。下方开关可<b>现场模拟</b>该状态：</p>
+    <label class="row" style="cursor:pointer">
+      <input type="checkbox" id="rmToggle" /> 模拟「减弱动态效果」(reduced-motion)
+    </label>
+    <p class="reduce-note">生产环境由 CSS <code>@media (prefers-reduced-motion: reduce)</code> 自动生效，无需代码判断。</p>
+  </div>
+</div>
+
+<div class="toast" id="toast">已发起投递（半自动 · 待本机 Agent 执行）</div>
+
+<script>
+  // 3.1 确认投递动效
+  const job=document.getElementById('demoJob'), count=document.getElementById('demoCount');
+  let delivered=12;
+  document.getElementById('demoConfirm').addEventListener('click',()=>{
+    job.classList.add('confirming');
+    setTimeout(()=>{ job.classList.add('done'); delivered++; count.textContent='今日已投递 '+delivered+' / 限额 20'; showToast('已对「Java 开发工程师」发起投递（半自动·待本机 Agent 执行）'); }, 760);
+  });
+  document.getElementById('demoReset').addEventListener('click',()=>{ job.classList.remove('confirming','done'); });
+
+  // Toast
+  const toast=document.getElementById('toast'); let tt;
+  function showToast(msg){ toast.textContent=msg; toast.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>toast.classList.remove('show'),2200); }
+
+  // 3.4 导航过渡
+  const screens={A:'首页内容区（淡入演示）',B:'岗位浏览内容区（淡入演示）',C:'投递管理内容区（淡入演示）'};
+  document.querySelectorAll('.navbox button').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.navbox button').forEach(x=>x.classList.remove('on'));
+      b.classList.add('on');
+      const s=document.getElementById('demoScreen');
+      s.style.animation='none'; void s.offsetWidth; s.style.animation='';
+      s.textContent=screens[b.dataset.s];
+    });
+  });
+
+  // 4. 减弱动态效果模拟
+  document.getElementById('rmToggle').addEventListener('change',e=>{
+    document.body.classList.toggle('reduce-motion', e.target.checked);
+  });
+</script>
+</body>
+</html>

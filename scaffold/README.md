@@ -19,8 +19,11 @@
 |------|------|
 | `src/contract_runtime.py` | 运行时加载 + 校验契约（复用 `design/contracts/validate_contracts.py`） |
 | `src/event_bus.py` | 内存事件总线 stub，发布前对 `domain-events.event.schema.json` 校验；演示支付状态事件驱动会员权益（C5） |
-| `src/api_stub.py` | 契约优先端点抽象 `Endpoint.dispatch()`；示例端点 A01 auth-login（请求/响应双校验） |
-| `tests/test_smoke.py` | 冒烟测试：契约校验、事件 fail-closed、接口 422 fail-closed |
+| `src/stubs/core.py` | 端点抽象 `Endpoint/ApiStub` + 契约校验（含 None schema 容错）；**稳定基础设施，子代理禁改** |
+| `src/stubs/<module>.py` | 各 A 层模块桩（auth/jobs/user/resume…），定义 `ENDPOINTS` 列表 |
+| `src/stubs/__init__.py` | 扫描本包所有模块、汇总进全局 `API_STUB`（**新增模块零共享文件改动**） |
+| `src/api_stub.py` | 向后兼容薄层，re-export `API_STUB` 并保留 `__main__` 注册表自检演示 |
+| `tests/test_smoke.py` | 冒烟测试：契约校验、事件 fail-closed、接口 422 fail-closed（**注册表驱动，自动遍历所有端点**） |
 
 ## 3. 运行
 
@@ -35,6 +38,21 @@ python -m src.api_stub
 
 需 Python 3.10+。脚本自动回溯到仓库根，加载 `design/contracts/`。
 
+### 3.1 启动可上线 HTTP 服务（O 阶段 · 上线就绪）
+
+`scaffold/src/server_main.py` 是零依赖（仅标准库）HTTP 入口，把 25 个契约端点 +
+`/healthz` + `/metrics`（护栏3 四指标）暴露为服务（详见仓库根 `docs/上线手册.md`）：
+
+```bash
+cd <repo>
+python scaffold/src/server_main.py          # 默认 0.0.0.0:8080，可用 PORT/HOST 覆盖
+# 或容器化：
+docker build -t resume-ai-prod:local . && docker run -p 8080:8080 resume-ai-prod:local
+```
+
+路由约定：POST `/api/<Axx>`（如 `/api/A01`）按 A 编号唯一匹配契约端点；所有请求/响应
+经契约校验（fail-closed）。护栏3 由 `ServerApp(bus=)` 自动挂接 `LightweightMonitor`，四项指标真实流动。
+
 ## 4. 后续模块脚手架顺序（建议，待逐期推进）
 
 按 HLD §9.4 闭环顺序与风险优先级：
@@ -45,8 +63,10 @@ python -m src.api_stub
 4. **AI 编排 / 解析质量 / 面试域**：B01–B05、解析、rubric 对齐各自 LLD schema。
 5. **横切**：密钥工程（本地信封）、可观测性（OpenTelemetry）、通知推送（去重窗口）、用户权限（T-UP-1 码表）。
 
-每个端点/事件落地时，先写对应 `*.schema.json`（若设计期未覆盖），再写 handler，
-最后在 `test_smoke.py` 增补契约断言 —— 让双闸门（设计期 + 运行期）形成闭环。
+每个端点落地时，先写对应 `*.schema.json`（若设计期未覆盖），再在 `stubs/` 下新建一个
+`<module>.py` 定义该端点的 `Endpoint`（含 `example_request`）。注册表自动发现、
+`test_smoke.py` 自动遍历所有端点断言，**无需改任何共享文件** —— 天然支持并行子代理
+各写各模块、零冲突，让双闸门（设计期 + 运行期）形成闭环。
 
 ## 5. 与双闸门的关系
 

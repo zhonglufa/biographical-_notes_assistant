@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>设计系统 · resume-ai-prod 客户端</title>
+<style>
+  :root{
+    /* 色彩 token */
+    --c-primary:#4F46E5; --c-primary-hover:#4338CA; --c-primary-soft:#EEF2FF;
+    --c-accent:#7C3AED;  --c-accent-soft:#F5F3FF;
+    --c-success:#16A34A; --c-success-soft:#ECFDF3; --c-success-border:#ABEFC6;
+    --c-danger:#DC2626;  --c-danger-soft:#FEF3F2;  --c-danger-border:#FECDCA;
+    --c-warning:#D97706; --c-warning-soft:#FFFAEB; --c-warning-border:#FDE68A;
+    --c-info:#2563EB;    --c-info-soft:#EFF6FF;    --c-info-border:#BFDBFE;
+    --c-ink:#0F172A; --c-body:#334155; --c-muted:#64748B; --c-faint:#94A3B8;
+    --c-border:#E2E8F0; --c-subtle:#F1F5F9; --c-page:#F8FAFC; --c-surface:#FFFFFF;
+    /* 间距 token（4px 基准） */
+    --s-1:4px; --s-2:8px; --s-3:12px; --s-4:16px; --s-5:20px; --s-6:24px; --s-8:32px;
+    /* 圆角 token */
+    --r-sm:6px; --r-md:8px; --r-lg:12px; --r-full:999px;
+    /* 字体 */
+    --f-base:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--f-base);background:var(--c-page);color:var(--c-body);line-height:1.6;}
+  .wrap{max-width:1080px;margin:0 auto;padding:var(--s-8) var(--s-6);}
+  h1{font-size:22px;font-weight:600;color:var(--c-ink);margin:0 0 var(--s-2);}
+  h2{font-size:18px;font-weight:600;color:var(--c-ink);margin:var(--s-8) 0 var(--s-4);border-left:4px solid var(--c-primary);padding-left:var(--s-3);}
+  h3{font-size:16px;font-weight:600;color:var(--c-body);margin:var(--s-5) 0 var(--s-3);}
+  p{margin:0 0 var(--s-3);}
+  .lead{color:var(--c-muted);font-size:14px;}
+  .section{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:var(--s-6);margin-bottom:var(--s-5);}
+  .row{display:flex;flex-wrap:wrap;gap:var(--s-3);align-items:center;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--s-4);}
+  .cell{border:1px solid var(--c-border);border-radius:var(--r-md);padding:var(--s-3);text-align:center;}
+  .swatch{height:56px;border-radius:var(--r-sm);margin-bottom:var(--s-2);}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;color:var(--c-muted);}
+  /* 组件样式 */
+  .btn{font-family:var(--f-base);font-size:14px;font-weight:500;border-radius:var(--r-sm);padding:var(--s-2) var(--s-4);border:1px solid transparent;cursor:pointer;}
+  .btn-primary{background:var(--c-primary);color:#fff;}
+  .btn-primary:hover{background:var(--c-primary-hover);}
+  .btn-secondary{background:var(--c-surface);color:var(--c-body);border-color:var(--c-border);}
+  .btn-secondary:hover{background:var(--c-subtle);}
+  .btn-ghost{background:transparent;color:var(--c-primary);}
+  .btn-ghost:hover{background:var(--c-primary-soft);}
+  .btn-danger{background:var(--c-danger);color:#fff;}
+  .btn-danger:hover{filter:brightness(.94);}
+  .badge{display:inline-flex;align-items:center;font-size:12px;font-weight:600;padding:2px var(--s-2);border-radius:var(--r-full);}
+  .badge-success{background:var(--c-success-soft);color:var(--c-success);border:1px solid var(--c-success-border);}
+  .badge-danger{background:var(--c-danger-soft);color:var(--c-danger);border:1px solid var(--c-danger-border);}
+  .badge-warning{background:var(--c-warning-soft);color:var(--c-warning);border:1px solid var(--c-warning-border);}
+  .badge-info{background:var(--c-info-soft);color:var(--c-info);border:1px solid var(--c-info-border);}
+  .badge-neutral{background:var(--c-subtle);color:var(--c-muted);border:1px solid var(--c-border);}
+  .input{font-family:var(--f-base);font-size:14px;padding:var(--s-2) var(--s-3);border:1px solid var(--c-border);border-radius:var(--r-sm);min-width:220px;color:var(--c-ink);}
+  .input:focus{outline:none;border-color:var(--c-primary);box-shadow:0 0 0 3px var(--c-primary-soft);}
+  .card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-md);padding:var(--s-4);}
+  .toggle{width:40px;height:22px;border-radius:var(--r-full);background:var(--c-primary);position:relative;display:inline-block;}
+  .toggle::after{content:"";position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:#fff;}
+  .toggle.off{background:var(--c-border);}
+  .toggle.off::after{left:2px;right:auto;}
+  .progress{height:8px;background:var(--c-subtle);border-radius:var(--r-full);overflow:hidden;min-width:200px;}
+  .progress > i{display:block;height:100%;background:var(--c-primary);width:68%;}
+  .toast{background:var(--c-ink);color:#fff;font-size:13px;padding:var(--s-2) var(--s-4);border-radius:var(--r-sm);}
+  .pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:3px var(--s-2);border-radius:var(--r-full);background:var(--c-subtle);color:var(--c-body);}
+  .dot{width:8px;height:8px;border-radius:50%;}
+  .dot-green{background:var(--c-success);} .dot-red{background:var(--c-danger);} .dot-amber{background:var(--c-warning);}
+  .type-sample{color:var(--c-ink);}
+  .note{font-size:12px;color:var(--c-faint);margin-top:var(--s-2);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>设计系统 · resume-ai-prod 客户端</h1>
+  <p class="lead">本文件是 U 阶段（UI/交互设计）的基础规范。所有用户面原型（U1–U11）均以此 token 与组件为准，保证跨屏视觉一致。色彩采用中性专业调性（非金融红涨绿跌语义），状态色仅表示「成功/危险/警告/信息」。</p>
+
+  <div class="section">
+    <h2>1. 色彩 token</h2>
+    <div class="grid">
+      <div class="cell"><div class="swatch" style="background:var(--c-primary)"></div><div class="mono">primary</div><div class="mono">#4F46E5</div></div>
+      <div class="cell"><div class="swatch" style="background:var(--c-accent)"></div><div class="mono">accent(AI)</div><div class="mono">#7C3AED</div></div>
+      <div class="cell"><div class="swatch" style="background:var(--c-success)"></div><div class="mono">success</div><div class="mono">#16A34A</div></div>
+      <div class="cell"><div class="swatch" style="background:var(--c-danger)"></div><div class="mono">danger</div><div class="mono">#DC2626</div></div>
+      <div class="cell"><div class="swatch" style="background:var(--c-warning)"></div><div class="mono">warning</div><div class="mono">#D97706</div></div>
+      <div class="cell"><div class="swatch" style="background:var(--c-info)"></div><div class="mono">info</div><div class="mono">#2563EB</div></div>
+      <div class="cell"><div class="swatch" style="background:var(--c-ink)"></div><div class="mono">ink</div><div class="mono">#0F172A</div></div>
+      <div class="cell"><div class="swatch" style="background:var(--c-muted)"></div><div class="mono">muted</div><div class="mono">#64748B</div></div>
+      <div class="cell"><div class="swatch" style="background:var(--c-border)"></div><div class="mono">border</div><div class="mono">#E2E8F0</div></div>
+      <div class="cell"><div class="swatch" style="background:var(--c-subtle)"></div><div class="mono">subtle</div><div class="mono">#F1F5F9</div></div>
+    </div>
+    <p class="note">语义约定：success=匹配成功/健康，danger=被拦截/风险，warning=需确认/限额临界，info=提示。投递成功率/封号率等监控指标用「绿=良好 / 红=告警」通用状态语义，不表示涨跌。</p>
+  </div>
+
+  <div class="section">
+    <h2>2. 字体与圆角</h2>
+    <h3 class="type-sample">Display 30 / 700 — 投递确认</h3>
+    <h1 class="type-sample">H1 22 / 600 — 待确认投递（3）</h1>
+    <h2 class="type-sample">H2 18 / 600 — 匹配详情</h2>
+    <h3 class="type-sample">H3 16 / 600 — 岗位要求</h3>
+    <p>正文 Body 14 / 400 — 系统为你匹配到 3 个高契合度岗位，请逐条确认后再发起投递。</p>
+    <p class="note">Caption 12 / 400 — 数据更新于 09:24</p>
+    <p class="note">圆角：sm 6 / md 8 / lg 12 / full 999。间距基准 4px（--s-1…--s-8）。</p>
+  </div>
+
+  <div class="section">
+    <h2>3. 核心组件</h2>
+    <h3>按钮 Button</h3>
+    <div class="row">
+      <button class="btn btn-primary">主操作</button>
+      <button class="btn btn-secondary">次操作</button>
+      <button class="btn btn-ghost">文字按钮</button>
+      <button class="btn btn-danger">危险操作</button>
+    </div>
+    <h3>状态徽标 Badge</h3>
+    <div class="row">
+      <span class="badge badge-success">已匹配</span>
+      <span class="badge badge-danger">已拦截</span>
+      <span class="badge badge-warning">待确认</span>
+      <span class="badge badge-info">投递中</span>
+      <span class="badge badge-neutral">已忽略</span>
+    </div>
+    <h3>输入 Input</h3>
+    <div class="row">
+      <input class="input" value="搜索岗位、公司、技能…" />
+      <input class="input" placeholder="请输入关键词" />
+    </div>
+    <h3>卡片 / 开关 / 进度</h3>
+    <div class="row">
+      <div class="card" style="min-width:160px">投递进度<br><strong>12 / 20</strong> 今日</div>
+      <span class="toggle"></span><span class="toggle off"></span>
+      <div class="progress"><i></i></div>
+    </div>
+    <h3>状态点 / 提示条</h3>
+    <div class="row">
+      <span class="pill"><span class="dot dot-green"></span>账号正常</span>
+      <span class="pill"><span class="dot dot-red"></span>封号风险</span>
+      <span class="pill"><span class="dot dot-amber"></span>限额临界</span>
+      <span class="toast">已记录你的忽略，不再推送该岗位</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>4. 交付约定</h2>
+    <p>每个用户面（U1–U11）交付：① 可交互 HTML 原型（本设计系统组件）置于 <code>design/ui/screens/</code>；② 交互规格（状态/转场/空态/错误/确认闸门）内联或 <code>design/ui/interaction-*.md</code>。原型仅用 mock 数据，不接真实后端与凭据。</p>
+  </div>
+
+  <div class="section">
+    <h2>5. 动效 / Motion</h2>
+    <p>统一动效规范（token + 现场示例）见 <b><code>02-motion-system.html</code></b>，由 U-动效 工作包交付。原则：克制、有目的、可关闭。核心动效：</p>
+    <ul>
+      <li><b>确认投递（招牌交互）</b>：勾选绘制 → 卡片高亮 → 收起并计数 + Toast，强化"人确认后才发起"的半自动心智。</li>
+      <li><b>导航过渡</b>：内容区 200ms 淡入，不大幅位移。</li>
+      <li><b>状态脉冲</b>：待确认 / 投递中等需被注意的状态点。</li>
+      <li><b>骨架屏</b>：AI 匹配等异步加载占位。</li>
+      <li><b>无障碍</b>：尊重系统 <code>prefers-reduced-motion</code>，开启后降级为瞬时切换。</li>
+    </ul>
+    <p>所有时长/缓动 token（<code>--d-fast/base/slow/slower</code>、<code>--e-out/e-std</code>）在 01/02 中保持一致，禁止各屏私自定义动画时长。</p>
+  </div>
+
+  <div class="section">
+    <h2>6. 响应式规范（Responsive）</h2>
+    <p>客户端目标设备：<b>桌面 PC Web（主）</b> + <b>移动端 H5（辅助浏览）</b>。所有 U 原型<strong>必须</strong>在以下三档宽度可正常使用，<strong>禁止横向溢出</strong>：</p>
+    <ul>
+      <li><b>桌面 ≥1024px</b>：完整双栏布局（侧栏 232px + 内容）。</li>
+      <li><b>平板 768–1023px</b>：内容区收窄，组件自然换行。</li>
+      <li><b>手机 ≤768px</b>：侧栏<strong>折叠为顶部横向滚动条</strong>；卡片/列表行<strong>纵向堆叠</strong>，操作按钮换行到整行底部、最小点按高度 <code>40px</code>；内容内边距收紧。</li>
+    </ul>
+    <p>断点 token（供 U6–U11 引用）：<code>--bp-sm:640px</code>、<code>--bp-md:768px</code>、<code>--bp-lg:1024px</code>。标准壳折叠 / 卡片堆叠的 CSS 范式见 <code>UI-SELFCHECK.md §5</code>；每个 U 屏在 <code>&lt;style&gt;</code> 末尾引入对应 <code>@media</code> 块。提交前须过 <code>UI-SELFCHECK.md §3</code> 三端自查清单（375/768/1280 渲染、无横溢、无重叠、按钮可点、模态≤90vw、尊重 reduced-motion）。</p>
+  </div>
+</div>
+</body>
+</html>

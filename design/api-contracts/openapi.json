@@ -3,7 +3,7 @@
   "info": {
     "title": "简历自动投递与面试模拟 - API 契约（OpenAPI 3.1）",
     "version": "1.0.0",
-    "description": "由 design/contracts/ 机器可读契约自动导出（生成器：api-contracts/gen_openapi.py）。\n\n## 分层\n- **A 层（外部 API）**：公共 REST，basePath /api/v1，25 个端点（A01-A25）。多数端点 contractStatus=outlined，schema 为 best-effort，以 x-contract-status 标注。\n- **B 层（AI 编排）**：内部 REST /internal/v1/ai，b01-b05 直引机器可读 b0X schema（严格）。\n- **面试模拟域**：内部 REST /internal/v1/interview，6 个 facade 方法（outlined）。\n- **C 层（本机 Agent↔服务端）**：WSS RPC，本文件仅收录 device/* 与 payments/callback 等少数 HTTP 端点；双向 RPC 方法见下方 x-agent-rpc。\n\n## 信封\n- 统一错误信封：components.schemas/error-envelope（§4.7）\n- 事件信封：event-envelope（§4.6）；RPC 信封：rpc-envelope（§4.9）\n\n## Mock\n本文件即为 Mock 数据源：`npx @stoplight/prism mock -s openapi.json`。",
+    "description": "由 design/contracts/ 机器可读契约自动导出（生成器：api-contracts/gen_openapi.py）。\n\n## 分层\n- **A 层（外部 API）**：公共 REST，basePath /api/v1，25 个端点（A01-A25）。严格机器可读 schema 已落盘 design/contracts/（request/response *.schema.json）并经双闸门校验（registry `contractStatus=fully-detailed`）。本文件为**概览投影视图**：内联 request/response body 由 registry 字段大纲 best-effort 生成（标 `x-contract-status` 仅表示投影粒度），**权威严格契约见各 operation 的 `x-ref` 指向 design/contracts/ 真实 schema**。\n- **B 层（AI 编排）**：内部 REST /internal/v1/ai，b01-b05 直引机器可读 b0X schema（严格）。\n- **面试模拟域**：内部 REST /internal/v1/interview，6 个 facade 方法（outlined）。\n- **C 层（本机 Agent↔服务端）**：WSS RPC，本文件仅收录 device/* 与 payments/callback 等少数 HTTP 端点；双向 RPC 方法见下方 x-agent-rpc。\n\n## 信封\n- 统一错误信封：components.schemas/error-envelope（§4.7）\n- 事件信封：event-envelope（§4.6）；RPC 信封：rpc-envelope（§4.9）\n\n## Mock\n本文件即为 Mock 数据源：`npx @stoplight/prism mock -s openapi.json`。",
     "x-error-codes": [
       {
         "code": "INVALID_PARAM",
@@ -271,7 +271,8 @@
           "A 外部 API"
         ],
         "x-auth": "none",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "auth-login.request.schema.json / auth-login.response.schema.json",
         "requestBody": {
           "required": true,
           "content": {
@@ -279,25 +280,29 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "email": {
-                    "type": "string"
-                  },
                   "channel(enum email|sms|wechat)": {
-                    "type": "string"
-                  },
-                  "code|password": {
                     "type": "string"
                   },
                   "deviceId": {
                     "type": "string"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "phone": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string"
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
-                  "email",
                   "channel(enum email|sms|wechat)",
-                  "code|password",
                   "deviceId"
                 ]
               }
@@ -332,7 +337,7 @@
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "accessToken",
                         "refreshToken",
@@ -371,7 +376,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "auth-refresh.request.schema.json / auth-refresh.response.schema.json",
         "requestBody": {
           "required": true,
           "content": {
@@ -384,7 +390,7 @@
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
                   "refreshToken"
                 ]
@@ -408,10 +414,13 @@
                         },
                         "expiresIn": {
                           "type": "string"
+                        },
+                        "refreshToken": {
+                          "type": "string"
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "accessToken",
                         "expiresIn"
@@ -447,7 +456,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "user-me.response.schema.json",
         "responses": {
           "200": {
             "description": "成功（单项信封 §10 uniformEnvelope）",
@@ -479,7 +489,7 @@
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "userId",
                         "email",
@@ -519,7 +529,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "resumes-create.request.schema.json / resumes-create.response.schema.json",
         "requestBody": {
           "required": true,
           "content": {
@@ -538,7 +549,7 @@
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
                   "title",
                   "content"
@@ -569,7 +580,7 @@
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "resumeId",
                         "versionId",
@@ -606,7 +617,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "resume-versions.response.schema.json / resume-diff.request.schema.json / resume-diff.response.schema.json",
         "parameters": [
           {
             "name": "id",
@@ -633,7 +645,7 @@
                           "items": {
                             "type": "object",
                             "additionalProperties": true,
-                            "description": "versionId, createdAt, note (outlined)"
+                            "description": "versionId, versionNo, createdAt, isPreferred (outlined)"
                           }
                         },
                         "diffAvailable": {
@@ -641,7 +653,7 @@
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "versions",
                         "diffAvailable"
@@ -677,7 +689,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "resume-ats.request.schema.json / resume-ats.response.schema.json",
         "parameters": [
           {
             "name": "id",
@@ -688,6 +701,26 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resumeVersionId": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": true,
+                "x-contract-status": "fully-detailed",
+                "required": [
+                  "resumeVersionId"
+                ]
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "成功（单项信封 §10 uniformEnvelope）",
@@ -702,15 +735,15 @@
                         "taskId": {
                           "type": "string"
                         },
-                        "status": {
+                        "status(enum pending|running|done|failed)": {
                           "type": "string"
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "taskId",
-                        "status"
+                        "status(enum pending|running|done|failed)"
                       ]
                     }
                   },
@@ -743,7 +776,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "jobs-search.request.schema.json / jobs-list.response.schema.json",
         "responses": {
           "200": {
             "description": "成功（列表信封 §10 uniformEnvelope）",
@@ -802,7 +836,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "jobs-favorite.request.schema.json / jobs-favorite.response.schema.json",
         "parameters": [
           {
             "name": "id",
@@ -825,7 +860,7 @@
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
                   "action(enum favorite|ignore)"
                 ]
@@ -846,12 +881,16 @@
                       "properties": {
                         "ok": {
                           "type": "string"
+                        },
+                        "status(enum favorited|ignored|removed)": {
+                          "type": "string"
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
-                        "ok"
+                        "ok",
+                        "status(enum favorited|ignored|removed)"
                       ]
                     }
                   },
@@ -919,7 +958,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "applications-list.response.schema.json",
         "responses": {
           "200": {
             "description": "成功（列表信封 §10 uniformEnvelope）",
@@ -1023,7 +1063,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "strategies.response.schema.json",
         "responses": {
           "200": {
             "description": "成功（单项信封 §10 uniformEnvelope）",
@@ -1051,7 +1092,7 @@
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "matchThreshold",
                         "dailyLimit",
@@ -1087,7 +1128,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer+pro",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "strategies.request.schema.json / strategies.response.schema.json",
         "requestBody": {
           "required": true,
           "content": {
@@ -1109,7 +1151,7 @@
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
                   "matchThreshold",
                   "dailyLimit",
@@ -1139,7 +1181,7 @@
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "ok",
                         "updatedAt"
@@ -1210,7 +1252,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer+pro",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "adapter-enable.request.schema.json / adapter-enable.response.schema.json",
         "parameters": [
           {
             "name": "id",
@@ -1233,7 +1276,7 @@
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
                   "enabled(bool)"
                 ]
@@ -1255,15 +1298,15 @@
                         "adapterId": {
                           "type": "string"
                         },
-                        "status": {
+                        "status(enum enabled|disabled)": {
                           "type": "string"
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "adapterId",
-                        "status"
+                        "status(enum enabled|disabled)"
                       ]
                     }
                   },
@@ -1296,7 +1339,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "interview-questions.response.schema.json",
         "responses": {
           "200": {
             "description": "成功（单项信封 §10 uniformEnvelope）",
@@ -1309,12 +1353,37 @@
                       "type": "object",
                       "properties": {
                         "questionSets": {
-                          "type": "string",
-                          "description": "([], outlined)"
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "setId": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "questionCount": {
+                                "type": "string"
+                              },
+                              "difficulty": {
+                                "type": "string"
+                              },
+                              "tags": {
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": true,
+                            "required": [
+                              "setId",
+                              "title",
+                              "questionCount"
+                            ]
+                          }
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "questionSets"
                       ]
@@ -1349,7 +1418,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "interview-session-create.request.schema.json / interview-session-create.response.schema.json",
         "requestBody": {
           "required": true,
           "content": {
@@ -1368,7 +1438,7 @@
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
                   "mode(enum text|voice)"
                 ]
@@ -1390,15 +1460,15 @@
                         "sessionId": {
                           "type": "string"
                         },
-                        "status": {
+                        "status(enum created|in_progress|completed|abandoned)": {
                           "type": "string"
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "sessionId",
-                        "status"
+                        "status(enum created|in_progress|completed|abandoned)"
                       ]
                     }
                   },
@@ -1431,7 +1501,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "interview-session-answer.request.schema.json / interview-session-answer.response.schema.json",
         "parameters": [
           {
             "name": "id",
@@ -1460,7 +1531,7 @@
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
                   "questionId",
                   "answer(text|audioRef)"
@@ -1483,14 +1554,15 @@
                         "accepted": {
                           "type": "string"
                         },
-                        "score": {
+                        "score?(0-1)": {
                           "type": "string"
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
-                        "accepted"
+                        "accepted",
+                        "score?(0-1)"
                       ]
                     }
                   },
@@ -1523,7 +1595,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "interview-session-report.response.schema.json",
         "parameters": [
           {
             "name": "id",
@@ -1548,23 +1621,48 @@
                         "sessionId": {
                           "type": "string"
                         },
-                        "overallScore": {
+                        "overallScore(0-100)": {
                           "type": "string"
                         },
-                        "rubric": {
-                          "type": "string",
-                          "description": "([], outlined)"
+                        "dimensions": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "dim": {
+                                "type": "string"
+                              },
+                              "rawScore": {
+                                "type": "string"
+                              },
+                              "reason": {
+                                "type": "string"
+                              },
+                              "score": {
+                                "type": "string"
+                              }
+                            },
+                            "additionalProperties": true,
+                            "required": [
+                              "dim",
+                              "rawScore",
+                              "reason"
+                            ]
+                          }
+                        },
+                        "degradeFlag": {
+                          "type": "string"
                         },
                         "feedback": {
                           "type": "string"
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "sessionId",
-                        "overallScore",
-                        "rubric",
+                        "overallScore(0-100)",
+                        "dimensions",
                         "feedback"
                       ]
                     }
@@ -1598,7 +1696,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "payments-order.request.schema.json / payments-order.response.schema.json",
         "requestBody": {
           "required": true,
           "content": {
@@ -1617,7 +1716,7 @@
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
                   "plan(enum pro|team)",
                   "months"
@@ -1643,20 +1742,20 @@
                         "payUrl": {
                           "type": "string"
                         },
-                        "amount": {
+                        "amount(分)": {
                           "type": "string"
                         },
-                        "expireAt": {
+                        "expireAt(epoch ms)": {
                           "type": "string"
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "orderNo",
                         "payUrl",
-                        "amount",
-                        "expireAt"
+                        "amount(分)",
+                        "expireAt(epoch ms)"
                       ]
                     }
                   },
@@ -1690,7 +1789,7 @@
         ],
         "x-auth": "channel-signature",
         "x-contract-status": "fully-detailed",
-        "x-ref": "HLD §4.10",
+        "x-ref": "HLD §4.10 + payments-callback.request.schema.json",
         "responses": {
           "200": {
             "description": "成功",
@@ -1724,7 +1823,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "notifications-list.response.schema.json",
         "responses": {
           "200": {
             "description": "成功（列表信封 §10 uniformEnvelope）",
@@ -1783,7 +1883,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer(query)",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "notification-ws.response.schema.json",
         "responses": {
           "200": {
             "description": "成功（单项信封 §10 uniformEnvelope）",
@@ -1800,7 +1901,7 @@
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "wsUrl"
                       ]
@@ -1835,7 +1936,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "daily-report-today.response.schema.json",
         "responses": {
           "200": {
             "description": "成功（单项信封 §10 uniformEnvelope）",
@@ -1858,7 +1960,7 @@
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
                         "date",
                         "summary",
@@ -1895,7 +1997,8 @@
           "A 外部 API"
         ],
         "x-auth": "Bearer",
-        "x-contract-status": "outlined",
+        "x-contract-status": "fully-detailed",
+        "x-ref": "daily-report-preference.request.schema.json / daily-report-preference.response.schema.json",
         "requestBody": {
           "required": true,
           "content": {
@@ -1911,7 +2014,7 @@
                   }
                 },
                 "additionalProperties": true,
-                "x-contract-status": "outlined",
+                "x-contract-status": "fully-detailed",
                 "required": [
                   "pushTime",
                   "enabled"
@@ -1933,12 +2036,16 @@
                       "properties": {
                         "ok": {
                           "type": "string"
+                        },
+                        "updatedAt": {
+                          "type": "string"
                         }
                       },
                       "additionalProperties": true,
-                      "x-contract-status": "outlined",
+                      "x-contract-status": "fully-detailed",
                       "required": [
-                        "ok"
+                        "ok",
+                        "updatedAt"
                       ]
                     }
                   },
@@ -3396,6 +3503,49 @@
   },
   "components": {
     "schemas": {
+      "adapter-enable-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "adapter-enable-request",
+        "title": "A15 适配器启停 - 请求",
+        "description": "POST /api/v1/adapters/{id}/enable 请求体。adapterId 取自路径；enabled 控制启用/停用。仅 pro 套餐可操作。",
+        "type": "object",
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "description": "true=启用，false=停用"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "additionalProperties": false
+      },
+      "adapter-enable-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "adapter-enable-response",
+        "title": "A15 适配器启停 - 响应",
+        "description": "POST /api/v1/adapters/{id}/enable 响应体。返回被操作适配器的新状态。",
+        "type": "object",
+        "properties": {
+          "adapterId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "enabled",
+              "disabled"
+            ],
+            "description": "操作后状态"
+          }
+        },
+        "required": [
+          "adapterId",
+          "status"
+        ],
+        "additionalProperties": false
+      },
       "adapter-facade-registry": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "title": "统一适配器门面 PlatformAdapter 注册表自洽 schema",
@@ -3839,6 +3989,71 @@
         ],
         "additionalProperties": false
       },
+      "applications-list-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "applications-list-response",
+        "title": "A10 投递记录列表 - 响应",
+        "description": "GET /api/v1/applications 响应体（统一信封 data 内）。分页列表，applicationStub 为投递简档。",
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "applicationId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "jobId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "platformId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "pending_confirm",
+                    "autofilling",
+                    "submitted",
+                    "viewed",
+                    "contacting",
+                    "interview_invited",
+                    "interview_done",
+                    "offer",
+                    "rejected",
+                    "closed"
+                  ]
+                },
+                "appliedAt": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "epoch 毫秒"
+                }
+              },
+              "required": [
+                "applicationId",
+                "jobId",
+                "platformId",
+                "status"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "additionalProperties": false
+      },
       "asr-config": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "asr-config",
@@ -3877,6 +4092,154 @@
         "required": [
           "provider",
           "degradeChain"
+        ],
+        "additionalProperties": false
+      },
+      "auth-login-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "auth-login-request",
+        "title": "A01 登录 - 请求",
+        "description": "POST /api/v1/auth/login 请求体（统一信封 data 内）。channel 决定凭证类型：email 用 code 或 password；sms 用 phone+code；wechat 用 code（OAuth 临时码）。deviceId 用于本机 Agent 绑定与多端互斥。",
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "email",
+              "sms",
+              "wechat"
+            ],
+            "description": "登录渠道"
+          },
+          "deviceId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "本机 Agent 设备标识，用于令牌绑定"
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "email 渠道账号，其余渠道为 null"
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "sms 渠道手机号，其余渠道为 null"
+          },
+          "code": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "验证码 / OAuth 临时码（email/sms/wechat 渠道）"
+          },
+          "password": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "email 渠道密码登录，与 code 二选一"
+          }
+        },
+        "required": [
+          "channel",
+          "deviceId"
+        ],
+        "additionalProperties": false
+      },
+      "auth-login-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "auth-login-response",
+        "title": "A01 登录 - 响应",
+        "description": "POST /api/v1/auth/login 响应体（统一信封 data 内）。返回双令牌：accessToken 短期、refreshToken 长期（令牌轮转见 A02）。",
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "minLength": 1,
+            "description": "短期访问令牌（Bearer）"
+          },
+          "refreshToken": {
+            "type": "string",
+            "minLength": 1,
+            "description": "长期刷新令牌"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "accessToken 有效期（秒）"
+          },
+          "userId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "plan": {
+            "type": "string",
+            "enum": [
+              "free",
+              "pro",
+              "team"
+            ],
+            "description": "会员套餐"
+          }
+        },
+        "required": [
+          "accessToken",
+          "refreshToken",
+          "expiresIn",
+          "userId",
+          "plan"
+        ],
+        "additionalProperties": false
+      },
+      "auth-refresh-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "auth-refresh-request",
+        "title": "A02 刷新令牌 - 请求",
+        "description": "POST /api/v1/auth/refresh 请求体。携带 refreshToken 换取新 accessToken。",
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "minLength": 1,
+            "description": "长期刷新令牌"
+          }
+        },
+        "required": [
+          "refreshToken"
+        ],
+        "additionalProperties": false
+      },
+      "auth-refresh-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "auth-refresh-response",
+        "title": "A02 刷新令牌 - 响应",
+        "description": "POST /api/v1/auth/refresh 响应体。返回新 accessToken；refreshToken 轮转时一并返回，否则为 null。",
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expiresIn": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "refreshToken": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "轮转后的新刷新令牌，未轮转时为 null"
+          }
+        },
+        "required": [
+          "accessToken",
+          "expiresIn"
         ],
         "additionalProperties": false
       },
@@ -4569,6 +4932,505 @@
                 "format": "int64"
               }
             }
+          }
+        }
+      },
+      "daily-report-preference-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "daily-report-preference-request",
+        "title": "A25 日报推送时间偏好 - 请求",
+        "description": "PUT /api/v1/users/daily-report/preference 请求体（统一信封 data 内）。pushTime 为 HH:mm 24 小时制；enabled 控制是否推送。",
+        "type": "object",
+        "properties": {
+          "pushTime": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "description": "HH:mm 推送时间（默认 20:00）"
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pushTime",
+          "enabled"
+        ],
+        "additionalProperties": false
+      },
+      "daily-report-preference-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "daily-report-preference-response",
+        "title": "A25 日报推送时间偏好 - 响应",
+        "description": "PUT /api/v1/users/daily-report/preference 响应体（统一信封 data 内）。",
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "epoch 毫秒"
+          }
+        },
+        "required": [
+          "ok",
+          "updatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "daily-report-today-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "daily-report-today-response",
+        "title": "A24 今日日报摘要 - 响应",
+        "description": "GET /api/v1/daily-report/today 响应体（统一信封 data 内）。Cron 20:00 聚合落库后返回；当日无活动返回空 stats 摘要（不发送空日报，PRD 模块 9 边界）。",
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "YYYY-MM-DD"
+          },
+          "summary": {
+            "type": "string",
+            "description": "人类可读摘要"
+          },
+          "stats": {
+            "type": "object",
+            "properties": {
+              "appliedTotal": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "success": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "failed": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "byPlatform": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "platformId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "platformId",
+                    "count"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "hrViews": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "interviewInvites": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "newQuestions": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "trend7d": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                    },
+                    "count": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "date",
+                    "count"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "appliedTotal",
+              "success",
+              "failed",
+              "byPlatform",
+              "hrViews",
+              "interviewInvites",
+              "newQuestions",
+              "trend7d"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "date",
+          "summary",
+          "stats"
+        ],
+        "additionalProperties": false
+      },
+      "domain-events-event": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "domain-events",
+        "title": "领域事件（C 层 RabbitMQ，关键业务事件统一信封 + 定型 payload）",
+        "description": "闭合设计粒度审计缺口②：把模块级领域事件（投递状态流转 / 策略变更 / 支付状态 / 日报生成 / 会员权益）抽成机器可读契约。envelope 同 HLD §4.6 事件信封（eventType/traceId/ts/producer/payload/dedupKey）；payload 按事件类型 oneOf 定型。",
+        "type": "object",
+        "required": [
+          "eventType",
+          "traceId",
+          "ts",
+          "producer",
+          "payload"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "eventType": {
+            "type": "string",
+            "enum": [
+              "apply.status.changed",
+              "strategy.updated",
+              "payment.status.changed",
+              "daily.report.generated",
+              "member.plan.changed"
+            ]
+          },
+          "traceId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ts": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "生产者毫秒时间戳，用于顺序判定与重放窗口"
+          },
+          "producer": {
+            "type": "string",
+            "minLength": 1
+          },
+          "payload": {
+            "type": "object"
+          },
+          "dedupKey": {
+            "type": "string",
+            "description": "可选去重键；缺省由消费侧按业务键去重"
+          }
+        },
+        "oneOf": [
+          {
+            "properties": {
+              "eventType": {
+                "const": "apply.status.changed"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/domain-events-event/$defs/applyStatusChanged"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          },
+          {
+            "properties": {
+              "eventType": {
+                "const": "strategy.updated"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/domain-events-event/$defs/strategyUpdated"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          },
+          {
+            "properties": {
+              "eventType": {
+                "const": "payment.status.changed"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/domain-events-event/$defs/paymentStatusChanged"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          },
+          {
+            "properties": {
+              "eventType": {
+                "const": "daily.report.generated"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/domain-events-event/$defs/dailyReportGenerated"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          },
+          {
+            "properties": {
+              "eventType": {
+                "const": "member.plan.changed"
+              },
+              "payload": {
+                "$ref": "#/components/schemas/domain-events-event/$defs/memberPlanChanged"
+              }
+            },
+            "required": [
+              "eventType",
+              "payload"
+            ]
+          }
+        ],
+        "$defs": {
+          "applyStatusChanged": {
+            "type": "object",
+            "properties": {
+              "taskId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "userId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "platformId": {
+                "type": "string",
+                "enum": [
+                  "boss",
+                  "liepin",
+                  "zhaopin",
+                  "51job",
+                  "lagou"
+                ]
+              },
+              "jobId": {
+                "type": "string"
+              },
+              "fromState": {
+                "type": "string",
+                "enum": [
+                  "created",
+                  "submitted",
+                  "pending_retry",
+                  "succeeded",
+                  "failed"
+                ]
+              },
+              "toState": {
+                "type": "string",
+                "enum": [
+                  "submitted",
+                  "pending_retry",
+                  "succeeded",
+                  "failed"
+                ]
+              },
+              "reason": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            },
+            "required": [
+              "taskId",
+              "userId",
+              "platformId",
+              "jobId",
+              "fromState",
+              "toState"
+            ],
+            "additionalProperties": false
+          },
+          "strategyUpdated": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "strategyId": {
+                "type": "string"
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "版本向量，防乱序：后写覆盖需带时间戳"
+              },
+              "changedFields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1
+              },
+              "effectiveAt": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "userId",
+              "version",
+              "changedFields",
+              "effectiveAt"
+            ],
+            "additionalProperties": false
+          },
+          "paymentStatusChanged": {
+            "type": "object",
+            "properties": {
+              "orderNo": {
+                "type": "string",
+                "minLength": 1,
+                "description": "幂等键：同 orderNo 重复回调覆盖"
+              },
+              "userId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "tradeNo": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "fromState": {
+                "type": "string",
+                "enum": [
+                  "created",
+                  "paid",
+                  "refunded",
+                  "renewing",
+                  "grace"
+                ]
+              },
+              "toState": {
+                "type": "string",
+                "enum": [
+                  "paid",
+                  "refunded",
+                  "renewing",
+                  "grace"
+                ]
+              },
+              "amount": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "单位：分"
+              },
+              "currency": {
+                "type": "string",
+                "const": "CNY"
+              }
+            },
+            "required": [
+              "orderNo",
+              "userId",
+              "fromState",
+              "toState",
+              "amount"
+            ],
+            "additionalProperties": false
+          },
+          "dailyReportGenerated": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "date": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "summary": {
+                "type": "string"
+              },
+              "appliedTotal": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "success": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "failed": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "userId",
+              "date"
+            ],
+            "additionalProperties": false
+          },
+          "memberPlanChanged": {
+            "type": "object",
+            "properties": {
+              "userId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "orderNo": {
+                "type": "string",
+                "minLength": 1,
+                "description": "幂等键"
+              },
+              "plan": {
+                "type": "string",
+                "enum": [
+                  "free",
+                  "pro",
+                  "premium",
+                  "admin"
+                ]
+              },
+              "effectiveAt": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "changeType": {
+                "type": "string",
+                "enum": [
+                  "activated",
+                  "renewed",
+                  "downgraded",
+                  "expired"
+                ]
+              }
+            },
+            "required": [
+              "userId",
+              "orderNo",
+              "plan",
+              "effectiveAt",
+              "changeType"
+            ],
+            "additionalProperties": false
           }
         }
       },
@@ -5386,6 +6248,283 @@
         ],
         "additionalProperties": false
       },
+      "interview-questions-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-questions-response",
+        "title": "A16 面试题列表（备战） - 响应",
+        "description": "GET /api/v1/interviews/questions 响应体。返回用户可备战的题集列表；单题结构见 interview-question.schema.json。",
+        "type": "object",
+        "properties": {
+          "questionSets": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "setId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "questionCount": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "difficulty": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "easy",
+                    "medium",
+                    "hard"
+                  ]
+                },
+                "tags": {
+                  "type": [
+                    "array",
+                    "null"
+                  ],
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "setId",
+                "title",
+                "questionCount"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "questionSets"
+        ],
+        "additionalProperties": false
+      },
+      "interview-session-answer-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-session-answer-request",
+        "title": "A18 提交作答 - 请求",
+        "description": "POST /api/v1/interviews/sessions/{id}/answer 请求体。answer 为文本或语音引用（oneOf）；语音经 asrProvider 转写后评估。",
+        "type": "object",
+        "properties": {
+          "questionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "answer": {
+            "oneOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "description": "文本作答"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "audioRef": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "required": [
+                  "audioRef"
+                ],
+                "additionalProperties": false,
+                "description": "语音作答引用（对象存储 key）"
+              }
+            ]
+          },
+          "asrProvider": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "语音转写厂商，缺省走默认降级链"
+          }
+        },
+        "required": [
+          "questionId",
+          "answer"
+        ],
+        "additionalProperties": false
+      },
+      "interview-session-answer-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-session-answer-response",
+        "title": "A18 提交作答 - 响应",
+        "description": "POST /api/v1/interviews/sessions/{id}/answer 响应体。accepted 表示已接收并进入评估；score 为逐题即时分（0-1，未评估为 null）。",
+        "type": "object",
+        "properties": {
+          "accepted": {
+            "type": "boolean"
+          },
+          "score": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 1,
+            "description": "0-1 即时分，未评估为 null"
+          }
+        },
+        "required": [
+          "accepted"
+        ],
+        "additionalProperties": false
+      },
+      "interview-session-create-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-session-create-request",
+        "title": "A17 创建 AI 面试会话 - 请求",
+        "description": "POST /api/v1/interviews/sessions 请求体。mode 决定文本或语音（语音触发 ASR 降级链）；jobId 关联岗位用于定制题库，questionSetId 指定题集，缺省由 AI 编排生成。",
+        "type": "object",
+        "properties": {
+          "jobId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "关联投递/岗位，用于岗位化出题"
+          },
+          "mode": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice"
+            ],
+            "description": "交互模式"
+          },
+          "questionSetId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "指定题集，缺省由 AI 编排生成"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "additionalProperties": false
+      },
+      "interview-session-create-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-session-create-response",
+        "title": "A17 创建 AI 面试会话 - 响应",
+        "description": "POST /api/v1/interviews/sessions 响应体。返回新会话标识与初始状态（状态机见 interview-session.schema.json）。",
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "created",
+              "in_progress",
+              "completed",
+              "abandoned"
+            ]
+          }
+        },
+        "required": [
+          "sessionId",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "interview-session-report-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "interview-session-report-response",
+        "title": "A19 评估报告 - 响应",
+        "description": "GET /api/v1/interviews/sessions/{id}/report 响应体。嵌入综合评估（维度对齐 interview-evaluation.schema.json），overallScore 0-100。",
+        "type": "object",
+        "properties": {
+          "sessionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "overallScore": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "dimensions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "dim": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "rawScore": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 5
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "score": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1,
+                  "description": "归一化分（可选第5维）"
+                }
+              },
+              "required": [
+                "dim",
+                "rawScore",
+                "reason"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "degradeFlag": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "feedback": {
+            "type": "string",
+            "minLength": 1
+          },
+          "appealEntry": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "rerunEntry": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "sessionId",
+          "overallScore",
+          "dimensions",
+          "feedback"
+        ],
+        "additionalProperties": false
+      },
       "interview-session": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "$id": "interview-session",
@@ -5457,6 +6596,699 @@
           "mode",
           "currentTurn",
           "startedAt"
+        ],
+        "additionalProperties": false
+      },
+      "jobs-favorite-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "jobs-favorite-request",
+        "title": "A08 收藏/忽略 - 请求",
+        "description": "POST /api/v1/jobs/{id}/favorite 请求体（统一信封 data 内）。action 幂等：重复同动作无副作用；ignore 用于投递推荐过滤。",
+        "type": "object",
+        "properties": {
+          "action": {
+            "type": "string",
+            "enum": [
+              "favorite",
+              "ignore"
+            ],
+            "description": "favorite 收藏 / ignore 忽略"
+          }
+        },
+        "required": [
+          "action"
+        ],
+        "additionalProperties": false
+      },
+      "jobs-favorite-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "jobs-favorite-response",
+        "title": "A08 收藏/忽略 - 响应",
+        "description": "POST /api/v1/jobs/{id}/favorite 响应体（统一信封 data 内）。status 反映最终态；removed 为取消收藏软删。",
+        "type": "object",
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          },
+          "favoriteId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "收藏记录 id，removed 时为 null"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "favorited",
+              "ignored",
+              "removed"
+            ]
+          }
+        },
+        "required": [
+          "ok",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "jobs-list-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "jobs-list-response",
+        "title": "A07 岗位列表 - 响应",
+        "description": "GET /api/v1/jobs 响应体（统一信封 data 内）。分页列表，jobStub 含来源平台与匹配度（反范式缓存，缺失为 null）。",
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "jobId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "company": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "platformId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "salaryMin": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "salaryMax": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "location": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "source": {
+                  "type": "string",
+                  "enum": [
+                    "search",
+                    "detail"
+                  ]
+                },
+                "matchScore": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 100,
+                  "description": "0-100，缺失为 null"
+                },
+                "matchBand": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "enum": [
+                    "green",
+                    "blue",
+                    "gray"
+                  ],
+                  "description": "绿≥80/蓝60-79/灰<60"
+                },
+                "matchReason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "favorited": {
+                  "type": [
+                    "boolean",
+                    "null"
+                  ],
+                  "description": "当前用户是否已收藏"
+                },
+                "collectedAt": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "采集时间 epoch 毫秒"
+                }
+              },
+              "required": [
+                "jobId",
+                "title",
+                "company",
+                "platformId",
+                "source",
+                "collectedAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "pageSize"
+        ],
+        "additionalProperties": false
+      },
+      "jobs-search-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "jobs-search-request",
+        "title": "A07 岗位搜索/筛选 - 查询参数",
+        "description": "GET /api/v1/jobs 查询串（统一信封 data 内透传 query）。keyword/location/platform/salaryMin 可选；page/pageSize 必填。",
+        "type": "object",
+        "properties": {
+          "keyword": {
+            "type": "string",
+            "maxLength": 128,
+            "description": "职位关键词"
+          },
+          "location": {
+            "type": "string",
+            "maxLength": 64,
+            "description": "城市/地区"
+          },
+          "platform": {
+            "type": "string",
+            "enum": [
+              "boss",
+              "liepin",
+              "zhaopin",
+              "51job",
+              "lagou"
+            ],
+            "description": "来源平台过滤"
+          },
+          "salaryMin": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "月薪下限（元/月）"
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1,
+            "description": "页码，从 1 起"
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 20,
+            "description": "每页条数"
+          }
+        },
+        "required": [
+          "page",
+          "pageSize"
+        ],
+        "additionalProperties": false
+      },
+      "notification-ws-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "notification-ws-response",
+        "title": "A23 WebSocket 推送连接 - 响应",
+        "description": "GET /api/v1/notifications/ws 响应体。返回已签名的 WebSocket 连接地址（token 经 query 传递，auth=Bearer(query)）。",
+        "type": "object",
+        "properties": {
+          "wsUrl": {
+            "type": "string",
+            "minLength": 1,
+            "description": "wss:// 连接地址（含一次性 token 查询参数）"
+          },
+          "expiresIn": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "description": "wsUrl 有效期（秒），过期需重连"
+          }
+        },
+        "required": [
+          "wsUrl"
+        ],
+        "additionalProperties": false
+      },
+      "notifications-list-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "notifications-list-response",
+        "title": "A22 通知列表 - 响应",
+        "description": "GET /api/v1/notifications 响应体（统一信封 data 内）。notification 为站内信条目，状态机 sent→read/deleted，到期 archived。",
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "level": {
+                  "type": "string",
+                  "enum": [
+                    "L0",
+                    "L1",
+                    "L2",
+                    "L3"
+                  ]
+                },
+                "title": {
+                  "type": "string"
+                },
+                "body": {
+                  "type": "string"
+                },
+                "read": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "description": "epoch 毫秒"
+                },
+                "channel": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "level",
+                "title",
+                "read",
+                "createdAt"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "unread": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "items",
+          "unread"
+        ],
+        "additionalProperties": false
+      },
+      "payments-callback-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "payments-callback-request",
+        "title": "A21 支付渠道回调 - 请求体",
+        "description": "POST /api/v1/payments/callback 请求体（渠道→服务端，渠道非对称签名验签，不经本机 Agent）。源自 HLD §4.10 内联 schema 落盘。amount 为整数分；outTradeNo == order_no。",
+        "type": "object",
+        "properties": {
+          "channel": {
+            "type": "string",
+            "enum": [
+              "wechat",
+              "alipay"
+            ],
+            "description": "支付渠道"
+          },
+          "outTradeNo": {
+            "type": "string",
+            "minLength": 1,
+            "description": "商户订单号（= 本系统 order_no）"
+          },
+          "transactionId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "渠道交易流水号"
+          },
+          "tradeStatus": {
+            "type": "string",
+            "enum": [
+              "SUCCESS",
+              "CLOSED",
+              "REFUND"
+            ],
+            "description": "交易状态：成功/关闭/退款"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "交易金额（整数分）"
+          },
+          "sign": {
+            "type": "string",
+            "minLength": 1,
+            "description": "渠道签名（微信 Wechatpay-Signature / 支付宝 sign + 平台公钥验签）"
+          },
+          "timestamp": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "渠道时间戳 epoch 毫秒"
+          }
+        },
+        "required": [
+          "channel",
+          "outTradeNo",
+          "transactionId",
+          "tradeStatus",
+          "amount",
+          "sign",
+          "timestamp"
+        ],
+        "additionalProperties": false
+      },
+      "payments-order-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "payments-order-request",
+        "title": "A20 创建会员订单 - 请求",
+        "description": "POST /api/v1/payments/orders 请求体（客户端→服务端，Bearer）。金额由服务端权威计算，客户端只传套餐与周期，不从客户端取价。",
+        "type": "object",
+        "properties": {
+          "plan": {
+            "type": "string",
+            "enum": [
+              "pro",
+              "team"
+            ],
+            "description": "套餐：pro=专业版, team=团队/高级版（对齐 PRD §12 定价）"
+          },
+          "months": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12,
+            "description": "购买月数（1..12）"
+          },
+          "couponCode": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "minLength": 1,
+            "description": "优惠券码（可选）"
+          }
+        },
+        "required": [
+          "plan",
+          "months"
+        ],
+        "additionalProperties": false
+      },
+      "payments-order-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "payments-order-response",
+        "title": "A20 创建会员订单 - 响应",
+        "description": "POST /api/v1/payments/orders 响应体（统一信封 data 内）。amount 为整数分，expireAt 为 epoch 毫秒。",
+        "type": "object",
+        "properties": {
+          "orderNo": {
+            "type": "string",
+            "minLength": 1,
+            "description": "订单号（uk，全局唯一）"
+          },
+          "payUrl": {
+            "type": "string",
+            "minLength": 1,
+            "description": "渠道收银台 URL"
+          },
+          "amount": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "应付金额（整数分，服务端权威计算）"
+          },
+          "expireAt": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "订单过期时间 epoch 毫秒（now+24h）"
+          }
+        },
+        "required": [
+          "orderNo",
+          "payUrl",
+          "amount",
+          "expireAt"
+        ],
+        "additionalProperties": false
+      },
+      "resume-ats-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "resume-ats-request",
+        "title": "A06 触发 ATS 评分 - 请求",
+        "description": "POST /api/v1/resumes/ats-score 请求体（统一信封 data 内）。对指定简历版本触发 ATS 评分（经 AI 编排 b05，异步）。",
+        "type": "object",
+        "properties": {
+          "resumeVersionId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "待评分版本（锁版本，避免评分中内容漂移）"
+          }
+        },
+        "required": [
+          "resumeVersionId"
+        ],
+        "additionalProperties": false
+      },
+      "resume-ats-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "resume-ats-response",
+        "title": "A06 触发 ATS 评分 - 响应",
+        "description": "POST /api/v1/resumes/ats-score 响应体（统一信封 data 内）。异步触发，返回 taskId + 状态；评分结果经 b05-ats.response 回填 ats_report 后由事件/查询获取。",
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "running",
+              "done",
+              "failed"
+            ]
+          }
+        },
+        "required": [
+          "taskId",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "resume-diff-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "resume-diff-request",
+        "title": "A05 简历版本 diff - 请求",
+        "description": "POST /api/v1/resumes/{id}/diff 请求体（统一信封 data 内）。指定两版本做字段级结构化 diff（ADR-012）。",
+        "type": "object",
+        "properties": {
+          "fromVersionId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "toVersionId": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "fromVersionId",
+          "toVersionId"
+        ],
+        "additionalProperties": false
+      },
+      "resume-diff-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "resume-diff-response",
+        "title": "A05 简历版本 diff - 响应",
+        "description": "POST /api/v1/resumes/{id}/diff 响应体（统一信封 data 内）。字段级结构化 diff（ADR-012）：逐 section/field 标 added/removed/modified。",
+        "type": "object",
+        "properties": {
+          "changes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "op": {
+                  "type": "string",
+                  "enum": [
+                    "added",
+                    "removed",
+                    "modified"
+                  ]
+                },
+                "from": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "to": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "field",
+                "op"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "generatedAt": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "epoch 毫秒"
+          }
+        },
+        "required": [
+          "changes",
+          "generatedAt"
+        ],
+        "additionalProperties": false
+      },
+      "resume-versions-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "resume-versions-response",
+        "title": "A05 简历版本列表 - 响应",
+        "description": "GET /api/v1/resumes/{id}/versions 响应体（统一信封 data 内）。快照式版本管理（ADR-012）；diffAvailable 表示可对任意两版做结构化 diff。",
+        "type": "object",
+        "properties": {
+          "versions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "versionId": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "versionNo": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "createdAt": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "isPreferred": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "versionId",
+                "versionNo",
+                "createdAt",
+                "isPreferred"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "diffAvailable": {
+            "type": "boolean",
+            "description": "版本数≥2 时为 true"
+          }
+        },
+        "required": [
+          "versions",
+          "diffAvailable"
+        ],
+        "additionalProperties": false
+      },
+      "resumes-create-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "resumes-create-request",
+        "title": "A04 创建简历 - 请求",
+        "description": "POST /api/v1/resumes 请求体（统一信封 data 内）。content 为解析后结构化简历（与样式分离，ADR-012）；templateId 仅换 CSS 修饰器（前端/模板服务）。",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255
+          },
+          "content": {
+            "type": "object",
+            "description": "结构化简历内容（sections/fields）"
+          },
+          "templateId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "模板标识，可选"
+          }
+        },
+        "required": [
+          "title",
+          "content"
+        ],
+        "additionalProperties": false
+      },
+      "resumes-create-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "resumes-create-response",
+        "title": "A04 创建简历 - 响应",
+        "description": "POST /api/v1/resumes 响应体（统一信封 data 内）。创建即落首个版本快照，返回 resumeId + versionId。",
+        "type": "object",
+        "properties": {
+          "resumeId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "versionId": {
+            "type": "string",
+            "minLength": 1,
+            "description": "初始版本 id（version_no=1）"
+          },
+          "createdAt": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "epoch 毫秒"
+          }
+        },
+        "required": [
+          "resumeId",
+          "versionId",
+          "createdAt"
         ],
         "additionalProperties": false
       },
@@ -5561,6 +7393,143 @@
             }
           }
         }
+      },
+      "strategies-request": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "strategies-request",
+        "title": "A13 更新策略配置 - 请求",
+        "description": "PUT /api/v1/strategies 请求体（PC 完整，移动端受限；冲突以 PC 为准 LWW）。",
+        "type": "object",
+        "properties": {
+          "matchThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "dailyLimit": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blacklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "matchThreshold",
+          "dailyLimit",
+          "platforms",
+          "blacklist"
+        ],
+        "additionalProperties": false
+      },
+      "strategies-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "strategies-response",
+        "title": "A12 读取策略配置 - 响应",
+        "description": "GET /api/v1/strategies 响应体（统一信封 data 内）。",
+        "type": "object",
+        "properties": {
+          "matchThreshold": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "dailyLimit": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "platforms": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blacklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "matchThreshold",
+          "dailyLimit",
+          "platforms",
+          "blacklist"
+        ],
+        "additionalProperties": false
+      },
+      "user-me-response": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "user-me-response",
+        "title": "A03 当前用户与权益 - 响应",
+        "description": "GET /api/v1/users/me 响应体（统一信封 data 内）。返回权益上下文，驱动前端权限展示与服务端 A03 字段级判定。",
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "email": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "plan": {
+            "type": "string",
+            "enum": [
+              "free",
+              "pro",
+              "team"
+            ]
+          },
+          "quotaUsed": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "quotaLimit": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "preferences": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "pushTime": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "doNotDisturb": {
+                "type": [
+                  "boolean",
+                  "null"
+                ]
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "userId",
+          "plan",
+          "quotaUsed",
+          "quotaLimit"
+        ],
+        "additionalProperties": false
       },
       "job-stub": {
         "type": "object",

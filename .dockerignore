@@ -1,0 +1,14 @@
+# 构建上下文排除项：不进入镜像，缩小镜像并避免泄露
+.git
+__pycache__
+*.pyc
+*.pyo
+node_modules
+dist
+build
+frontend
+assets
+.env
+*.md
+docker-compose.yml
+PUSH-说明.md

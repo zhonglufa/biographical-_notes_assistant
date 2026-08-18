@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>U3 投递管理 · 待确认闸门/列表/详情状态机（A09/A10/A11）</title>
+<style>
+  :root{
+    --c-primary:#4F46E5; --c-primary-hover:#4338CA; --c-primary-soft:#EEF2FF;
+    --c-accent:#7C3AED; --c-success:#16A34A; --c-success-soft:#ECFDF3; --c-success-border:#ABEFC6;
+    --c-danger:#DC2626; --c-danger-soft:#FEF3F2; --c-danger-border:#FECDCA;
+    --c-warning:#D97706; --c-warning-soft:#FFFAEB; --c-warning-border:#FDE68A;
+    --c-info:#2563EB; --c-info-soft:#EFF6FF; --c-info-border:#BFDBFE;
+    --c-ink:#0F172A; --c-body:#334155; --c-muted:#64748B; --c-faint:#94A3B8;
+    --c-border:#E2E8F0; --c-subtle:#F1F5F9; --c-page:#F8FAFC; --c-surface:#FFFFFF;
+    --r-sm:6px; --r-md:8px; --r-lg:12px; --r-full:999px;
+    --f-base:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:var(--f-base);background:var(--c-page);color:var(--c-body);font-size:14px;line-height:1.55;}
+  .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh;}
+  .side{background:var(--c-surface);border-right:1px solid var(--c-border);display:flex;flex-direction:column;}
+  .brand{display:flex;align-items:center;gap:8px;padding:18px 16px;font-weight:700;color:var(--c-ink);font-size:15px;border-bottom:1px solid var(--c-border);}
+  .brand .logo{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--c-primary),var(--c-accent));color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .nav{padding:10px;overflow:auto;flex:1;}
+  .nav a{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--r-sm);color:var(--c-body);text-decoration:none;font-size:14px;margin-bottom:2px;cursor:pointer;}
+  .nav a:hover{background:var(--c-subtle);}
+  .nav a.active{background:var(--c-primary-soft);color:var(--c-primary);font-weight:600;}
+  .nav .ic{width:18px;text-align:center;opacity:.85;}
+  .nav .tag{margin-left:auto;font-size:11px;background:var(--c-danger);color:#fff;border-radius:var(--r-full);padding:1px 7px;}
+  .side-foot{padding:12px 16px;border-top:1px solid var(--c-border);font-size:12px;color:var(--c-faint);}
+  .main{display:flex;flex-direction:column;min-width:0;}
+  .top{height:56px;background:var(--c-surface);border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:16px;padding:0 20px;}
+  .top .search{flex:1;max-width:420px;padding:8px 12px;border:1px solid var(--c-border);border-radius:var(--r-sm);color:var(--c-muted);font-size:13px;}
+  .top .spacer{flex:1;}
+  .top .plan{font-size:12px;background:var(--c-primary-soft);color:var(--c-primary);padding:4px 10px;border-radius:var(--r-full);font-weight:600;}
+  .top .bell{position:relative;font-size:18px;cursor:pointer;}
+  .top .bell .dot{position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:var(--c-danger);}
+  .top .avatar{width:30px;height:30px;border-radius:50%;background:var(--c-subtle);color:var(--c-muted);display:flex;align-items:center;justify-content:center;font-size:13px;}
+  .content{padding:24px;overflow:auto;max-width:1100px;}
+  .page-head h1{font-size:20px;margin:0;color:var(--c-ink);}
+  .page-head .sub{color:var(--c-muted);font-size:13px;margin-top:4px;}
+  .btn{font-family:var(--f-base);font-size:14px;font-weight:500;border-radius:var(--r-sm);padding:8px 14px;border:1px solid transparent;cursor:pointer;}
+  .btn-primary{background:var(--c-primary);color:#fff;}
+  .btn-primary:hover{background:var(--c-primary-hover);}
+  .btn-primary:disabled{background:var(--c-border);color:var(--c-faint);cursor:not-allowed;}
+  .btn-secondary{background:var(--c-surface);color:var(--c-body);border-color:var(--c-border);}
+  .btn-secondary:hover{background:var(--c-subtle);}
+  .btn-ghost{background:transparent;color:var(--c-primary);}
+  .btn-danger{background:var(--c-danger);color:#fff;}
+  .btn-sm{padding:5px 12px;font-size:13px;}
+  .card{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:14px;margin-bottom:10px;}
+  .badge{display:inline-flex;font-size:12px;font-weight:600;padding:2px 10px;border-radius:var(--r-full);}
+  .b-gray{background:var(--c-subtle);color:var(--c-muted);border:1px solid var(--c-border);}
+  .b-info{background:var(--c-info-soft);color:var(--c-info);border:1px solid var(--c-info-border);}
+  .b-green{background:var(--c-success-soft);color:var(--c-success);border:1px solid var(--c-success-border);}
+  .b-accent{background:var(--c-accent);color:#fff;}
+  .b-danger{background:var(--c-danger-soft);color:var(--c-danger);border:1px solid var(--c-danger-border);}
+  .b-neutral{background:var(--c-subtle);color:var(--c-faint);border:1px solid var(--c-border);}
+  .toolbar{display:flex;align-items:center;gap:10px;margin:14px 0;flex-wrap:wrap;}
+  .chip{font-size:13px;padding:6px 12px;border-radius:var(--r-full);border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-body);cursor:pointer;}
+  .chip.on{background:var(--c-primary-soft);color:var(--c-primary);border-color:var(--c-primary);font-weight:600;}
+  .count{color:var(--c-muted);font-size:13px;margin-left:auto;}
+  .app-row{display:flex;gap:12px;align-items:flex-start;}
+  .app-row .ck{flex-shrink:0;margin-top:4px;}
+  .app-row .info{flex:1;min-width:0;}
+  .app-row .info .title{font-weight:600;color:var(--c-ink);font-size:15px;}
+  .app-row .info .meta{color:var(--c-muted);font-size:13px;margin:2px 0 6px;}
+  .app-row .acts{display:flex;gap:6px;flex-shrink:0;}
+  .detail{background:var(--c-surface);border:1px solid var(--c-border);border-radius:var(--r-lg);padding:16px;margin-top:8px;}
+  .flow{display:flex;align-items:center;flex-wrap:wrap;gap:0;margin:14px 0;}
+  .step{display:flex;flex-direction:column;align-items:center;min-width:74px;text-align:center;}
+  .step .dot{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;background:var(--c-subtle);color:var(--c-faint);border:2px solid var(--c-border);}
+  .step.done .dot{background:var(--c-success);color:#fff;border-color:var(--c-success);}
+  .step.current .dot{background:var(--c-primary);color:#fff;border-color:var(--c-primary);box-shadow:0 0 0 4px var(--c-primary-soft);}
+  .step.reject .dot{background:var(--c-danger);color:#fff;border-color:var(--c-danger);}
+  .step .lbl{font-size:11px;color:var(--c-muted);margin-top:4px;max-width:80px;}
+  .step.current .lbl{color:var(--c-primary);font-weight:600;}
+  .arrow{color:var(--c-faint);font-size:14px;flex:1;min-width:14px;text-align:center;}
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--c-ink);color:#fff;font-size:13px;padding:10px 16px;border-radius:var(--r-sm);opacity:0;transition:opacity .25s;pointer-events:none;z-index:60;max-width:90vw;text-align:center;}
+  .toast.show{opacity:1;}
+  .modal-bg{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:flex-start;justify-content:center;padding-top:90px;z-index:50;}
+  .modal-bg.show{display:flex;}
+  .modal{background:var(--c-surface);border-radius:var(--r-lg);padding:20px;width:440px;max-width:92vw;box-shadow:0 16px 48px rgba(15,23,42,.2);}
+  .modal .warn{background:var(--c-warning-soft);border:1px solid var(--c-warning-border);color:var(--c-warning);border-radius:var(--r-sm);padding:10px 12px;font-size:13px;margin:10px 0;}
+  .note{font-size:12px;color:var(--c-faint);}
+  .undo-bar{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--c-ink);color:#fff;font-size:13px;padding:10px 16px;border-radius:var(--r-sm);display:none;align-items:center;gap:12px;z-index:60;}
+  .undo-bar.show{display:flex;}
+  .undo-bar button{background:var(--c-danger);color:#fff;border:none;border-radius:var(--r-sm);padding:5px 12px;cursor:pointer;font-size:13px;}
+  .tag-a{font-size:11px;background:var(--c-accent);color:#fff;border-radius:var(--r-full);padding:1px 8px;margin-left:6px;vertical-align:middle;}
+  .empty{border:2px dashed var(--c-border);border-radius:var(--r-lg);padding:36px;text-align:center;color:var(--c-faint);}
+  /* 响应式：手机端侧栏折叠为顶部横滚条 + 卡片纵向堆叠（依据 00-design-system §6 + UI-SELFCHECK §3） */
+  @media (max-width:768px){
+    .app{grid-template-columns:1fr;}
+    .side{flex-direction:row;align-items:center;overflow-x:auto;border-right:none;border-bottom:1px solid var(--c-border);}
+    .brand{flex-shrink:0;border-bottom:none;border-right:1px solid var(--c-border);padding:12px 14px;font-size:14px;}
+    .nav{flex-direction:row;flex-wrap:nowrap;padding:8px;gap:4px;overflow-x:auto;}
+    .nav a{white-space:nowrap;margin-bottom:0;padding:8px 10px;}
+    .side-foot{display:none;}
+    .main{min-height:0;}
+    .top{flex-wrap:wrap;height:auto;min-height:52px;padding:8px 12px;gap:8px;}
+    .top .search{max-width:none;flex:1 1 100%;order:3;}
+    .content{padding:14px;max-width:none;}
+    .page-head h1{font-size:18px;}
+    .job,.app-row,.resume{flex-wrap:wrap;}
+    .job .acts,.app-row .acts,.resume .acts{width:100%;justify-content:flex-start;margin-top:8px;flex-direction:row;flex-wrap:wrap;}
+    .app-row .acts{justify-content:flex-end;}
+    .input,.select{width:100%;min-width:0;max-width:100%;}
+    .slider{width:100%;max-width:320px;}
+    .btn{min-height:40px;}
+  }
+  @media (max-width:480px){
+    .content{padding:10px;}
+    .card{padding:14px;}
+    .filter{flex-direction:column;align-items:stretch;}
+    .filter .input{min-width:0;}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="side">
+    <div class="brand"><span class="logo">简</span> 简投 · AI 助手</div>
+    <nav class="nav" id="nav">
+      <a data-page="home"><span class="ic">🏠</span> 首页 / 待确认投递 <span class="tag" id="navTag">3</span></a>
+      <a data-page="resume"><span class="ic">📄</span> 简历工作台</a>
+      <a data-page="jobs"><span class="ic">🔍</span> 岗位浏览</a>
+      <a class="active" data-page="apps"><span class="ic">📨</span> 投递管理</a>
+      <a data-page="strategy"><span class="ic">⚙️</span> 策略配置</a>
+      <a data-page="adapter"><span class="ic">🔌</span> 适配器</a>
+      <a data-page="interview"><span class="ic">💬</span> 面试模拟</a>
+      <a data-page="notify"><span class="ic">🔔</span> 通知中心</a>
+      <a data-page="report"><span class="ic">📊</span> 每日日报</a>
+      <a data-page="member"><span class="ic">⭐</span> 会员</a>
+      <a data-page="settings"><span class="ic">🧰</span> 设置</a>
+    </nav>
+    <div class="side-foot">本机 Agent · v1.3<br>账号状态：<span style="color:var(--c-success)">正常</span></div>
+  </aside>
+
+  <section class="main">
+    <header class="top">
+      <div class="search">搜索岗位、公司、技能…</div>
+      <div class="spacer"></div>
+      <span class="plan">Pro 会员</span>
+      <span class="bell">🔔<span class="dot"></span></span>
+      <span class="avatar">钟</span>
+    </header>
+
+    <div class="content">
+      <div class="page-head">
+        <div>
+          <h1>投递管理</h1>
+          <div class="sub">所有投递的状态追踪与确认闸门。任何「发起投递」必须经你显式确认；批量确认有二次确认 + 撤销窗口。<span class="tag-a">A09 / A10 / A11</span></div>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <span style="font-size:13px;color:var(--c-muted)">状态：</span>
+        <span class="chip on" data-s="">全部</span>
+        <span class="chip" data-s="pending_confirm">待确认</span>
+        <span class="chip" data-s="submitted">已投递</span>
+        <span class="chip" data-s="interview_invited">面试邀约</span>
+        <span class="chip" data-s="offer">Offer</span>
+        <span class="chip" data-s="rejected">未通过</span>
+        <button class="btn btn-primary btn-sm" id="batchBtn" onclick="openBatch()" disabled>确认选中并投递（0）</button>
+        <span class="count" id="todayCount">今日 12 / 限额 20</span>
+      </div>
+
+      <div id="list"></div>
+      <div id="detailHost"></div>
+    </div>
+  </section>
+</div>
+
+<!-- A09 批量确认二次确认弹窗 -->
+<div class="modal-bg" id="batchBg">
+  <div class="modal">
+    <p style="font-weight:600;color:var(--c-ink);margin:0 0 4px">确认发起投递？</p>
+    <div class="warn">⚠️ 这是真实向招聘平台发起投递的动作，需由「本机 Agent」在你的浏览器实例中执行。请核对数量与平台。</div>
+    <div id="batchSummary" style="font-size:13px;color:var(--c-body)"></div>
+    <div class="note" style="margin:8px 0">本机 Agent 将按「半自动」模式逐条执行；执行后 10 秒内可撤销。</div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+      <button class="btn btn-secondary btn-sm" onclick="closeBatch()">取消</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmBatch()">确认投递</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="undo-bar" id="undoBar">已发起投递 <span id="undoN"></span> 个 · <button onclick="undoBatch()">撤销（10s）</button></div>
+
+<script>
+// ===== Mock 数据（语义对齐 applications-list.response / 状态机枚举）=====
+const PLAT={boss:'Boss直聘',liepin:'猎聘',zhaopin:'智联','51job':'前程无忧',lagou:'拉勾'};
+const STATE_ORDER=['pending_confirm','autofilling','submitted','viewed','contacting','interview_invited','interview_done','offer'];
+const STATE_LABEL={pending_confirm:'待确认',autofilling:'自动填表',submitted:'已投递',viewed:'已读',contacting:'沟通中',interview_invited:'面试邀约',interview_done:'面试完成',offer:'Offer',rejected:'未通过',closed:'已关闭'};
+const STATE_CLASS={pending_confirm:'b-gray',autofilling:'b-info',submitted:'b-green',viewed:'b-green',contacting:'b-info',interview_invited:'b-accent',interview_done:'b-accent',offer:'b-green',rejected:'b-danger',closed:'b-neutral'};
+const NOW=Date.now();
+let apps=[
+  {applicationId:'a-3001',jobId:'j-2001',jobTitle:'Java 开发工程师',company:'某科技公司',platformId:'boss',status:'pending_confirm',appliedAt:NOW-1800000},
+  {applicationId:'a-3002',jobId:'j-2002',jobTitle:'后端开发工程师',company:'某互联网公司',platformId:'liepin',status:'pending_confirm',appliedAt:NOW-3600000},
+  {applicationId:'a-3003',jobId:'j-2003',jobTitle:'软件开发工程师',company:'某创业公司',platformId:'zhaopin',status:'pending_confirm',appliedAt:NOW-5400000},
+  {applicationId:'a-3004',jobId:'j-2005',jobTitle:'Java 高级工程师',company:'某金融科技',platformId:'boss',status:'submitted',appliedAt:NOW-86400000},
+  {applicationId:'a-3005',jobId:'j-2006',jobTitle:'后端开发',company:'某医疗科技',platformId:'lagou',status:'interview_invited',appliedAt:NOW-86400000*3},
+  {applicationId:'a-3006',jobId:'j-2007',jobTitle:'全栈工程师',company:'某教育',platformId:'51job',status:'rejected',appliedAt:NOW-86400000*6},
+  {applicationId:'a-3007',jobId:'j-2008',jobTitle:'Go 开发',company:'某电商',platformId:'lagou',status:'offer',appliedAt:NOW-86400000*9},
+];
+let selectedStatus=''; let selectedSet=new Set(); let undoTimer=null; let undoTargets=[];
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2200);}
+function fmt(ms){const d=new Date(ms);return `${d.getMonth()+1}月${d.getDate()}日 ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}
+
+function render(){
+  const box=document.getElementById('list');
+  const list=apps.filter(a=>!selectedStatus||a.status===selectedStatus);
+  document.getElementById('todayCount').textContent=`今日 12 / 限额 20`;
+  const pending=apps.filter(a=>a.status==='pending_confirm').length;
+  document.getElementById('navTag').textContent=pending;
+  if(list.length===0){box.innerHTML=`<div class="empty">该状态下暂无投递记录。</div>`;updateBatchBtn();return;}
+  box.innerHTML='';
+  list.forEach(a=>{
+    const card=document.createElement('div');card.className='card';
+    const ck = a.status==='pending_confirm'?`<input type="checkbox" class="ck" ${selectedSet.has(a.applicationId)?'checked':''} onchange="toggleSel('${a.applicationId}',this.checked)">`:'';
+    const badge=`<span class="badge ${STATE_CLASS[a.status]}">${STATE_LABEL[a.status]}</span>`;
+    card.innerHTML=`
+      <div class="app-row">
+        ${ck}
+        <div class="info">
+          <div class="title">${a.jobTitle} ${badge}</div>
+          <div class="meta">${a.company} · ${PLAT[a.platformId]} · ${fmt(a.appliedAt)}</div>
+        </div>
+        <div class="acts">
+          <button class="btn btn-ghost btn-sm" onclick="showDetail('${a.applicationId}')">查看详情</button>
+        </div>
+      </div>`;
+    box.appendChild(card);
+  });
+  updateBatchBtn();
+}
+
+function toggleSel(id,on){ if(on)selectedSet.add(id); else selectedSet.delete(id); updateBatchBtn(); }
+function updateBatchBtn(){
+  const btn=document.getElementById('batchBtn'); const n=selectedSet.size;
+  btn.disabled=n===0; btn.textContent=`确认选中并投递（${n}）`;
+}
+
+// A09 批量确认闸门（二次确认 + 撤销窗口）
+function openBatch(){
+  if(selectedSet.size===0) return;
+  const targets=apps.filter(a=>selectedSet.has(a.applicationId));
+  const byPl={}; targets.forEach(t=>byPl[t.platformId]=(byPl[t.platformId]||0)+1);
+  const plTxt=Object.entries(byPl).map(([p,n])=>`${PLAT[p]} ×${n}`).join('，');
+  document.getElementById('batchSummary').innerHTML=`待投递：<b>${targets.length}</b> 个岗位<br>涉及平台：${plTxt}`;
+  document.getElementById('batchBg').classList.add('show');
+}
+function closeBatch(){document.getElementById('batchBg').classList.remove('show');}
+function confirmBatch(){
+  undoTargets=apps.filter(a=>selectedSet.has(a.applicationId));
+  undoTargets.forEach(a=>{a.status='submitted';a.appliedAt=Date.now();});
+  closeBatch(); selectedSet.clear(); render();
+  toast(`已对 ${undoTargets.length} 个岗位发起投递`);
+  // 撤销窗口 10s
+  const bar=document.getElementById('undoBar'); document.getElementById('undoN').textContent=undoTargets.length; bar.classList.add('show');
+  clearTimeout(undoTimer); undoTimer=setTimeout(()=>bar.classList.remove('show'),10000);
+}
+function undoBatch(){
+  undoTargets.forEach(a=>{a.status='pending_confirm';});
+  document.getElementById('undoBar').classList.remove('show'); clearTimeout(undoTimer);
+  render(); toast('已撤销，岗位回到待确认');
+}
+
+// A11 详情 + 状态机可视化
+function showDetail(id){
+  const a=apps.find(x=>x.applicationId===id); if(!a) return;
+  const host=document.getElementById('detailHost');
+  let stepsHtml='';
+  if(a.status==='rejected'||a.status==='closed'){
+    stepsHtml=`<div class="flow"><div class="step done"><div class="dot">✓</div><div class="lbl">已投递</div></div><div class="arrow">→</div><div class="step reject"><div class="dot">✕</div><div class="lbl">${STATE_LABEL[a.status]}</div></div></div>`;
+  } else {
+    const idx=STATE_ORDER.indexOf(a.status);
+    stepsHtml='<div class="flow">';
+    STATE_ORDER.forEach((s,i)=>{
+      const cls = i<idx?'done':(i===idx?'current':'');
+      const mark = i<idx?'✓':(i+1);
+      stepsHtml+=`<div class="step ${cls}"><div class="dot">${mark}</div><div class="lbl">${STATE_LABEL[s]}</div></div>`;
+      if(i<STATE_ORDER.length-1) stepsHtml+='<div class="arrow">→</div>';
+    });
+    stepsHtml+='</div>';
+  }
+  const terminal = a.status==='offer'?'🎉 已进入 Offer 阶段':(a.status==='rejected'?'该投递已结束（未通过）':(a.status==='closed'?'该投递已关闭':''));
+  host.innerHTML=`<div class="detail">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div style="font-weight:600;color:var(--c-ink);font-size:15px">${a.jobTitle} · 投递详情</div><span class="badge ${STATE_CLASS[a.status]}">${STATE_LABEL[a.status]}</span></div>
+    <div class="meta" style="color:var(--c-muted);font-size:13px;margin:6px 0">${a.company} · ${PLAT[a.platformId]} · applicationId=${a.applicationId} · ${fmt(a.appliedAt)}</div>
+    <p class="sec" style="font-size:13px;font-weight:600;color:var(--c-ink);margin:10px 0 0">状态机进度（A11）</p>
+    ${stepsHtml}
+    ${terminal?`<div class="note">${terminal}</div>`:`<div class="note">状态机：pending_confirm → autofilling → submitted → viewed → contacting → interview_invited → interview_done → offer；rejected / closed 为终态。</div>`}
+    ${a.status==='pending_confirm'?`<button class="btn btn-primary btn-sm" onclick="quickConfirm('${a.applicationId}')">确认并投递这一个</button>`:''}
+    <button class="btn btn-secondary btn-sm" onclick="document.getElementById('detailHost').innerHTML=''">收起</button>
+  </div>`;
+  host.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function quickConfirm(id){selectedSet=new Set([id]);openBatch();}
+
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{
+  document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');
+  selectedStatus=c.dataset.s;render();
+}));
+
+document.getElementById('nav').addEventListener('click', e=>{
+  const a=e.target.closest('a'); if(!a) return; e.preventDefault();
+  document.querySelectorAll('#nav a').forEach(x=>x.classList.remove('active'));
+  a.classList.add('active');
+  if(a.dataset.page!=='apps') toast('该页面交互原型在对应 U 阶段交付（mock 导航）');
+});
+
+render();
+</script>
+</body>
+</html>
