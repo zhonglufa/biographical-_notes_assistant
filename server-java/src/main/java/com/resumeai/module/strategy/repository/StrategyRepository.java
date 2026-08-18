@@ -19,7 +19,7 @@ public interface StrategyRepository extends BaseMapper<StrategyConfig> {
 
 
     default Optional<StrategyConfig> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default StrategyConfig save(StrategyConfig e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default StrategyConfig save(StrategyConfig e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<StrategyConfig> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

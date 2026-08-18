@@ -10,7 +10,7 @@ import com.resumeai.module.interview.entity.InterviewSessionEvent;
 public interface InterviewSessionEventRepository extends BaseMapper<InterviewSessionEvent> {
 
     default Optional<InterviewSessionEvent> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default InterviewSessionEvent save(InterviewSessionEvent e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default InterviewSessionEvent save(InterviewSessionEvent e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<InterviewSessionEvent> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

@@ -14,7 +14,7 @@ public interface UserRepository extends BaseMapper<User> {
 
 
     default Optional<User> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default User save(User e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default User save(User e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<User> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

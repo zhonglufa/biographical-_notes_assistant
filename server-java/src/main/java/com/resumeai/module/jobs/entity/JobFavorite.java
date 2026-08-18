@@ -17,7 +17,8 @@ public class JobFavorite {
     @TableId(type = IdType.INPUT)
     private String userId;
 
-    @TableId(type = IdType.INPUT)
+    // 复合主键第二列：MBP 不支持多 @TableId，降级为普通字段（仍由 Flyway 建复合 PK）。
+    @TableField("job_id")
     private Long jobId;
 
     @TableField("action")

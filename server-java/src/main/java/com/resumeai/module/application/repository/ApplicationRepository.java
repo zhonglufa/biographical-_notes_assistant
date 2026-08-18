@@ -22,7 +22,7 @@ public interface ApplicationRepository extends BaseMapper<Application> {
 
 
     default Optional<Application> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default Application save(Application e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default Application save(Application e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<Application> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

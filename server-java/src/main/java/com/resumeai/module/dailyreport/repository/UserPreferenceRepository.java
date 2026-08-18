@@ -10,7 +10,7 @@ import com.resumeai.module.dailyreport.entity.UserPreference;
 public interface UserPreferenceRepository extends BaseMapper<UserPreference> {
 
     default Optional<UserPreference> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default UserPreference save(UserPreference e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default UserPreference save(UserPreference e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<UserPreference> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

@@ -15,7 +15,7 @@ public interface ApplicationEventRepository extends BaseMapper<ApplicationEvent>
 
 
     default Optional<ApplicationEvent> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default ApplicationEvent save(ApplicationEvent e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default ApplicationEvent save(ApplicationEvent e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<ApplicationEvent> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

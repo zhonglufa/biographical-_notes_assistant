@@ -14,7 +14,7 @@ import org.springframework.stereotype.Repository;
 public interface AtsReportRepository extends BaseMapper<AtsReport> {
 
     default Optional<AtsReport> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default AtsReport save(AtsReport e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default AtsReport save(AtsReport e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<AtsReport> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

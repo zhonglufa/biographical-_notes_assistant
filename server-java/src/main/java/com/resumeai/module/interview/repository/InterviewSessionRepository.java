@@ -12,7 +12,7 @@ public interface InterviewSessionRepository extends BaseMapper<InterviewSession>
 
 
     default Optional<InterviewSession> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default InterviewSession save(InterviewSession e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default InterviewSession save(InterviewSession e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<InterviewSession> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

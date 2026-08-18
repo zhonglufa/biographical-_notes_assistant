@@ -13,7 +13,7 @@ public interface NotificationRepository extends BaseMapper<Notification> {
 
 
     default Optional<Notification> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default Notification save(Notification e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default Notification save(Notification e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<Notification> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }
@@ -22,7 +22,7 @@ public interface NotificationRepository extends BaseMapper<Notification> {
     }
 
     default int countByUserIdAndReadFlagFalse(String userId) {
-        return (int) selectCount(new QueryWrapper<Notification>().eq("user_id", userId).eq("read_flag", false));
+        return selectCount(new QueryWrapper<Notification>().eq("user_id", userId).eq("read_flag", false)).intValue();
     }
 
 }

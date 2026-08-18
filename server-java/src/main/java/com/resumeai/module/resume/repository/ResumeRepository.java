@@ -16,7 +16,7 @@ public interface ResumeRepository extends BaseMapper<Resume> {
 
 
     default Optional<Resume> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default Resume save(Resume e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default Resume save(Resume e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<Resume> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

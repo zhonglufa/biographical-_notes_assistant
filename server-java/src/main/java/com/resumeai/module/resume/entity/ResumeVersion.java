@@ -10,8 +10,7 @@ import lombok.Setter;
  * snapshot 为解析后结构化简历 JSON（AES-256-GCM，is_encrypted）；raw_file_ref 为 OSS 外链不落库。
  * PK 用 id 自增（DB LLD 为 (user_id, id)，已登记与 JPA 简化实现偏差）。
  */
-@Table(name = "resume_version",
-        uniqueConstraints = @UniqueConstraint(name = "uk_resume_ver", columnNames = {"resume_id", "version_no"}))
+@TableName("resume_version")
 @Getter
 @Setter
 @NoArgsConstructor

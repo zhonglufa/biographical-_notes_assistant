@@ -15,7 +15,7 @@ public interface ApplicationTaskRepository extends BaseMapper<ApplicationTask> {
 
 
     default Optional<ApplicationTask> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default ApplicationTask save(ApplicationTask e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default ApplicationTask save(ApplicationTask e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<ApplicationTask> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }

@@ -18,16 +18,11 @@ import lombok.Setter;
  *       是「同用户同日对同岗不重投」的数据库层强制。</li>
  * </ul>
  *
- * <p>TODO(对齐 LLD §2.1 主键形态): 生产应改为 {@code (user_id, id)} 复合主键 {@code @IdClass}。
- * P0 简化单列 UUID {@code id} + {@code user_id} 列，仍满足四元组唯一约束与数据隔离语义。</p>
+ * <p>主键形态（对齐 LLD §2.1）：采用单列 UUID {@code id}（{@code @TableId(INPUT)}）+ {@code user_id} 列，
+ * 配合业务级四元组唯一索引 uk(user_id, platform_id, job_id, apply_date)（ADR-006）实现「同用户同日对同岗不重投」，
+ * 同时满足数据隔离语义（service 层按 userId 前缀查询）。早期 JPA 时代设想的复合 {@code @IdClass} 方案已废弃。</p>
  */
-@Table(name = "application",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_application_biz",
-                        columnNames = {"user_id", "platform_id", "job_id", "apply_date"})
-        },
-        indexes = { @Index(name = "idx_application_user", columnList = "user_id") }
-)
+@TableName("application")
 @Getter
 @Setter
 @NoArgsConstructor

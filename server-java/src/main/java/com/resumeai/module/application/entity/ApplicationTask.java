@@ -13,9 +13,7 @@ import lombok.Setter;
  * （与 B06 结果事件对齐）。{@code idempotency_key} 与 application 同属一个批量请求，N 个任务共享同一
  * key，故为<b>审计列、非唯一</b>；任务级重复下发由 {@code IdempotencyStore}（生产 Redis SETNX）兜底。</p>
  */
-@Table(name = "application_task",
-        indexes = { @Index(name = "idx_task_application", columnList = "application_id") }
-)
+@TableName("application_task")
 @Getter
 @Setter
 @NoArgsConstructor

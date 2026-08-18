@@ -1,7 +1,7 @@
 package com.resumeai.module.application;
 
 import com.resumeai.module.application.dto.*;
-import com.resumeai.module.application.service.ApplicationService;
+import com.resumeai.module.application.ApplicationService;
 import com.resumeai.security.SecurityContext;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

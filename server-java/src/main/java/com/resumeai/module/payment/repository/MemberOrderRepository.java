@@ -12,7 +12,7 @@ public interface MemberOrderRepository extends BaseMapper<MemberOrder> {
 
 
     default Optional<MemberOrder> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
-    default MemberOrder save(MemberOrder e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default MemberOrder save(MemberOrder e) { if (updateById(e) == 0) insert(e); return e; }
     default boolean existsById(Serializable id) { return selectById(id) != null; }
     default List<MemberOrder> findAll() { return selectList(null); }
     default long count() { return selectCount(null); }
