@@ -1,6 +1,6 @@
 package com.resumeai.module.payment.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,41 +10,41 @@ import lombok.Setter;
  * 状态机：pending→paid→activated→expired→refunded，closed 终态（payment LLD §1）。
  * userId 沿用 P0/P1 的 String(36) 约定（与 LLD BIGINT 偏差已登记）。
  */
-@Entity
-@Table(name = "member_order")
+@TableName("member_order")
 @Getter
 @Setter
 @NoArgsConstructor
 public class MemberOrder {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @TableField("order_no")
     private String orderNo;
 
-    @Column(nullable = false)
+    @TableField("user_id")
     private String userId;
 
-    @Column(nullable = false)
+    @TableField("plan")
     private String plan;
 
+    @TableField("months")
     private int months;
 
-    @Column(nullable = false)
+    @TableField("amount")
     private int amount; // 整数分
 
-    @Column(nullable = false)
-    private String status = "pending";
+    @TableField("status")
+    private String status= "pending";
 
+    @TableField("coupon_code")
     private String couponCode;
 
-    @Column(name = "expire_at")
+    @TableField("expire_at")
     private Long expireAt;
 
-    @Column(name = "paid_at")
+    @TableField("paid_at")
     private Long paidAt;
 
-    @Column(name = "created_at")
-    private Long createdAt = System.currentTimeMillis();
+    @TableField("created_at")
+    private Long createdAt= System.currentTimeMillis();
 }

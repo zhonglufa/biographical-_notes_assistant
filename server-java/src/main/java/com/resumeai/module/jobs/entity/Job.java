@@ -1,6 +1,6 @@
 package com.resumeai.module.jobs.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,49 +10,47 @@ import lombok.Setter;
  * 本模块对岗位只读（不抓取；B10/B11 由 Python 采集器经 Alembic 入库）。
  * API 暴露的 {@code jobId} = 内部 {@code id} 的字符串形式（TODO：A26/A27 细节端明确外部 id 语义）。
  */
-@Entity
-@Table(name = "job")
+@TableName("job")
 @Getter
 @Setter
 @NoArgsConstructor
 public class Job {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(name = "platform_id", length = 32, nullable = false)
+    @TableField("platform_id")
     private String platformId;
 
-    @Column(name = "external_id", length = 128)
+    @TableField("external_id")
     private String externalId;
 
-    @Column(nullable = false)
+    @TableField("title")
     private String title;
 
-    @Column(nullable = false)
+    @TableField("company")
     private String company;
 
-    @Column(length = 1024)
+    @TableField("url")
     private String url;
 
-    @Column(name = "salary_min")
+    @TableField("salary_min")
     private Integer salaryMin;
 
-    @Column(name = "salary_max")
+    @TableField("salary_max")
     private Integer salaryMax;
 
-    @Column(length = 128)
+    @TableField("location")
     private String location;
 
-    @Column(columnDefinition = "TEXT")
+    @TableField("description")
     private String description;
 
-    @Column(name = "jd_raw", columnDefinition = "JSON")
+    @TableField("jd_raw")
     private String jdRaw;
 
-    @Column(nullable = false)
+    @TableField("source")
     private String source; // 'search' | 'detail'
 
-    @Column(name = "collected_at", nullable = false)
+    @TableField("collected_at")
     private Long collectedAt;
 }

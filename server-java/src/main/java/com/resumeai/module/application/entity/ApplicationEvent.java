@@ -1,6 +1,6 @@
 package com.resumeai.module.application.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,7 +9,6 @@ import lombok.Setter;
  * 投递状态变更审计事件（溯源 · 对齐 LLD §5 / ADR-008）。
  * 每状态转移写一条，供时间线展示与「apply.status.changed」广播（通知/AI/推荐监听）。
  */
-@Entity
 @Table(name = "application_event",
         indexes = { @Index(name = "idx_ae_application", columnList = "application_id") }
 )
@@ -18,25 +17,24 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ApplicationEvent {
 
-    @Id
-    @Column(name = "id", length = 36, nullable = false)
+    @TableId(type = IdType.INPUT)
     private String id;
 
-    @Column(name = "user_id", nullable = false, length = 36)
+    @TableField("user_id")
     private String userId;
 
-    @Column(name = "application_id", nullable = false, length = 36)
+    @TableField("application_id")
     private String applicationId;
 
-    @Column(name = "from_state", length = 20)
+    @TableField("from_state")
     private String fromState;
 
-    @Column(name = "to_state", length = 20)
+    @TableField("to_state")
     private String toState;
 
-    @Column(name = "reason")
+    @TableField("reason")
     private String reason;
 
-    @Column(name = "occurred_at", nullable = false)
+    @TableField("occurred_at")
     private Long occurredAt;
 }

@@ -1,6 +1,6 @@
 package com.resumeai.module.jobs.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,24 +9,20 @@ import lombok.Setter;
  * 岗位收藏 / 忽略 / 软删（job_favorite · A08）。
  * action ∈ {favorite, ignore, removed}；ignore 供状态机模块 §3.4 投递推荐过滤。
  */
-@Entity
-@Table(name = "job_favorite")
-@IdClass(JobFavoriteId.class)
+@TableName("job_favorite")
 @Getter
 @Setter
 @NoArgsConstructor
 public class JobFavorite {
-    @Id
-    @Column(name = "user_id", length = 36, nullable = false)
+    @TableId(type = IdType.INPUT)
     private String userId;
 
-    @Id
-    @Column(name = "job_id", nullable = false)
+    @TableId(type = IdType.INPUT)
     private Long jobId;
 
-    @Column(nullable = false)
+    @TableField("action")
     private String action;
 
-    @Column(name = "created_at", nullable = false)
+    @TableField("created_at")
     private Long createdAt;
 }

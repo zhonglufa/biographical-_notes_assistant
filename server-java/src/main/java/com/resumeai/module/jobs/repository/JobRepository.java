@@ -1,11 +1,15 @@
 package com.resumeai.module.jobs.repository;
 
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Optional;
+
 import com.resumeai.module.jobs.entity.Job;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 /**
@@ -13,17 +17,23 @@ import org.springframework.stereotype.Repository;
  * 动态过滤：keyword/location/platform/salaryMin 为 null 时忽略该条件；默认按 collected_at DESC。
  */
 @Repository
-public interface JobRepository extends JpaRepository<Job, Long> {
+public interface JobRepository extends BaseMapper<Job> {
 
-    @Query("SELECT j FROM Job j " +
-           "WHERE (:keyword IS NULL OR j.title LIKE %:keyword%) " +
-           "AND (:location IS NULL OR j.location = :location) " +
-           "AND (:platform IS NULL OR j.platformId = :platform) " +
-           "AND (:salaryMin IS NULL OR j.salaryMin >= :salaryMin) " +
-           "ORDER BY j.collectedAt DESC")
-    Page<Job> search(@Param("keyword") String keyword,
-                     @Param("location") String location,
-                     @Param("platform") String platform,
-                     @Param("salaryMin") Integer salaryMin,
-                     Pageable pageable);
+    default org.springframework.data.domain.Page<Job> search(String keyword, String location, String platform, Integer salaryMin, org.springframework.data.domain.Pageable pageable) {
+        QueryWrapper<Job> q = new QueryWrapper<Job>();
+        if (keyword != null && !keyword.isBlank()) q.like("title", keyword);
+        if (location != null && !location.isBlank()) q.eq("location", location);
+        if (platform != null && !platform.isBlank()) q.eq("platform_id", platform);
+        if (salaryMin != null) q.ge("salary_min", salaryMin);
+        q.orderByDesc("collected_at");
+        Page<Job> page = new Page<>(pageable.getPageNumber() + 1, pageable.getPageSize());
+        page = selectPage(page, q);
+        return new org.springframework.data.domain.PageImpl<>(page.getRecords(), pageable, page.getTotal());
+    }
+
+    default Optional<Job> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
+    default Job save(Job e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default boolean existsById(Serializable id) { return selectById(id) != null; }
+    default List<Job> findAll() { return selectList(null); }
+    default long count() { return selectCount(null); }
 }

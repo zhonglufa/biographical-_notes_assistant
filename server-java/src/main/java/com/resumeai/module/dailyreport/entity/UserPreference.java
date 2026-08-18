@@ -1,6 +1,6 @@
 package com.resumeai.module.dailyreport.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,27 +10,25 @@ import lombok.Setter;
  * 主键 user_id；日报推送时间 pushTime 存为 HH:mm 字符串（语义为"一天中的时刻"，非时间戳），与请求契约一致。
  * 与 strategy_config（投递策略）分离，避免偏好污染策略快照。
  */
-@Entity
-@Table(name = "user_preference")
+@TableName("user_preference")
 @Getter
 @Setter
 @NoArgsConstructor
 public class UserPreference {
-    @Id
-    @Column(name = "user_id", nullable = false, length = 36)
+    @TableId(type = IdType.INPUT)
     private String userId;
 
-    @Column(name = "daily_report_push_time", nullable = false, length = 5)
+    @TableField("daily_report_push_time")
     private String dailyReportPushTime;
 
-    @Column(name = "daily_report_enabled", nullable = false)
+    @TableField("daily_report_enabled")
     private boolean dailyReportEnabled;
 
-    @Column(name = "created_at", nullable = false)
-    private Long createdAt = System.currentTimeMillis();
+    @TableField("created_at")
+    private Long createdAt= System.currentTimeMillis();
 
-    @Column(name = "updated_at", nullable = false)
-    private Long updatedAt = System.currentTimeMillis();
+    @TableField("updated_at")
+    private Long updatedAt= System.currentTimeMillis();
 
     public UserPreference(String userId, String dailyReportPushTime, boolean dailyReportEnabled) {
         this.userId = userId;

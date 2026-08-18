@@ -1,9 +1,9 @@
 package com.resumeai.module.interview.controller;
 
 import com.resumeai.common.ApiResponse;
-import com.resumeai.common.BizException;
 import com.resumeai.module.interview.dto.*;
 import com.resumeai.module.interview.service.InterviewService;
+import com.resumeai.security.SecurityContext;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,31 +17,23 @@ public class InterviewController {
     }
 
     @GetMapping("/questions")
-    public ApiResponse<QuestionSetsResponse> questions(@RequestHeader("Authorization") String auth) {
-        return ApiResponse.ok(svc.listQuestions(extractUserId(auth)));
+    public ApiResponse<QuestionSetsResponse> questions() {
+        return ApiResponse.ok(svc.listQuestions(SecurityContext.currentUserId()));
     }
 
     @PostMapping("/sessions")
-    public ApiResponse<SessionCreateResponse> create(@RequestHeader("Authorization") String auth,
-                                                      @RequestBody SessionCreateRequest req) {
-        return ApiResponse.ok(svc.createSession(extractUserId(auth), req));
+    public ApiResponse<SessionCreateResponse> create(@RequestBody SessionCreateRequest req) {
+        return ApiResponse.ok(svc.createSession(SecurityContext.currentUserId(), req));
     }
 
     @PostMapping("/sessions/{id}/answer")
-    public ApiResponse<SessionAnswerResponse> answer(@RequestHeader("Authorization") String auth,
-                                                      @PathVariable String id,
-                                                      @RequestBody SessionAnswerRequest req) {
-        return ApiResponse.ok(svc.answer(extractUserId(auth), id, req));
+    public ApiResponse<SessionAnswerResponse> answer(@PathVariable String id,
+                                                     @RequestBody SessionAnswerRequest req) {
+        return ApiResponse.ok(svc.answer(SecurityContext.currentUserId(), id, req));
     }
 
     @GetMapping("/sessions/{id}/report")
-    public ApiResponse<SessionReportResponse> report(@RequestHeader("Authorization") String auth,
-                                                     @PathVariable String id) {
-        return ApiResponse.ok(svc.report(extractUserId(auth), id));
-    }
-
-    private String extractUserId(String auth) {
-        if (auth == null || !auth.startsWith("Bearer ")) throw new BizException(401, "未授权");
-        return auth.substring("Bearer ".length());
+    public ApiResponse<SessionReportResponse> report(@PathVariable String id) {
+        return ApiResponse.ok(svc.report(SecurityContext.currentUserId(), id));
     }
 }

@@ -1,10 +1,23 @@
 package com.resumeai.module.payment.repository;
-
-import com.resumeai.module.payment.entity.MemberOrder;
-import org.springframework.data.jpa.repository.JpaRepository;
-
+import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 
-public interface MemberOrderRepository extends JpaRepository<MemberOrder, Long> {
-    Optional<MemberOrder> findByOrderNo(String orderNo);
+import com.resumeai.module.payment.entity.MemberOrder;
+
+public interface MemberOrderRepository extends BaseMapper<MemberOrder> {
+
+
+    default Optional<MemberOrder> findById(Serializable id) { return Optional.ofNullable(selectById(id)); }
+    default MemberOrder save(MemberOrder e) { if (e.getId() == null) insert(e); else updateById(e); return e; }
+    default boolean existsById(Serializable id) { return selectById(id) != null; }
+    default List<MemberOrder> findAll() { return selectList(null); }
+    default long count() { return selectCount(null); }
+    default Optional<MemberOrder> findByOrderNo(String orderNo) {
+        return Optional.ofNullable(selectOne(new QueryWrapper<MemberOrder>().eq("order_no", orderNo)));
+    }
+
 }

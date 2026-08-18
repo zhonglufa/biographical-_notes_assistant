@@ -1,6 +1,6 @@
 package com.resumeai.module.application.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,7 +13,6 @@ import lombok.Setter;
  * （与 B06 结果事件对齐）。{@code idempotency_key} 与 application 同属一个批量请求，N 个任务共享同一
  * key，故为<b>审计列、非唯一</b>；任务级重复下发由 {@code IdempotencyStore}（生产 Redis SETNX）兜底。</p>
  */
-@Entity
 @Table(name = "application_task",
         indexes = { @Index(name = "idx_task_application", columnList = "application_id") }
 )
@@ -22,43 +21,42 @@ import lombok.Setter;
 @NoArgsConstructor
 public class ApplicationTask {
 
-    @Id
-    @Column(name = "id", length = 36, nullable = false)
+    @TableId(type = IdType.INPUT)
     private String id;
 
-    @Column(name = "user_id", nullable = false, length = 36)
+    @TableField("user_id")
     private String userId;
 
-    @Column(name = "application_id", nullable = false, length = 36)
+    @TableField("application_id")
     private String applicationId;
 
-    @Column(name = "idempotency_key", length = 64)
+    @TableField("idempotency_key")
     private String idempotencyKey;
 
-    @Column(name = "platform_id")
+    @TableField("platform_id")
     private String platformId;
 
-    @Column(name = "job_id")
+    @TableField("job_id")
     private String jobId;
 
-    @Column(name = "status", length = 20)
+    @TableField("status")
     private String status;
 
-    @Column(name = "outcome", length = 20)
+    @TableField("outcome")
     private String outcome;
 
-    @Column(name = "platform_apply_id")
+    @TableField("platform_apply_id")
     private String platformApplyId;
 
-    @Column(name = "fail_reason")
+    @TableField("fail_reason")
     private String failReason;
 
-    @Column(name = "evidence")
+    @TableField("evidence")
     private String evidence;
 
-    @Column(name = "created_at", nullable = false)
+    @TableField("created_at")
     private Long createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @TableField("updated_at")
     private Long updatedAt;
 }

@@ -1,6 +1,6 @@
 package com.resumeai.module.notification.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,40 +9,38 @@ import lombok.Setter;
  * 通知（站内信，对齐 DB notification，LLD §7 状态机 sent→read/deleted，到期 archived）。
  * userId 沿用 P0/P1 的 String(36) 约定（与 LLD BIGINT 偏差已登记）。
  */
-@Entity
-@Table(name = "notification")
+@TableName("notification")
 @Getter
 @Setter
 @NoArgsConstructor
 public class Notification {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(nullable = false)
+    @TableField("user_id")
     private String userId;
 
-    @Column(nullable = false)
+    @TableField("channel")
     private String channel; // push/inbox/email/sms
 
-    @Column(nullable = false)
+    @TableField("level")
     private String level; // L0-L3
 
-    @Column(nullable = false)
+    @TableField("title")
     private String title;
 
-    @Column(columnDefinition = "TEXT")
+    @TableField("body")
     private String body;
 
-    @Column(name = "read_flag", nullable = false)
-    private boolean readFlag = false;
+    @TableField("read_flag")
+    private boolean readFlag= false;
 
-    @Column(name = "sent_at")
+    @TableField("sent_at")
     private Long sentAt;
 
-    @Column(name = "created_at")
-    private Long createdAt = System.currentTimeMillis();
+    @TableField("created_at")
+    private Long createdAt= System.currentTimeMillis();
 
-    @Column(name = "notification_key", unique = true)
+    @TableField("notification_key")
     private String notificationKey; // 去重键（LLD §8 at-least-once + 幂等）
 }

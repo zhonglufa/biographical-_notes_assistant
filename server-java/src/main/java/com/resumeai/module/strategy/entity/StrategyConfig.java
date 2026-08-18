@@ -1,6 +1,6 @@
 package com.resumeai.module.strategy.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -12,29 +12,27 @@ import lombok.Setter;
  * platforms/blacklist 为字符串数组，MySQL 存 JSON 文本（{@code platforms_json}/{@code blacklist_json}），
  * 由 Service 层用 Jackson 在 {@code List<String>} 与 JSON 间转换，避免 JPA 转换器在 H2 测试下的方言差异。</p>
  */
-@Entity
-@Table(name = "strategy_config")
+@TableName("strategy_config")
 @Getter
 @Setter
 @NoArgsConstructor
 public class StrategyConfig {
 
-    @Id
-    @Column(name = "user_id", length = 36, nullable = false)
+    @TableId(type = IdType.INPUT)
     private String userId;
 
-    @Column(name = "match_threshold", nullable = false)
+    @TableField("match_threshold")
     private double matchThreshold;
 
-    @Column(name = "daily_limit", nullable = false)
+    @TableField("daily_limit")
     private int dailyLimit;
 
-    @Column(name = "platforms_json", length = 2000)
+    @TableField("platforms_json")
     private String platformsJson;
 
-    @Column(name = "blacklist_json", length = 2000)
+    @TableField("blacklist_json")
     private String blacklistJson;
 
-    @Column(name = "updated_at", nullable = false)
+    @TableField("updated_at")
     private Long updatedAt;
 }

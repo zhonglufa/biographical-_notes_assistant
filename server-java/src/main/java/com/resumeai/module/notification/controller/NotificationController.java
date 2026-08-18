@@ -1,9 +1,10 @@
 package com.resumeai.module.notification.controller;
 
 import com.resumeai.common.ApiResponse;
-import com.resumeai.common.BizException;
-import com.resumeai.module.notification.dto.*;
+import com.resumeai.module.notification.dto.NotificationsListResponse;
+import com.resumeai.module.notification.dto.WsUrlResponse;
 import com.resumeai.module.notification.service.NotificationService;
+import com.resumeai.security.SecurityContext;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,17 +18,13 @@ public class NotificationController {
     }
 
     @GetMapping
-    public ApiResponse<NotificationsListResponse> list(@RequestHeader("Authorization") String auth) {
-        return ApiResponse.ok(svc.list(extractUserId(auth)));
+    public ApiResponse<NotificationsListResponse> list() {
+        return ApiResponse.ok(svc.list(SecurityContext.currentUserId()));
     }
 
+    /** A23 WebSocket 连接地址（auth=Bearer(query)，令牌由 JwtAuthFilter 从 ?token= 读取）。 */
     @GetMapping("/ws")
-    public ApiResponse<WsUrlResponse> ws(@RequestHeader("Authorization") String auth) {
-        return ApiResponse.ok(svc.wsUrl(extractUserId(auth)));
-    }
-
-    private String extractUserId(String auth) {
-        if (auth == null || !auth.startsWith("Bearer ")) throw new BizException(401, "未授权");
-        return auth.substring("Bearer ".length());
+    public ApiResponse<WsUrlResponse> ws() {
+        return ApiResponse.ok(svc.wsUrl(SecurityContext.currentUserId()));
     }
 }

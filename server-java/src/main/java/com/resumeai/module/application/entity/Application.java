@@ -1,6 +1,6 @@
 package com.resumeai.module.application.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -21,7 +21,6 @@ import lombok.Setter;
  * <p>TODO(对齐 LLD §2.1 主键形态): 生产应改为 {@code (user_id, id)} 复合主键 {@code @IdClass}。
  * P0 简化单列 UUID {@code id} + {@code user_id} 列，仍满足四元组唯一约束与数据隔离语义。</p>
  */
-@Entity
 @Table(name = "application",
         uniqueConstraints = {
                 @UniqueConstraint(name = "uk_application_biz",
@@ -34,35 +33,34 @@ import lombok.Setter;
 @NoArgsConstructor
 public class Application {
 
-    @Id
-    @Column(name = "id", length = 36, nullable = false)
+    @TableId(type = IdType.INPUT)
     private String id;
 
-    @Column(name = "user_id", nullable = false, length = 36)
+    @TableField("user_id")
     private String userId;
 
-    @Column(name = "job_id", nullable = false)
+    @TableField("job_id")
     private String jobId;
 
-    @Column(name = "platform_id", nullable = false)
+    @TableField("platform_id")
     private String platformId;
 
-    @Column(name = "status", nullable = false, length = 20)
+    @TableField("status")
     private String status;
 
-    @Column(name = "resume_version_id")
+    @TableField("resume_version_id")
     private String resumeVersionId;
 
-    @Column(name = "idempotency_key", length = 64)
+    @TableField("idempotency_key")
     private String idempotencyKey;
 
     /** 业务级幂等四元组之一：投递日期 yyyy-MM-dd（按用户本地日期）。 */
-    @Column(name = "apply_date", nullable = false, length = 10)
+    @TableField("apply_date")
     private String applyDate;
 
-    @Column(name = "created_at", nullable = false)
+    @TableField("created_at")
     private Long createdAt;
 
-    @Column(name = "updated_at", nullable = false)
+    @TableField("updated_at")
     private Long updatedAt;
 }

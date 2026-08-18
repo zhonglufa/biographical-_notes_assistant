@@ -1,6 +1,6 @@
 package com.resumeai.module.dailyreport.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,48 +16,44 @@ import lombok.Setter;
  *   <li>platform_breakdown 存为 JSON 文本（TEXT），避免 H2/MySQL 间 JSON 列类型差异导致的解析坑。</li>
  * </ul>
  */
-@Entity
-@Table(name = "daily_report")
-@IdClass(DailyReportId.class)
+@TableName("daily_report")
 @Getter
 @Setter
 @NoArgsConstructor
 public class DailyReport {
-    @Id
-    @Column(name = "user_id", nullable = false, length = 36)
+    @TableId(type = IdType.INPUT)
     private String userId;
 
-    @Id
-    @Column(name = "report_date", nullable = false, length = 10)
+    @TableId(type = IdType.INPUT)
     private String reportDate;
 
-    @Column(name = "total_applications", nullable = false)
+    @TableField("total_applications")
     private int totalApplications;
 
-    @Column(nullable = false)
+    @TableField("successful")
     private int successful;
 
-    @Column(nullable = false)
+    @TableField("failed")
     private int failed;
 
-    @Column(name = "hr_views", nullable = false)
+    @TableField("hr_views")
     private int hrViews;
 
-    @Column(name = "interview_invitations", nullable = false)
+    @TableField("interview_invitations")
     private int interviewInvitations;
 
-    @Column(name = "new_questions", nullable = false)
+    @TableField("new_questions")
     private int newQuestions;
 
     /** 各平台投递分布，存为 JSON 字符串（TEXT）。 */
-    @Column(name = "platform_breakdown", columnDefinition = "TEXT")
+    @TableField("platform_breakdown")
     private String platformBreakdown;
 
-    @Column(name = "sent_at")
+    @TableField("sent_at")
     private Long sentAt;
 
-    @Column(name = "created_at", nullable = false)
-    private Long createdAt = System.currentTimeMillis();
+    @TableField("created_at")
+    private Long createdAt= System.currentTimeMillis();
 
     public DailyReport(String userId, String reportDate, int totalApplications, int successful,
                        int failed, int hrViews, int interviewInvitations, int newQuestions,

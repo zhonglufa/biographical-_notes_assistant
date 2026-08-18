@@ -1,6 +1,6 @@
 package com.resumeai.module.interview.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -10,40 +10,38 @@ import lombok.Setter;
  * 状态机：created→active→in_progress⇄paused→completed→scored→archived，abandoned 终态（LLD G7-1）。
  * 注意：DB 设计为 (user_id,id) 复合主键；Java 实体用单 @Id 简化（H2 测试稳定），Flyway 生产 DDL 用复合主键。
  */
-@Entity
-@Table(name = "interview_session")
+@TableName("interview_session")
 @Getter
 @Setter
 @NoArgsConstructor
 public class InterviewSession {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(nullable = false)
+    @TableField("user_id")
     private String userId;
 
-    @Column(name = "question_set_id")
+    @TableField("question_set_id")
     private Long questionSetId;
 
-    @Column(name = "application_id")
+    @TableField("application_id")
     private Long applicationId;
 
-    @Column(nullable = false)
-    private String state = "created";
+    @TableField("state")
+    private String state= "created";
 
-    @Column(nullable = false)
-    private String mode = "text";
+    @TableField("mode")
+    private String mode= "text";
 
-    @Column(name = "current_turn")
-    private Integer currentTurn = 0;
+    @TableField("current_turn")
+    private Integer currentTurn= 0;
 
-    @Column(name = "started_at")
+    @TableField("started_at")
     private Long startedAt;
 
-    @Column(name = "ended_at")
+    @TableField("ended_at")
     private Long endedAt;
 
-    @Column(name = "created_at")
-    private Long createdAt = System.currentTimeMillis();
+    @TableField("created_at")
+    private Long createdAt= System.currentTimeMillis();
 }

@@ -1,6 +1,6 @@
 package com.resumeai.module.interview.entity;
+import com.baomidou.mybatisplus.annotation.*;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,32 +8,32 @@ import lombok.Setter;
 /**
  * 面试会话事件审计（对齐 DB interview_session_event，G7-1 硬要求：每态变更必写）。
  */
-@Entity
-@Table(name = "interview_session_event")
+@TableName("interview_session_event")
 @Getter
 @Setter
 @NoArgsConstructor
 public class InterviewSessionEvent {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
-    @Column(nullable = false)
+    @TableField("user_id")
     private String userId;
 
-    @Column(name = "session_id", nullable = false)
+    @TableField("session_id")
     private Long sessionId;
 
-    @Column(name = "from_state")
+    @TableField("from_state")
     private String fromState;
 
-    @Column(name = "to_state")
+    @TableField("to_state")
     private String toState;
 
+    @TableField("reason")
     private String reason;
 
-    private String actor = "system";
+    @TableField("actor")
+    private String actor= "system";
 
-    @Column(name = "created_at")
-    private Long createdAt = System.currentTimeMillis();
+    @TableField("created_at")
+    private Long createdAt= System.currentTimeMillis();
 }
