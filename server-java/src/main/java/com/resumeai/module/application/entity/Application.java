@@ -10,9 +10,12 @@ import lombok.Setter;
  *
  * <p>关键约束（防重投命门，必须忠实）：
  * <ul>
- *   <li>{@code uk(idempotency_key)} —— 请求级幂等（A09 前端 UUID）；</li>
+ *   <li>{@code idempotency_key}（请求级幂等 A09 前端 UUID）—— <b>审计列，非唯一</b>。
+ *       一个批量投递请求（applyBatch）会为 N 个岗位生成 N 行 application，它们共享同一个
+ *       {@code idempotency_key}，因此该列<b>不能</b>做行级唯一；请求级幂等由
+ *       {@code IdempotencyStore}（生产 Redis SETNX，返回 409）强制，数据库列仅作审计溯源。</li>
  *   <li>{@code uk(user_id, platform_id, job_id, apply_date)} —— 业务级四元组唯一索引（ADR-006）；
- *       与请求级 key 正交，是「同用户同日对同岗不重投」的数据库层强制。</li>
+ *       是「同用户同日对同岗不重投」的数据库层强制。</li>
  * </ul>
  *
  * <p>TODO(对齐 LLD §2.1 主键形态): 生产应改为 {@code (user_id, id)} 复合主键 {@code @IdClass}。
@@ -21,7 +24,6 @@ import lombok.Setter;
 @Entity
 @Table(name = "application",
         uniqueConstraints = {
-                @UniqueConstraint(name = "uk_application_idem", columnNames = "idempotency_key"),
                 @UniqueConstraint(name = "uk_application_biz",
                         columnNames = {"user_id", "platform_id", "job_id", "apply_date"})
         },

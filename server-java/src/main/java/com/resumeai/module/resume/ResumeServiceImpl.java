@@ -141,8 +141,18 @@ public class ResumeServiceImpl implements ResumeService {
     }
 
     private Object readJson(String json) {
+        if (json == null) {
+            return null;
+        }
         try {
-            return mapper.readValue(json, new TypeReference<Object>() {});
+            Object parsed = mapper.readValue(json, new TypeReference<Object>() {});
+            // H2 的 JSON 列在 JDBC getString() 时可能把 JSON 文本作为「JSON 字符串字面量」返回
+            // （外层带引号），Jackson 会把它反序列化成 Java String 而非 Map/List。
+            // 此时再解析一层，得到真正的结构化对象，保证跨库（H2/MySQL/PG）行为一致。
+            if (parsed instanceof String s) {
+                return mapper.readValue(s, new TypeReference<Object>() {});
+            }
+            return parsed;
         } catch (Exception e) {
             return json;
         }

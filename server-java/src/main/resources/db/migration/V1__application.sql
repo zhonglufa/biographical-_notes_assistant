@@ -16,7 +16,6 @@ CREATE TABLE IF NOT EXISTS application (
     created_at      BIGINT       NOT NULL,
     updated_at      BIGINT       NOT NULL,
     PRIMARY KEY (id),
-    CONSTRAINT uk_application_idem UNIQUE (idempotency_key),
     CONSTRAINT uk_application_biz  UNIQUE (user_id, platform_id, job_id, apply_date),
     INDEX idx_application_user (user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
@@ -48,6 +47,5 @@ CREATE TABLE IF NOT EXISTS application_task (
     created_at      BIGINT      NOT NULL,
     updated_at      BIGINT      NOT NULL,
     PRIMARY KEY (id),
-    CONSTRAINT uk_task_idem UNIQUE (idempotency_key),
     INDEX idx_task_application (application_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

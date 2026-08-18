@@ -17,6 +17,7 @@ import com.resumeai.module.resume.repository.ResumeVersionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** A04 / A05 / A06 关键路径单测（H2 内存库）。 */
 @SpringBootTest
+@Transactional
 class ResumeServiceTest {
 
     @Autowired

@@ -10,11 +10,11 @@ import lombok.Setter;
  * 由服务端经 C2 任务通道下发本机 Agent；结果经 C3 回写。本机 Agent 不持业务库。
  *
  * <p>status: pending/running/done/failed；outcome: success/failed/captcha/risk_blocked/need_login
- * （与 B06 结果事件对齐）。{@code uk(idempotency_key)} 防任务重复下发。</p>
+ * （与 B06 结果事件对齐）。{@code idempotency_key} 与 application 同属一个批量请求，N 个任务共享同一
+ * key，故为<b>审计列、非唯一</b>；任务级重复下发由 {@code IdempotencyStore}（生产 Redis SETNX）兜底。</p>
  */
 @Entity
 @Table(name = "application_task",
-        uniqueConstraints = { @UniqueConstraint(name = "uk_task_idem", columnNames = "idempotency_key") },
         indexes = { @Index(name = "idx_task_application", columnList = "application_id") }
 )
 @Getter

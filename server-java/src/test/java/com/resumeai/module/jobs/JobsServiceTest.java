@@ -14,6 +14,7 @@ import com.resumeai.module.jobs.repository.JobRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -23,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** A07 / A08 关键路径单测（H2 内存库 · 对齐 ApplicationServiceTest 范式）。 */
 @SpringBootTest
+@Transactional
 class JobsServiceTest {
 
     @Autowired
