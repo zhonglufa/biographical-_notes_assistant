@@ -43,6 +43,21 @@ class Settings:
     service_name: str = "resume-ai-python"
     contract_version: str = "1.0.0"
 
+    # —— 护栏 2：LLM 成本预算（DEMO 默认；生产值由部署方/用户按预算配置）——
+    llm_daily_cap_cents: int = field(default_factory=lambda: int(os.environ.get("LLM_DAILY_CAP_CENTS", "50000")))
+    llm_per_call_cents: int = field(default_factory=lambda: int(os.environ.get("LLM_PER_CALL_CENTS", "10")))
+    breaker_threshold: int = field(default_factory=lambda: int(os.environ.get("LLM_BREAKER_THRESHOLD", "5")))
+    cooldown_s: int = field(default_factory=lambda: int(os.environ.get("LLM_BREAKER_COOLDOWN_S", "60")))
+
+    # —— 护栏 3：监控阈值（DEMO 默认；生产值由运维配置）——
+    monitor_error_rate_max: float = field(default_factory=lambda: float(os.environ.get("MON_ERROR_RATE_MAX", "0.05")))
+    monitor_ban_rate_max: float = field(default_factory=lambda: float(os.environ.get("MON_BAN_RATE_MAX", "0.02")))
+    monitor_apply_success_min: float = field(default_factory=lambda: float(os.environ.get("MON_APPLY_SUCCESS_MIN", "0.80")))
+
+    # —— 护栏 4/6：特性开关覆盖文件 + 审计日志路径（可选持久化）——
+    feature_flags_overrides_path: str | None = field(default_factory=lambda: os.environ.get("FEATURE_FLAGS_OVERRIDES"))
+    audit_log_path: str | None = field(default_factory=lambda: os.environ.get("AUDIT_LOG_PATH"))
+
     # 各方法 SLA（启动时从契约注册表加载，单一真相源）
     sla: dict[str, MethodSla] = field(default_factory=dict)
 

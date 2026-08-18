@@ -28,6 +28,7 @@ from app.ai.orchestrator import AIOrchestrator, LocalResultRecorder
 from app.ai.router import router as ai_router
 from app.config import settings
 from app.errors import AppError, envelope_from_error, error_envelope
+from app.guard import build_guardrails
 
 
 @asynccontextmanager
@@ -35,23 +36,33 @@ async def lifespan(app: FastAPI):
     # 启动时从契约注册表加载 SLA（单一真相源）
     settings.load_sla_from_contract()
 
+    # 装配 5 护栏（成本熔断 / 监控 / 灰度开关 / crypto-shred / 审计链）
+    guard = build_guardrails(settings)
+
     llm = LLMClient(
         api_key=settings.llm_api_key,
         base_url=settings.llm_base_url,
         primary_model=settings.llm_primary_model,
         backup_model=settings.llm_backup_model,
+        cost_guard=guard["cost_guard"],
+        monitor=guard["monitor"],
+        audit=guard["audit"],
+        feature_flags=guard["feature_flags"],
+        per_call_cents=settings.llm_per_call_cents,
     )
     safety = ContentSafety(enabled=True)
     publisher = LocalResultRecorder()
     orchestrator = AIOrchestrator(llm, safety, publisher, settings.sla)
 
     transport = LocalAgentTransport()
-    agent_service = AgentTriggerService(transport)
+    agent_service = AgentTriggerService(transport, monitor=guard["monitor"], audit=guard["audit"])
 
     app.state.orchestrator = orchestrator
     app.state.agent_service = agent_service
     app.state.publisher = publisher
     app.state.transport = transport
+    app.state.guard = guard
+    app.state.monitor = guard["monitor"]
     yield
 
 
@@ -66,6 +77,16 @@ async def trace_middleware(request: Request, call_next):
     request.state.trace_id = trace_id
     response = await call_next(request)
     response.headers["X-Trace-Id"] = trace_id
+    return response
+
+
+@app.middleware("http")
+async def monitor_middleware(request: Request, call_next):
+    """护栏 3：逐内部请求记录到监控（错误率 / 逐端点计数）。"""
+    response = await call_next(request)
+    monitor = getattr(request.app.state, "monitor", None)
+    if monitor is not None and request.url.path.startswith("/internal"):
+        monitor.record_request(request.url.path, response.status_code, 0)
     return response
 
 
@@ -95,6 +116,11 @@ async def generic_handler(request: Request, exc: Exception):
 
 
 @app.get("/healthz")
-async def healthz():
+async def healthz(request: Request):
+    # 开放存活探针（k8s liveness）；附加护栏监控快照便于告警（非机器契约字段）
+    snap = None
+    svc = getattr(request.app.state, "agent_service", None)
+    if svc is not None:
+        snap = svc.monitor_snapshot()
     return {"status": "ok", "service": settings.service_name,
-            "contractVersion": settings.contract_version}
+            "contractVersion": settings.contract_version, "guard": snap}

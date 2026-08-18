@@ -72,6 +72,20 @@ python -m pytest -q
 | 异步 taskId-first | 设计张力 | LLD §1 称 b02/b04/b05 异步返回 taskId 后经 MQ 回写，但机器可读 response schema（b02/b04/b05）规定返回最终结果。本实现以「契约是真相源」为准：HTTP 同步返回最终结果（合规），并额外发 `ai.task.result` 事件。完整 taskId-first 异步化是后续迭代接缝。 |
 | error-codes 新增 | 设计变更 | 为响应信封新增 `INTERNAL_ERROR`(500) / `CONTRACT_BREACH`(500) 到 `design/contracts/error-codes.json`（已通过静态契约校验）。 |
 
+### 护栏迁移（结构规范 §四 要求：迁移 scaffold 5 护栏，非重写）
+
+`app/guard/` 已将 scaffold 的 5 个护栏**迁移落地**（核心逻辑保留，去掉 demo 模块耦合）：
+
+| 护栏 | 模块 | 落地状态 | 说明 |
+|------|------|----------|------|
+| 2 LLM 成本熔断 | `guard/cost.py` (`CostGuard`/`BudgetPolicy`) | **已接线（生效）** | 装进 `LLMClient` 单一 LLM 边界：每次调用前 `charge()` 预扣，超日硬上限/失败熔断即拒绝并走规则降级；成功后记账 + 累计 LLM 成本到监控。DEMO 默认 ¥500/天，生产值由部署方配置。 |
+| 3 监控（封号率/投递成功率/错误率/LLM成本） | `guard/monitor.py` (`LightweightMonitor`) | **已接线（生效）** | `AgentTriggerService.report_apply_result/report_ban` 为真实上报接缝；`monitor_middleware` 逐 `/internal` 请求记错误率；快照挂到 `/healthz`。阈值告警按 DEMO 默认。 |
+| 4 灰度/回滚开关 | `guard/feature_flags.py` (`FeatureFlags`) | **已接线（生效）** | `llm_cost_guard` 开关控制成本门禁（紧急止血）；全局 kill-switch 一键关闭灰度功能。 |
+| 5 PIPL crypto-shred | `guard/crypto_shred.py` (`CryptoShred`) | 模块就位（接缝） | 编排逻辑 + 可验证；真实 KEK 派生(AES-GCM + KMS)待接密钥工程 LLD，否则不得上线。 |
+| 6 审计链 | `guard/audit_log.py` (`AuditLog`) | **已接线（生效）** | 成本拦截、Agent 触发受理、投递结果、封号事件均写追加式哈希链；`verify_chain()` 可检测篡改。 |
+
+诚实边界：护栏 2/3/4/6 已在 Python 侧实际生效；护栏 5 真实加密待接 KMS（沿用 scaffold 的 MockCipher，明确非生产级）。
+
 ## 7. 与双闸门 / 契约一致性
 
 - 复用 `design/contracts/validate_contracts.py`（与 scaffold / CI 同一校验器），所有 B 成功响应与错误信封过机器 schema。
