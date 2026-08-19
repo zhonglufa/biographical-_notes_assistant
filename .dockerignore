@@ -1,4 +1,6 @@
 # 构建上下文排除项：不进入镜像，缩小镜像并避免泄露
+# 注：本 .dockerignore 仅作用于「根上下文」构建（server-python/Dockerfile 用 context=.）；
+#     server-java / frontend 各自用子目录上下文，互不影响。
 .git
 __pycache__
 *.pyc
@@ -7,6 +9,10 @@ node_modules
 dist
 build
 frontend
+server-java
+scaffold
+scripts
+docs
 assets
 .env
 *.md
