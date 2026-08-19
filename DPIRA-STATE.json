@@ -1,0 +1,43 @@
+{
+  "batch_id": "DPIRA-BATCH-001",
+  "batch_phase": "IMPLEMENTING",
+  "created_at": "2026-08-19 20:54:33",
+  "updated_at": "2026-08-19 20:55:05",
+  "items": {
+    "W1": {
+      "state": "DRAFT_COMPLETE",
+      "title": "Flyway MySQL 真实迁移闭环（实证：V1-V10 success=1 / 25表 / health UP@59982）",
+      "role": "Eng"
+    },
+    "W2": {
+      "state": "TODO",
+      "title": "验证并提交在途工作",
+      "role": "Eng+QA"
+    },
+    "W3": {
+      "state": "TODO",
+      "title": "本地全栈运行时实证",
+      "role": "Eng+QA"
+    },
+    "W4": {
+      "state": "TODO",
+      "title": "上线手册阶段二",
+      "role": "Docs+Arch"
+    },
+    "W5": {
+      "state": "TODO",
+      "title": "QA 上线前全量验证",
+      "role": "QA"
+    },
+    "W6": {
+      "state": "TODO",
+      "title": "push→PR→gates绿→合并master",
+      "role": "Lead"
+    }
+  },
+  "audit": {
+    "result": null,
+    "note": "",
+    "at": ""
+  }
+}
