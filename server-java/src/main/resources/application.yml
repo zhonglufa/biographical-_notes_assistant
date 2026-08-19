@@ -36,9 +36,16 @@ resumeai:
     issuer: resume-ai
     access-ttl-seconds: 3600
     refresh-ttl-seconds: 2592000
+    # 生产 RS256 私钥 PEM（与 public-key 成对）。留空→启动时生成临时 RSA-2048（开发模式，重启失效）。
+    # 私钥严禁入库/进镜像，由 .env / 密钥管理(KMS) 挂载注入。
+    private-key: ${RESIMEAI_JWT_PRIVATE_KEY:}
+    public-key: ${RESIMEAI_JWT_PUBLIC_KEY:}
   # 事件发布器模式：memory=内存桩(P0/测试，无 broker)；rabbit=生产 RabbitMQ(ADR-004)
   mq:
     mode: ${MQ_MODE:memory}
+  # 本机 Agent 回调基址（rabbit 模式消费者派发投递任务的目标；服务端不持 Cookie/平台凭据）
+  agent:
+    callback-base-url: ${AGENT_CALLBACK_BASE_URL:http://localhost:9800}
 
 management:
   endpoints:
