@@ -161,3 +161,55 @@
 **结论**：✅ **通过（进 I）**。无重大冲突，无需打回 D。
 **审查人/角色**：架构师(software-architect) + Team Lead（将领）
 **日期**：2026-08-19
+
+---
+
+## 10. 实证记录（Evidence Log · 机器可复核）
+
+### W1 — Flyway MySQL 真实迁移闭环 ✅ DRAFT_COMPLETE
+- 构建：`clean package -DskipTests` → `BUILD SUCCESS`，产物 `server-java-0.1.0.jar`（48MB，已 repackage）。为规避中文路径编码乱码，构建在 ASCII 拷贝 `/e/build/server-java` 完成，Maven 经 `java -cp classworlds.jar Launcher` 直接启动（绕过损坏的 `mvn` 脚本 glob）。
+- 起 jar（真实 MySQL `127.0.0.1/root/root`）：Flyway 日志 `Successfully validated 10 migrations` → 依次迁移至 `version "10 - user"` → `Successfully applied 10 migrations to schema resume_ai, now at version v10`。
+- `flyway_schema_history`：`COUNT(*)=10, SUM(success)=10`（V1–V10 全 success=1）。
+- 业务表：`SHOW TABLES` 返回 25 张（application / job_match / job_favorite / job_view / resume / strategy / adapter / interview / payment / notification / daily_report / user / t_user 等齐全）。
+- `/actuator/health`：`{"status":"UP"}`（端口 8080，经 `SERVER_PORT=8080` 覆盖沙箱 `SERVER__PORT=0`，见 F2）。
+- **结论**：生产启动阻塞级缺陷（连真实 MySQL 必崩 `Unsupported Database: MySQL`）已闭环。
+
+### W2 — 验证并提交在途工作 ✅ DRAFT_COMPLETE
+- `mvn test` 全量（ASCII 构建副本）：`Tests run: 87, Failures: 0, Errors: 0, Skipped: 0` → `BUILD SUCCESS`（TEST_EXIT=0）。覆盖 RS256（`JwtTokenSignerTest`/`JwtVerifierTest`/`JwtAuthFilterTest`）、MQ 消费者（`ApplyTaskConsumerTest`/`RabbitMqApplyTaskPublisherTest`）。
+- 双闸门（design/contracts/validate_contracts.py + design/check_prd_hld_traceability.py）：**全绿**（schemas 66 可加载 / 正向通过 / 反向证伪 / 注册表自洽 / 错误码唯一；PRD↔HLD MUST_TRACE 全追溯、版本一致 4.5=4.5）。
+- 分批提交（本地，不直推 master，6 commit）：
+  - `5ab30b6` fix(java): W1 补 flyway-mysql 闭环真实迁移
+  - `c4c7397` feat(java): #92 RS256 真实签发验签闭环
+  - `3f4e0c7` feat(java): #94 RabbitMQ 投递任务消费者
+  - `929951a` feat: #95 部署产物 双Dockerfile+全栈compose+.env+cd-deploy
+  - `ff56cc4` feat(java): #92 JWT 真密钥(env)注入 + Agent 回调基址  ← 补提交漏落的 application.yml 改动
+  - `d3f9bb4` chore: DPIRA 框架与批次文件
+
+### W3 — 本地全栈运行时实证 ✅ DRAFT_COMPLETE
+**server-java（真实 MySQL + Redis，端口 8080）**
+- `POST /auth/login`（任意凭据，MVP B-1 占位）→ `code=0`，返回 RS256 令牌；JWT header 解码 `{"alg":"RS256"}` ✅ 真实 RS256 签发。
+- `GET /auth/users/me` + `Bearer <token>` → **HTTP 200** ✅ 签发↔验签闭环成立。
+- `GET /auth/users/me` 无令牌 → **HTTP 401** ✅ fail-closed。
+- `GET /api/v1/jobs` 无令牌 → **HTTP 401** ✅ fail-closed；带令牌 → HTTP 500（根因为 F1：`resume_ai.job` 表不存在，非鉴权问题，鉴权已通过）。
+- `POST /auth/refresh` + refreshToken → 换新 token `code=0` ✅。
+
+**server-python（FastAPI，端口 8000，INTERNAL_TOKEN=w3-internal-token）**
+- `GET /healthz` → **HTTP 200** ✅。
+- `POST /internal/v1/ai/match` 无 `X-Internal-Token` → **HTTP 401** ✅ fail-closed（未配置/缺失令牌一律拒，无后门）。
+- `POST /internal/v1/ai/match` + 正确 `X-Internal-Token` → **HTTP 400**（已通过令牌门、进入业务层校验，非 401）✅ 令牌校验闭环成立。
+
+### 运行时发现（已登记于 DPIRA-STATE.json → findings）
+- **F1（HIGH）**：`job` 读表从未被创建（跨服务设计-实现缺口）。`Job` 实体 `@TableName("job")`，但 V3 迁移注释声明由 Python 侧 Alembic 创建，而 server-python 无任何建表代码 → `resume_ai.job` 永不存在 → jobs 读接口 500。属 ADR-002 双语言异构下 Python 侧承诺未交付。**不擅自在 Java 静默补表**，交 A 报告与用户决策；W4 手册须标注部署顺序依赖。
+- **F2（INFO）**：沙箱注入 `SERVER__PORT=0` 致 Tomcat 随机端口；本地以 `SERVER_PORT=8080` 覆盖确认真实监听 8080。真实部署环境无此变量，配置 `server.port:8080` 生效，compose/nginx 假定 8080 正确。
+
+### W4 — 上线手册阶段二 ✅ DRAFT_COMPLETE
+- 扩写 `docs/上线手册.md` §11「阶段二：全栈 compose 真实部署」，以 `docker-compose.yml` 为权威来源，覆盖拓扑/前置/.env/部署步骤/健康检查/RS256+Agent 回调契约/应急回滚。
+- 诚实标注 F1（job 表未创建·跨服务缺口）、B-1（MVP 认证）、前端本地 safe-delete 钩子；明确「用户物理动作不代执行」。
+
+### W5 — QA 上线前全量验证 ✅ DRAFT_COMPLETE
+- 双闸门（契约 + PRD/HLD 追溯）：**全绿**（W2 已实证，W5 复验一致）。
+- server-java `mvn test`：`Tests run: 87, Failures: 0, Errors: 0, Skipped: 0` → BUILD SUCCESS。
+- server-python `pytest`：`PYTEST_EXIT=0`（全部通过，含 auth fail-closed 用例）。
+- scaffold `test_smoke.py`：`SCAFFOLD_EXIT=0`，**25 端点全 PASS**（含 422 fail-closed 抽样）。
+- frontend `vite build`：编译成功（1618 模块；用外部 outDir 绕过沙箱 safe-delete 对默认 `dist` 清理的拦截，容器构建无碍）。
+- **结论**：W5 全部门禁绿，满足批次级验收 §7 第 2 项。

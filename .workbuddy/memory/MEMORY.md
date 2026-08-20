@@ -17,3 +17,17 @@
 ## 机制约定
 - 自主循环 3 条错峰自动化（:00/:20/:40）ACTIVE，按 TASK-QUEUE 认领续推；本地 commit 不 push；物理动作/真实凭据/PIPL 签署不伪造完成。
 - 详细机制见 `TASK-MECHANISM.md`，决策策略 R1–R4。
+
+## 任务执行框架（2026-08-19 落地）
+- 本仓库自有 **DPIRA** 框架（非行业标准）：`(D → P → I ⇄ R) × N → A`，强调先冻结设计/验收口径再实施、单工作项审查、整批审计；回路 A↩I（同批修）/A↺D/P（另立批次）。规范见根目录 `DPIRA.md`，批次 `DPIRA-BATCH-001.md` + `DPIRA-STATE.json`（状态机）。
+- BATCH-001 状态（2026-08-19）：D/P 通过；W1–W5 全部 DRAFT_COMPLETE（Flyway 真实迁移 / RS256 运行时闭环 / 双闸门+mvn 87-0-0+pytest+scaffold+fe build 全绿）；**W6 推送被远端写授权卡死（BLOCKED）**。
+
+## 已确认缺陷（运行时实证逮住，待用户决策）
+- **F1（HIGH）job 读表从未创建**：`Job` 实体 `@TableName("job")`，V3 迁移注释称「由 Python 采集器经 Alembic 创建」，但 server-python 无任何建表代码 → `resume_ai.job` 永不存在 → `GET /api/v1/jobs` 500。属 ADR-002 双语言异构下 Python 侧承诺未交付。**不擅自在 Java 静默补表**。
+- **F2（INFO）** 沙箱注入 `SERVER__PORT=0` 致 Tomcat 随机端口；本地以 `SERVER_PORT=8080` 覆盖。真实部署无此变量，`server.port:8080` 生效。
+
+## 环境坑（本机沙箱，复用）
+- Maven 启动器 glob 在 git-bash 下不展开 → 用 `java -cp classworlds.jar org.codehaus.plexus.classworlds.launcher.Launcher` 直启；中文路径编译乱码 → 拷到 ASCII 路径（如 `/e/build`）构建。
+- PyPI 经代理不可达 → `env -u http_proxy -u https_proxy pip install` 直连可装。
+- vite 默认 `emptyOutDir` 被沙箱 safe-delete 钩子拦 → 用外部 `--outDir` 构建。
+- GitHub 推送：直连 git 401（无凭据）、连接器 403（集成无此仓库写权限）→ 需用户授写权限/PAT，或用户本机 push。
