@@ -56,6 +56,15 @@
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
+        <!-- Flyway 9.x 起 MySQL 支持从 flyway-core 拆出为独立模块；仅 flyway-core+connector
+             会在真实 MySQL 启动时报 "Unsupported Database: MySQL"。必须显式引入 flyway-mysql
+             才能识别 MySQL（修正 DPIRA-BATCH-001 TG-2：GO-LIVE-LOG §4.3 称「不需要」属技术错误）。
+             版本对齐 spring-boot 管理的 flyway-core(9.22.3)。 -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
+            <version>9.22.3</version>
+        </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>

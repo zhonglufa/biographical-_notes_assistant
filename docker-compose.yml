@@ -1,20 +1,163 @@
-# resume-ai-prod 单容器启动（O 阶段 · 上线就绪）
-# 仅服务端 API（零依赖、契约桩 + 监控 + /metrics）。
-# 前端构建后由 nginx / 静态服务托管，或合并进同一编排（见 docs/上线手册.md）。
+# resume-ai-prod 全栈编排（上线阶段二 · 真实业务服务）
+# 构建/启动：docker compose --env-file .env up -d --build
+# 拓扑：
+#   前端(nginx:5173) --/api--> server-java(:8080, 业务后端)
+#                                    |--REST--> server-python(:8000, LLM 网关)
+#                                    |--JDBC--> MySQL(resume_ai)
+#                                    |--Redis--> Redis(幂等/缓存)
+#                                    |--AMQP--> RabbitMQ(apply.task.queue)
+# 说明：本机 Agent 不在容器内（服务端不持 Cookie/平台凭据）；
+#       消费者经 AGENT_CALLBACK_BASE_URL 回调用户机器上的本机 Agent。
+# 监控：server-java /actuator/health、server-python /healthz 为探针。
+
 services:
-  server:
-    build: .
-    image: resume-ai-prod:local
-    container_name: rat-server
+  mysql:
+    image: mysql:8.0
+    container_name: rat-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASS:-root}
+      MYSQL_DATABASE: resume_ai
+      MYSQL_CHARACTER_SET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_0900_ai_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASS:-root}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: rat-redis
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rat-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBIT_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBIT_PASS:-guest}
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  server-java:
+    build:
+      context: ./server-java
+      dockerfile: Dockerfile
+    image: resume-ai-server-java:local
+    container_name: rat-server-java
+    environment:
+      # 数据源
+      DB_HOST: mysql
+      DB_USER: ${DB_USER:-root}
+      DB_PASS: ${DB_PASS:-root}
+      # Redis
+      REDIS_HOST: redis
+      # RabbitMQ（生产模式）
+      RABBIT_HOST: rabbitmq
+      RABBIT_USER: ${RABBIT_USER:-guest}
+      RABBIT_PASS: ${RABBIT_PASS:-guest}
+      MQ_MODE: ${MQ_MODE:-rabbit}
+      MQ_RABBIT_HEALTH: ${MQ_RABBIT_HEALTH:-true}
+      # RS256 密钥（生产注入 PEM；留空→临时密钥，重启失效，仅开发，WARN 日志）
+      RESIMEAI_JWT_PRIVATE_KEY: ${RESIMEAI_JWT_PRIVATE_KEY:-}
+      RESIMEAI_JWT_PUBLIC_KEY: ${RESIMEAI_JWT_PUBLIC_KEY:-}
+      # 本机 Agent 回调基址（服务端→用户机器；服务端不持 Cookie/凭据）
+      AGENT_CALLBACK_BASE_URL: ${AGENT_CALLBACK_BASE_URL:-http://host.docker.internal:9800}
+    extra_hosts:
+      # Linux Docker Engine 下让容器能解析宿主机的 host.docker.internal
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "8080:8080"
-    environment:
-      - PORT=8080
-      - HOST=0.0.0.0
-    # 生产值（LLM 网关 / 护栏阈值）经 .env 注入，此处仅暴露端口
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8080/healthz').status==200 else 1)"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 40s
+    restart: unless-stopped
+
+  server-python:
+    build:
+      context: .
+      dockerfile: server-python/Dockerfile
+    image: resume-ai-server-python:local
+    container_name: rat-server-python
+    environment:
+      INTERNAL_TOKEN: ${INTERNAL_TOKEN:-}
+      LLM_API_KEY: ${LLM_API_KEY:-}
+      LLM_BASE_URL: ${LLM_BASE_URL:-https://api.deepseek.com/v1}
+      LLM_PRIMARY_MODEL: ${LLM_PRIMARY_MODEL:-deepseek-chat}
+      LLM_BACKUP_MODEL: ${LLM_BACKUP_MODEL:-deepseek-chat}
+      LLM_DAILY_CAP_CENTS: ${LLM_DAILY_CAP_CENTS:-50000}
+      LLM_PER_CALL_CENTS: ${LLM_PER_CALL_CENTS:-10}
+      LLM_BREAKER_THRESHOLD: ${LLM_BREAKER_THRESHOLD:-5}
+      LLM_BREAKER_COOLDOWN_S: ${LLM_BREAKER_COOLDOWN_S:-60}
+      MON_ERROR_RATE_MAX: ${MON_ERROR_RATE_MAX:-0.05}
+      MON_BAN_RATE_MAX: ${MON_BAN_RATE_MAX:-0.02}
+      MON_APPLY_SUCCESS_MIN: ${MON_APPLY_SUCCESS_MIN:-0.80}
+      FEATURE_FLAGS_OVERRIDES: ${FEATURE_FLAGS_OVERRIDES:-}
+      AUDIT_LOG_PATH: ${AUDIT_LOG_PATH:-}
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/healthz').status==200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE: ${VITE_API_BASE:-/api}
+    image: resume-ai-frontend:local
+    container_name: rat-frontend
+    depends_on:
+      - server-java
+    ports:
+      - "5173:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  mysql-data:
+  redis-data:
+  rabbitmq-data:

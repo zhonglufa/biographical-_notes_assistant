@@ -10,26 +10,38 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.UnsupportedJwtException;
 import io.jsonwebtoken.security.SignatureException;
-import org.springframework.stereotype.Component;
 
 import java.security.KeyFactory;
+import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 /**
  * RS256 JWT 验签器（HLD §3.1 / ADR-017/018）。
- * 仅用公钥验签（私钥存 KMS/配置中心，不落库、不进本类）；公钥来自 JwtProperties.publicKey(PEM)。
- * fail-closed：公钥未配置 / 令牌缺失 / 验签失败 / 过期 → 抛 AuthException，绝不放行。
+ * 仅用公钥验签（私钥存 KMS/配置中心，不落库、不进本类）；公钥来自 RsaKeyProvider（运行时）
+ * 或 JwtProperties.publicKey(PEM，测试兼容)。
+ * fail-closed：公钥缺失 / 令牌缺失 / 验签失败 / 过期 → 抛 AuthException，绝不放行。
  */
-@Component
 public class JwtVerifier {
 
-    private final JwtProperties props;
-    private volatile RSAPublicKey cachedKey;
+    private final PublicKey publicKey;
+    private final String issuer;
 
+    /**
+     * 运行时构造：由 SecurityConfig 注入 RsaKeyProvider 的公钥与 issuer。
+     */
+    public JwtVerifier(PublicKey publicKey, String issuer) {
+        this.publicKey = publicKey;
+        this.issuer = issuer;
+    }
+
+    /**
+     * 测试/遗留构造：从 JwtProperties 的 PEM 公钥解析（兼容既有单测，零改动）。
+     */
     public JwtVerifier(JwtProperties props) {
-        this.props = props;
+        this.issuer = props.issuer();
+        this.publicKey = parsePublicKey(props.publicKey());
     }
 
     /**
@@ -43,12 +55,15 @@ public class JwtVerifier {
         if (token.isBlank()) {
             throw AuthException.credentialMissing();
         }
+        // fail-closed：公钥未配置（含临时密钥未生成场景）→ 拒绝一切
+        if (publicKey == null) {
+            throw AuthException.credentialMissing();
+        }
 
-        RSAPublicKey key = publicKey();
         try {
-            JwtParserBuilder builder = Jwts.parser().verifyWith(key);
-            if (props.issuer() != null && !props.issuer().isBlank()) {
-                builder.requireIssuer(props.issuer());
+            JwtParserBuilder builder = Jwts.parser().verifyWith((RSAPublicKey) publicKey);
+            if (issuer != null && !issuer.isBlank()) {
+                builder.requireIssuer(issuer);
             }
             JwtParser parser = builder.build();
             Claims claims = parser.parseSignedClaims(token).getPayload();
@@ -70,15 +85,9 @@ public class JwtVerifier {
         }
     }
 
-    private RSAPublicKey publicKey() {
-        RSAPublicKey k = cachedKey;
-        if (k != null) {
-            return k;
-        }
-        String pem = props.publicKey();
+    private static RSAPublicKey parsePublicKey(String pem) {
         if (pem == null || pem.isBlank()) {
-            // 未配置公钥 → fail-closed：拒绝一切（生产必须显式注入公钥，无开发后门）
-            throw AuthException.credentialMissing();
+            return null;
         }
         try {
             String b64 = pem
@@ -87,11 +96,9 @@ public class JwtVerifier {
                     .replaceAll("\\s+", "");
             byte[] der = Base64.getDecoder().decode(b64);
             KeyFactory kf = KeyFactory.getInstance("RSA");
-            k = (RSAPublicKey) kf.generatePublic(new X509EncodedKeySpec(der));
-            cachedKey = k;
-            return k;
+            return (RSAPublicKey) kf.generatePublic(new X509EncodedKeySpec(der));
         } catch (Exception e) {
-            throw AuthException.unauthorized();
+            return null;
         }
     }
 }

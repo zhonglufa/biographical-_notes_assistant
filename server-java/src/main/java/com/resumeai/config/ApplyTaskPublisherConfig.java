@@ -14,6 +14,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 
 /**
  * 投递任务发布器 Bean 装配（ADR-004）。
@@ -40,6 +41,11 @@ public class ApplyTaskPublisherConfig {
     @ConditionalOnProperty(name = "resumeai.mq.mode", havingValue = "rabbit")
     public ApplyTaskPublisher rabbitMqApplyTaskPublisher(RabbitTemplate rabbitTemplate) {
         return new RabbitMqApplyTaskPublisher(rabbitTemplate, EXCHANGE, ROUTING_KEY);
+    }
+
+    @Bean
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
     }
 
     @Bean
