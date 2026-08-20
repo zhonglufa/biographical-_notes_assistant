@@ -177,11 +177,11 @@ B 路线（PR#5，`dc03b3f`）只落地了**发布器** `RabbitMqApplyTaskPublis
 - **严格桩坑**：`setUp` 中 `when(redis.opsForValue()).thenReturn(valueOps)` 在 skip/failure 用例里不会被调用（提前 return / 抛异常），Mockito 严格桩报 `UnnecessaryStubbing`。用 `lenient()` 标注该 stub 解决——这是「跨用例共享 stub 但部分用例用不到」的标准处理，不是掩盖问题。
 - **离线 `mvn test`：87/0/0 BUILD SUCCESS**（原 84 + 新增 `ApplyTaskConsumerTest` 3 用例）。全量绿，无失败无错误。
 
-### 5.5 当前诚实遗留（仍有效）
+### 5.5 当前诚实遗留（仍有效，F1 已闭合见上）
 - **B-1**：`UserServiceImpl` 凭据校验仍为 MVP 简化（非空即签发，非密码哈希/注册流程）。已真实 RS256 签发，但**认证强度未达生产级**，待独立用户子域 + PIPL 后补齐。
 - **B-2**：服务端 → 本机 Agent 的端到端联调未做（需用户机器上的客户端配合定义 `/tasks` 契约）。服务端侧契约已定义，联调属待办，标「待联调」。
 - **B-3**：memory 模式消费者不启用，预期行为。
-- **B-4（HIGH·真实缺陷·F1）**：`Job` 实体 `@TableName("job")`，但 `job` 读表从未被创建——V3__jobs.sql 注释称「由 Python 采集器经 Alembic 建表」，而 server-python 无任何建表代码，致 `GET /api/v1/jobs` 必 500。属 ADR-002 跨服务 schema 缺口，上线前必须闭合（Java 补迁移 或 Python 补 Alembic），已在 DPIRA-BATCH-001 的 F1 登记，详见 `上线手册.md` §11 部署顺序依赖。
+- **B-4（HIGH·真实缺陷·F1）— ✅ 已闭合（2026-08-20）**：`Job` 实体 `@TableName("job")`，`job` 读表此前从未被创建（V3__jobs.sql 注释甩给 Python Alembic，但 server-python 无建表代码），致 `GET /api/v1/jobs` 必 500。**决策（R1 自主拍板）**：server-python 从未交付 Alembic 建表路径，而本仓库 25 张业务表均由 server-java Flyway 拥有，故由 server-java 新增 `V11__job.sql` 显式建 `job` 表（与 job_match/job_view/job_favorite 同库、类型对齐 BIGINT UNSIGNED；不改动已跑过的 V3 以避校验和冲突）。**实跑验证**：MySQL 灌库建表成功；重建 jar 启动后 Flyway 补登 v11(success=1)；`POST /auth/login`→200 签发 RS256；`GET /api/v1/jobs?page=1&pageSize=10`→**200** `{"items":[],"total":0}`（不再 500）。详见 `DPIRA-BATCH-001` F1 与 `上线手册.md` §11。
 
 ---
 
