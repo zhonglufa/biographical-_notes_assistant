@@ -2,7 +2,7 @@
   "batch_id": "DPIRA-BATCH-001",
   "batch_phase": "IMPLEMENTING",
   "created_at": "2026-08-19 20:54:33",
-  "updated_at": "2026-08-20 20:33:00",
+  "updated_at": "2026-08-20 20:52:00",
   "items": {
     "W1": {
       "state": "DRAFT_COMPLETE",
@@ -33,7 +33,7 @@
       "state": "IN_PROGRESS",
       "title": "push→PR→gates绿→合并master",
       "role": "Lead",
-      "blocker": "已用用户提供的 GitHub PAT（repo 范围）解锁写授权：ls-remote 验证令牌有效（远端 java-business-p0=d0ccf7f，本地 HEAD=ee09fa0 领先 7 commit，fast-forward 干净）。正在推送 java-business-p0（含 C1-C7 真实工作 + DPIRA 框架 + GO-LIVE-LOG 虚假声明纠正），随后开 PR→合并 master。PAT 用完即建议用户吊销。",
+      "blocker": "已用 PAT 推送成功：java-business-p0 远端 HEAD=a15bac9（C1-C8：W1-W5 真实工作 + DPIRA 框架 + GO-LIVE-LOG 虚假声明纠正 + F1 补登 + W6状态机）。开 PR 时 GitHub 拒重复创建 → 确认已存在 java-business-p0→master 的 PR。合并 master 受分支保护 required_status_checks('gates', enforce_admins=true) 约束，须等真实 CI 报绿方可合并（绝不伪造绿闸）。当前沙箱 GitHub REST API 被限流/代理掐断，未能抓取 PR 编号与 gates 状态；待 API 恢复后续做：抓 PR 号→轮询 gates→绿了合并。PAT 已暴露于聊天，推完即请用户吊销。",
       "unblock_options": [
         "A. 提供 GitHub PAT（repo 范围，推完可立即撤销），我本地 git 配 token 后 push+开PR+合并",
         "B. 用户本机终端执行 git push origin java-business-p0，再到 GitHub 开 PR 合并 master"
