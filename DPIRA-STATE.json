@@ -2,7 +2,7 @@
   "batch_id": "DPIRA-BATCH-001",
   "batch_phase": "IMPLEMENTING",
   "created_at": "2026-08-19 20:54:33",
-  "updated_at": "2026-08-19 22:05:00",
+  "updated_at": "2026-08-20 20:33:00",
   "items": {
     "W1": {
       "state": "DRAFT_COMPLETE",
@@ -30,14 +30,13 @@
       "role": "QA"
     },
     "W6": {
-      "state": "BLOCKED",
+      "state": "IN_PROGRESS",
       "title": "push→PR→gates绿→合并master",
       "role": "Lead",
-      "blocker": "远端写授权缺失：直连 git push → HTTP 401（沙箱 wincred 无此仓库令牌）；GitHub 连接器 push_files/create_branch → HTTP 403（集成无 zhonglufa/biographical-_notes_assistant 写权限）。本地 6 commit 已就绪（HEAD ff56cc4，领先远端 d0ccf7f），待用户授予写权限后一键推送。",
+      "blocker": "已用用户提供的 GitHub PAT（repo 范围）解锁写授权：ls-remote 验证令牌有效（远端 java-business-p0=d0ccf7f，本地 HEAD=ee09fa0 领先 7 commit，fast-forward 干净）。正在推送 java-business-p0（含 C1-C7 真实工作 + DPIRA 框架 + GO-LIVE-LOG 虚假声明纠正），随后开 PR→合并 master。PAT 用完即建议用户吊销。",
       "unblock_options": [
-        "A. 在 GitHub 给 WorkBuddy GitHub 应用授予该仓库 write 权限（安装/授权），连接器即可 push+开PR",
-        "B. 提供 GitHub PAT（repo 范围），我本地 git 配 token 后 push（推送后可移除）",
-        "C. 用户本机执行 git push origin java-business-p0，再到 GitHub 开 PR 合并 master"
+        "A. 提供 GitHub PAT（repo 范围，推完可立即撤销），我本地 git 配 token 后 push+开PR+合并",
+        "B. 用户本机终端执行 git push origin java-business-p0，再到 GitHub 开 PR 合并 master"
       ]
     }
   },
